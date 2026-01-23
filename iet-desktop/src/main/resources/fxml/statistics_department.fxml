@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21.0.7"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.mayak.iet.ui.analytics.controller.DepartmentStatisticsController"
+            fitToWidth="true"
+            hbarPolicy="NEVER">
+
+    <VBox spacing="10"
+          alignment="TOP_CENTER"
+          style="-fx-padding: 20">
+
+        <HBox spacing="10" alignment="CENTER" style="-fx-background-color: #eff5fb; -fx-background-radius: 5">
+            <padding><Insets top="10" bottom="10"/></padding>
+
+            <VBox spacing="10" alignment="CENTER">
+                <Label fx:id="departmentFullNameLabel"  style="-fx-font-weight: bold;"/>
+
+                <ComboBox fx:id="departmentComboBox" promptText="select department"
+                          visible="false" managed="false"
+                          prefWidth="150"/>
+
+                <DatePicker fx:id="startDatePicker" maxWidth="150" styleClass="date-picker" promptText="dd.mm.yyyy"/>
+                <DatePicker fx:id="endDatePicker" maxWidth="150" styleClass="date-picker" promptText="dd.mm.yyyy"/>
+                <Button text="report" maxHeight="Infinity" onAction="#handleFormReport"
+                        prefWidth="150" styleClass="report-outline"/>
+            </VBox>
+        </HBox>
+
+        <Separator HBox.hgrow="ALWAYS"/>
+
+        <HBox alignment="CENTER">
+            <StackPane fx:id="allContainer" prefWidth="350" prefHeight="350">
+                <PieChart fx:id="pieChartAll" prefWidth="350" prefHeight="350" styleClass="pie-default"
+                          title="Requests"/>
+            </StackPane>
+        </HBox>
+
+        <Region prefHeight="20" HBox.hgrow="ALWAYS" style="-fx-background-color: #eff5fb; -fx-background-radius: 5"/>
+
+        <HBox spacing="100" alignment="CENTER">
+            <StackPane fx:id="spotBidedContainer" prefWidth="350" prefHeight="350">
+                <PieChart fx:id="pieChartSpotBided" prefWidth="350" prefHeight="350" styleClass="pie-default"
+                          title="Spot bidding"/>
+            </StackPane>
+            <StackPane fx:id="spotEfficiencyContainer" prefWidth="350" prefHeight="350">
+                <PieChart fx:id="pieChartSpotEfficiency" prefWidth="350" prefHeight="350" styleClass="pie-stat"
+                          title="Bidding efficiency"/>
+            </StackPane>
+            <BarChart fx:id="barChartSpotRefusedReason" prefWidth="350" prefHeight="350"
+                      styleClass="bar-spot-contract" title="Refused reasons">
+                <xAxis><CategoryAxis/></xAxis>
+                <yAxis><NumberAxis/></yAxis>
+            </BarChart>
+        </HBox>
+
+        <Region prefHeight="20" HBox.hgrow="ALWAYS" style="-fx-background-color: #eff5fb; -fx-background-radius: 5"/>
+
+        <HBox spacing="100" alignment="CENTER">
+            <StackPane fx:id="contractEfficiencyContainer" prefWidth="350" prefHeight="350">
+                <PieChart fx:id="pieChartContractEfficiency" prefWidth="350" prefHeight="350" styleClass="pie-stat"
+                          title="Contract"/>
+            </StackPane>
+            <BarChart fx:id="barChartContractRefusedReason" prefWidth="350" prefHeight="350"
+                      styleClass="bar-spot-contract" title="Refused reasons">
+                <xAxis><CategoryAxis/></xAxis>
+                <yAxis><NumberAxis/></yAxis>
+            </BarChart>
+        </HBox>
+
+        <Region prefHeight="20" HBox.hgrow="ALWAYS" style="-fx-background-color: #eff5fb; -fx-background-radius: 5"/>
+
+        <HBox>
+            <LineChart fx:id="lineChartCompression" HBox.hgrow="ALWAYS" styleClass="line-spot-contract"
+                       title="Spot/Contract compression">
+                <xAxis><CategoryAxis/></xAxis>
+                <yAxis><NumberAxis/></yAxis>
+            </LineChart>
+        </HBox>
+
+    </VBox>
+</ScrollPane>

@@ -1,0 +1,54 @@
+package com.mayak.iet.infrastructure.security.user;
+
+import com.mayak.iet.features.user.domain.model.User;
+import com.mayak.iet.features.user.domain.enums.Permission;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+@RequiredArgsConstructor
+public class UserPrincipal implements UserDetails {
+
+    @Getter
+    private final User user;
+    private final Set<Permission> permissions;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        Set<GrantedAuthority> authorities = new HashSet<>();
+
+        // 1. ROLE з UserType (тэхнічна для Spring)
+        authorities.add(
+                new SimpleGrantedAuthority("ROLE_" + user.getUserType().name())
+        );
+
+        // 2. Permissions (бізнес-узровень)
+        permissions.forEach(p ->
+                authorities.add(new SimpleGrantedAuthority(p.name()))
+        );
+
+        return authorities;
+    }
+
+    @Override
+    public String getPassword() {
+        return user.getPassword();
+    }
+
+    @Override
+    public String getUsername() {
+        return user.getEmail();
+    }
+
+    @Override public boolean isAccountNonExpired() { return true; }
+    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled() { return true; }
+
+}

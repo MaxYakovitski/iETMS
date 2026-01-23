@@ -1,0 +1,41 @@
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.Region?>
+
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.iet.ui.workspace.request.item.bid.AddBidController"
+      prefWidth="480.0" spacing="10"
+      stylesheets="@../css/styles.css"
+      style="-fx-background-color: #f9f9f9">
+
+    <padding>
+        <Insets top="20" bottom="20" left="20" right="20"/>
+    </padding>
+
+        <HBox spacing="10">
+            <VBox spacing="20">
+                <Text text="Price:"/>
+                <Text text="Commentaries:"/>
+            </VBox>
+
+            <VBox spacing="10" alignment="CENTER" HBox.hgrow="ALWAYS">
+                <TextField fx:id="bidInput" prefHeight="25.0" maxWidth="Infinity" styleClass="price-field"/>
+                <TextArea fx:id="commentsInput" wrapText="true" prefHeight="110.0" maxWidth="Infinity" styleClass="price-field"/>
+            </VBox>
+        </HBox>
+
+        <HBox>
+            <Button mnemonicParsing="false" focusTraversable="false"
+                    text="submit" onAction="#handleSubmit"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button mnemonicParsing="false" focusTraversable="false"
+                    text="cancel" onAction="#handleCancel"/>
+        </HBox>
+</VBox>

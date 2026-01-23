@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21.0.7"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.mayak.iet.ui.auth.LoginController"
+            prefWidth="480" prefHeight="240"
+            styleClass="anchor-pane"
+            stylesheets="@../css/styles.css">
+
+        <VBox spacing="15" alignment="CENTER"
+              AnchorPane.topAnchor="0"
+              AnchorPane.bottomAnchor="0"
+              AnchorPane.leftAnchor="100"
+              AnchorPane.rightAnchor="100">
+
+            <HBox alignment="CENTER">
+                <Label text="login:"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="loginField" prefWidth="200" styleClass="price-field"/>
+            </HBox>
+
+            <HBox alignment="CENTER">
+                <Label text="password:"/>
+                <Region HBox.hgrow="ALWAYS"/>
+            <PasswordField fx:id="passwordField" prefWidth="200"
+                           styleClass="price-field"/>
+            </HBox>
+        </VBox>
+
+</AnchorPane>

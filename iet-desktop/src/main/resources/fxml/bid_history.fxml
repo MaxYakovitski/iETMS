@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.mayak.iet.ui.workspace.request.item.bid.BidHistoryController"
+            prefWidth="480"
+            stylesheets="@../css/styles.css"
+            style="-fx-background-color: #f9f9f9">
+
+    <!-- ================= CONTENT ================= -->
+    <VBox VBox.vgrow="ALWAYS" alignment="CENTER">
+        <padding>
+            <Insets left="10" right="10" top="10" />
+        </padding>
+
+        <!-- Empty message -->
+        <Label fx:id="emptyMessageLabel"
+               text="No bids yet..." opacity="0.5"
+               visible="false"
+               managed="false"/>
+
+        <!-- Plain container (no scroll) -->
+        <VBox fx:id="bidsContainerPlain"
+              spacing="10"
+              visible="false"
+              managed="false"/>
+
+        <!-- Scroll container -->
+        <ScrollPane fx:id="scrollPane"
+                    VBox.vgrow="ALWAYS"
+                    visible="false"
+                    managed="false"
+                    fitToWidth="true"
+                    hbarPolicy="NEVER">
+
+            <VBox fx:id="bidsContainerScroll"
+                  spacing="10">
+                <padding><Insets top="5" right="5" bottom="5" left="5"/></padding>
+            </VBox>
+        </ScrollPane>
+    </VBox>
+
+    <HBox spacing="10" alignment="BOTTOM_CENTER">
+        <padding>
+            <Insets top="10" left="20" right="20" bottom="10"/>
+        </padding>
+
+        <Button fx:id="archivedButton"
+                contentDisplay="GRAPHIC_ONLY" prefWidth="20" prefHeight="20" style="-fx-background-color: transparent; -fx-padding: 0 0 0 0;"
+                onAction="#handleArchived"
+                focusTraversable="false">
+            <graphic>
+                <ImageView fitHeight="20" fitWidth="20" opacity="0.65" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@../icons/archive.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <Button fx:id="closeButton"
+                contentDisplay="GRAPHIC_ONLY" prefWidth="20" prefHeight="20" style="-fx-background-color: transparent; -fx-padding: 0 0 0 0;"
+                onAction="#handleClose"
+                focusTraversable="false">
+            <graphic>
+                <ImageView fitHeight="20" fitWidth="20" opacity="0.65" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@../icons/cancel.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+    </HBox>
+</VBox>

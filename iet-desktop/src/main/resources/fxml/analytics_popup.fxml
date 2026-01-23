@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.iet.ui.analytics.controller.AnalyticsPopupController"
+      styleClass="popup-content"
+      stylesheets="@/css/styles.css">
+
+    <!-- Statistics -->
+    <Button fx:id="statisticsButton"
+            onAction="#handleStatistics"
+            styleClass="popup-button">
+
+        <graphic>
+            <HBox alignment="CENTER_LEFT">
+
+                <Label text="Statistics"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <ImageView fx:id="arrowIcon"
+                           fitWidth="10" fitHeight="10"
+                           preserveRatio="true"
+                           visible="false"
+                           managed="false">
+                        <Image url="@../icons/arrow_right.png"/>
+                </ImageView>
+
+            </HBox>
+        </graphic>
+    </Button>
+
+    <!-- Planner -->
+    <Button fx:id="reportButton"
+            text="Report"
+            onAction="#handleReport"
+            styleClass="popup-button"/>
+
+</VBox>

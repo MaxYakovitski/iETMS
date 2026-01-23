@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.mayak.iet.ui.user.UserController"
+            prefWidth="360" alignment="CENTER_LEFT"
+            stylesheets="@../css/styles.css"
+            styleClass="anchor-pane">
+
+    <padding>
+        <Insets top="10" bottom="10" left="20" right="20"/>
+    </padding>
+
+    <HBox alignment="CENTER">
+        <padding><Insets bottom="10"/></padding>
+        <Label text="Personal data"/>
+    </HBox>
+
+        <HBox spacing="5">
+            <Label text="user:"/>
+            <Label fx:id="userLabel"/>
+        </HBox>
+        <HBox spacing="5">
+            <Label text="type:"/>
+            <Label fx:id="userTypeLabel"/>
+        </HBox>
+        <HBox fx:id="roleContainer" spacing="5">
+            <Label text="role:"/>
+            <Label fx:id="userRoleLabel"/>
+        </HBox>
+        <HBox fx:id="departmentContainer" spacing="5">
+            <Label text="department:"/>
+            <Label fx:id="departmentLabel"/>
+        </HBox>
+
+        <Separator>
+            <padding>
+                <Insets top="10" bottom="10"/>
+            </padding>
+        </Separator>
+
+    <HBox alignment="CENTER">
+        <padding><Insets bottom="10"/></padding>
+        <Label text="Personal statistics: "/>
+        <Label fx:id="monthLabel"/>
+    </HBox>
+
+        <HBox spacing="5">
+            <Label text="placed:"/>
+            <Label fx:id="placedLabel"/>
+        </HBox>
+        <HBox spacing="5">
+            <Label text="joined:"/>
+            <Label fx:id="joinedLabel"/>
+        </HBox>
+        <HBox spacing="5">
+            <Label text="bided:"/>
+            <Label fx:id="bidedLabel"/>
+        </HBox>
+        <HBox spacing="5">
+            <Label text="assigned:"/>
+            <Label fx:id="assignedLabel"/>
+        </HBox>
+
+</VBox>

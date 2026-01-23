@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: iet-backend
+
+  profiles:
+    active: dev

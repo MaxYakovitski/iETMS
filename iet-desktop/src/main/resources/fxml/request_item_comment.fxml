@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.iet.ui.workspace.request.item.CommentController"
+      prefWidth="480" prefHeight="240"
+      stylesheets="@../css/styles.css"
+      style="-fx-background-color: #f9f9f9">
+
+    <padding>
+        <Insets left="10" right="10" bottom="10" top="10"/>
+    </padding>
+
+    <TextArea fx:id="commentsTextArea"
+              editable="false"
+              wrapText="true" styleClass="comments-textarea"/>
+</VBox>

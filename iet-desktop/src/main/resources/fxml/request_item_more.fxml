@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.iet.ui.workspace.request.item.RequestMoreController"
+      prefWidth="480.0"
+      stylesheets="@../css/styles.css"
+      style="-fx-background-color: #f9f9f9;">
+
+    <padding>
+        <Insets top="10" bottom="10"/>
+    </padding>
+
+    <HBox spacing="5">
+        <VBox.margin><Insets left="10" right="10" /></VBox.margin>
+        <Label fx:id="participantsLabel" text="Participants:"/>
+        <Label fx:id="participantsGroup" alignment="TOP_LEFT"/>
+    </HBox>
+
+    <HBox spacing="5">
+        <VBox.margin><Insets left="10" right="10" /></VBox.margin>
+        <Label fx:id="assignedToLabel" text="Assigned to:"/>
+        <Label fx:id="assignedPersonFullName"/>
+    </HBox>
+
+    <HBox fx:id="tidContainer" alignment="CENTER_LEFT" spacing="5" visible="false" managed="false">
+        <VBox.margin><Insets left="10" right="10" /></VBox.margin>
+        <Label fx:id="tIdLabel" text="tId:" />
+        <TextField fx:id="tId" focusTraversable="false" editable="false" prefWidth="110"
+                   style="-fx-background-color: #f9f9f9; -fx-border-color: transparent transparent #c8c8c8 transparent; -fx-border-radius: 0"
+                   promptText="enter t.ID"/>
+    </HBox>
+</VBox>

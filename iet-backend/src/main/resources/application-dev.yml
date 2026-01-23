@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/iet
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  sql:
+    init:
+      mode: never
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.springframework.web.socket: DEBUG
+    org.springframework.web.socket.server: DEBUG
+    org.springframework.web.socket.messaging: DEBUG
+    org.springframework.security: DEBUG
+
+app:
+  admin:
+    first-name: system
+    last-name: administrator
+    email: a@example.com
+    password: a123*

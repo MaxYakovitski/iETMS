@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.iet.ui.crm.CrmPopupController"
+      styleClass="popup-content"
+      stylesheets="@/css/styles.css">
+
+    <Button text="Companies"
+            onAction="#handleCompanies"
+            styleClass="popup-button"/>
+
+    <Button text="Contracts"
+            onAction="#handleContracts"
+            styleClass="popup-button"/>
+</VBox>
