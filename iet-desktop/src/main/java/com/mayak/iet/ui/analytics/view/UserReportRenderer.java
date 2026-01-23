@@ -40,7 +40,7 @@ public class UserReportRenderer {
         grid.add(new Label("placed"), 0, 0);
         grid.add(new Label("joined"), 1, 0);
         grid.add(new Label("bided"), 2, 0);
-        grid.add(new Label("assigned"), 3, 0);
+        grid.add(new Label("dispatched"), 3, 0);
         grid.add(new Label("avg bid time, min"), 4, 0);
 
         grid.add(new Separator(), 0, 1, 5, 1);

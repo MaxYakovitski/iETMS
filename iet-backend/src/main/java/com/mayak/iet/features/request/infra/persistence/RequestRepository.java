@@ -171,6 +171,22 @@ ORDER BY
             @Param("statuses") List<RequestStatus> statuses
     );
 
+    @Query("""
+    SELECT DISTINCT r FROM Request r
+    JOIN Profile p ON p.user.id = r.authorId
+    LEFT JOIN FETCH r.customer с
+    LEFT JOIN FETCH r.bids
+    WHERE p.department.id = :departmentId
+      AND r.issueDate BETWEEN :from AND :to
+      AND r.status IN :statuses
+""")
+    List<Request> findFullByDepartmentAndIssueDateBetweenAndStatusIn(
+            @Param("departmentId") Long departmentId,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to,
+            @Param("statuses") List<RequestStatus> statuses
+    );
+
     boolean existsByAuthorId(Long userId);
 
     boolean existsByAssignedUserId(Long userId);

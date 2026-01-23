@@ -1,6 +1,8 @@
 package com.mayak.iet.features.request.application;
 
 import com.mayak.iet.common.dto.page.PageDto;
+import com.mayak.iet.features.user.application.UserProfileQueryService;
+import com.mayak.iet.features.user.infra.persistence.ProfileRepository;
 import com.mayak.iet.location.dto.LocationDto;
 import com.mayak.iet.request.dto.enums.RequestTypeDto;
 import com.mayak.iet.request.dto.filter.RequestFilterDto;
@@ -39,6 +41,7 @@ public class RequestQueryService {
 
     private final RequestRepository requestRepository;
     private final ShipmentRepository shipmentRepository;
+    private final ProfileRepository profileRepository;
     private final RequestDetailsAssembler detailsAssembler;
     private final RequestListItemAssembler listItemAssembler;
     private final LocationResolver locationResolver;
@@ -114,7 +117,7 @@ public class RequestQueryService {
         return ExchangeFormatter.format(from, to, request);
     }
 
-    public List<Request> findRequestsForReport(LocalDate from, LocalDate to) {
+    public List<Request> findRequestsForReport(LocalDate from, LocalDate to, Long userId) {
         var fromDt = from.atStartOfDay();
         var toDt = to.atTime(LocalTime.MAX);
 
@@ -123,7 +126,16 @@ public class RequestQueryService {
                 RequestStatus.REFUSED
         );
 
-        return requestRepository.findFullByIssueDateBetweenAndStatusIn(fromDt, toDt, statuses);
+        Long departmentId = profileRepository
+                .findDepartmentIdByUserId(userId)
+                .orElse(null);
+
+        if (departmentId == null) {
+            return requestRepository.findFullByIssueDateBetweenAndStatusIn(fromDt, toDt, statuses);
+        }
+
+        return requestRepository.findFullByDepartmentAndIssueDateBetweenAndStatusIn(departmentId, fromDt, toDt, statuses);
+
     }
 
     private Class<? extends Request> resolveType(RequestTypeDto dto) {

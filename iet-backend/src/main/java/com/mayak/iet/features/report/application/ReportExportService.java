@@ -1,5 +1,8 @@
 package com.mayak.iet.features.report.application;
 
+import com.mayak.iet.features.report.infra.excel.UserStatsExcelHeader;
+import com.mayak.iet.features.report.infra.excel.UserStatsExcelRowMapper;
+import com.mayak.iet.statistics.UserStatsDto;
 import com.mayak.iet.user.dto.UserNameDto;
 import com.mayak.iet.features.location.domain.model.Location;
 import com.mayak.iet.features.request.domain.model.Request;
@@ -53,6 +56,32 @@ public class ReportExportService {
             }
             workbook.write(out);
 
+        }
+    }
+
+    public void exportUserStatsToExcel(List<UserStatsDto> stats, OutputStream out) throws IOException {
+        Objects.requireNonNull(out, "OutputStream must not be null");
+
+        List<UserStatsDto> safeStats = stats == null ? List.of() : stats;
+
+        var header = new UserStatsExcelHeader();
+        var rowMapper = new UserStatsExcelRowMapper();
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            XSSFSheet sheet = workbook.createSheet("Employees");
+
+            header.writeHeader(sheet);
+
+            int row = 1;
+            for (UserStatsDto dto : safeStats) {
+                rowMapper.writeRow(sheet, row++, dto);
+            }
+
+            for (int i = 0; i < header.columnCount(); i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(out);
         }
     }
 

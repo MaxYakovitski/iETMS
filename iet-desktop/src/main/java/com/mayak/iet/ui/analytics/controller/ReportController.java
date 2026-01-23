@@ -74,12 +74,12 @@ public class ReportController {
 
         LocalDate start = startDatePicker.getValue();
         LocalDate end = endDatePicker.getValue();
-//        ReportType type = reportChoiceBox.getValue();
+        ReportType type = reportChoiceBox.getValue();
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save report");
 
-        fileChooser.setInitialFileName("report_" + start + "_to_" + end + ".xlsx");
+        fileChooser.setInitialFileName("report_" + type.toString().toLowerCase() + "_" +start + "_to_" + end + ".xlsx");
 
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Excel Files", "*.xlsx")
@@ -90,7 +90,7 @@ public class ReportController {
         if (selectedFile == null) return;
 
         try {
-            reportClient.downloadRequestsReport(start, end, selectedFile);
+            reportClient.downloadRequestsReport(type, start, end, selectedFile);
         } catch (Exception e) {
             AlertUtils.showError("Failed to generate report: " + e.getMessage());
         }

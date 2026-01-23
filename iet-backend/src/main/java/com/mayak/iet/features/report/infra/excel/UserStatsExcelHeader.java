@@ -3,16 +3,14 @@ package com.mayak.iet.features.report.infra.excel;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
-public class RequestExcelHeader {
+public class UserStatsExcelHeader {
+
     private static final String[] HEADERS = {
-            "ID", "requst","code from", "code to","FROM", "TO", "customer", "start", "end", "shipment Type", "transport Type",
-            "ADR", "temp, °C", "weight, kg", "LDM", "status", "reason","client price", "best Bid", "profit, EUR",
-            "dispatched to", "author", "issue Date"
+            "user", "placed", "joined", "bided", "dispatched", "avg. response (min)"
     };
 
     public void writeHeader(Sheet sheet) {
         Row row = sheet.createRow(0);
-
         for (int i = 0; i < HEADERS.length; i++) {
             row.createCell(i).setCellValue(HEADERS[i]);
         }

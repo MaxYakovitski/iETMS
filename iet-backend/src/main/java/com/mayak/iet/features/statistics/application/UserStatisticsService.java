@@ -1,8 +1,12 @@
 package com.mayak.iet.features.statistics.application;
 
+import com.mayak.iet.features.user.application.UserProfileQueryService;
+import com.mayak.iet.features.user.domain.model.User;
+import com.mayak.iet.features.user.infra.persistence.UserRepository;
 import com.mayak.iet.statistics.UserStatsDto;
 import com.mayak.iet.user.dto.UserNameDto;
 import com.mayak.iet.features.statistics.infra.persistence.UserStatisticsRepository;
+import com.mayak.iet.user.dto.UserResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,15 +24,25 @@ import java.util.List;
 public class UserStatisticsService {
 
     private final UserStatisticsRepository repo;
+    private final UserProfileQueryService userProfileQueryService;
+    private final UserRepository userRepository;
 
-    public List<UserStatsDto> getUserStats(
-            LocalDate start,
-            LocalDate end,
-            List<Long> userIds
-    ) {
-        if (userIds == null || userIds.isEmpty()) {
-            return List.of();
+    public List<UserStatsDto> getUserStats(LocalDate start, LocalDate end, Long requesterUserId) {
+        List<Long> userIds = userProfileQueryService
+                .findColleagues(requesterUserId)
+                .stream()
+                .map(UserResponseDto::id)
+                .toList();
+
+        if (userIds.isEmpty()) {
+            userIds = userRepository.findAll().stream().map(User::getId).toList();
         }
+
+        return getUserStats(start, end, userIds);
+    }
+
+    public List<UserStatsDto> getUserStats(LocalDate start, LocalDate end, List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) return List.of();
 
         LocalDateTime from = start.atStartOfDay();
         LocalDateTime to   = end.atTime(LocalTime.MAX);
