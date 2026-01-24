@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     open-in-view: false
     properties:
       hibernate:
@@ -32,5 +32,5 @@ app:
   admin:
     first-name: system
     last-name: administrator
-    email: a@example.com
-    password: a123*
+    email: ${ADMIN_EMAIL:a@example.com}
+    password: ${ADMIN_PASSWORD:dev-admin-password}
