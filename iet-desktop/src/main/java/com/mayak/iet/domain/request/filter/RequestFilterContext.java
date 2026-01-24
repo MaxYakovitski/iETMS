@@ -19,6 +19,7 @@ public class RequestFilterContext {
                 || hasCollection(filter.getTransportTypes())
                 || hasCollection(filter.getAuthorIds())
                 || hasCollection(filter.getCompetitorIds())
+                || hasCollection(filter.getDispatchersIds())
                 || hasText(filter.getCompanyName())
                 || hasDates()
                 || hasWeight()
