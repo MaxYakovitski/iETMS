@@ -22,7 +22,7 @@ import java.time.LocalDate;
 public class UserController {
 
     @FXML public Label userLabel, userTypeLabel, userRoleLabel, departmentLabel,
-            monthLabel, placedLabel, joinedLabel, bidedLabel, assignedLabel;
+            monthLabel, placedLabel, joinedLabel, bidedLabel, dispatchedLabel;
     @FXML public HBox roleContainer, departmentContainer;
 
     @Getter private Stage stage;
@@ -52,7 +52,7 @@ public class UserController {
         placedLabel.setText("...");
         joinedLabel.setText("...");
         bidedLabel.setText("...");
-        assignedLabel.setText("...");
+        dispatchedLabel.setText("...");
 
         applyDepartmentView();
         applyRoleView();
@@ -85,7 +85,7 @@ public class UserController {
             placedLabel.setText(String.valueOf(stats.placed()));
             joinedLabel.setText(String.valueOf(stats.joined()));
             bidedLabel.setText(String.valueOf(stats.bided()));
-            assignedLabel.setText(String.valueOf(stats.assigned()));
+            dispatchedLabel.setText(String.valueOf(stats.assigned()));
 
         } catch (Exception e) {
             log.error("Failed to load personal statistics for user {}", user.id(), e);
@@ -93,7 +93,7 @@ public class UserController {
             placedLabel.setText("–");
             joinedLabel.setText("–");
             bidedLabel.setText("–");
-            assignedLabel.setText("–");
+            dispatchedLabel.setText("–");
         }
     }
 }
