@@ -42,7 +42,7 @@ public class RequestLifecycle {
             throw new IllegalStateException("Request must be OFFERED before acceptance");
         }
 
-        request.setAssignedUserId(bestBid.getUser().getId());
+        request.setDispatcherId(bestBid.getUser().getId());
         request.setStatus(RequestStatus.ACCEPTED);
 
         if (request instanceof SpotRequest spot) {

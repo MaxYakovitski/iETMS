@@ -44,7 +44,7 @@ public interface SpotRequestMapper {
     @Mapping(target = "bidPrice", ignore = true)
     @Mapping(target = "profitMargin", ignore = true)
     @Mapping(target = "competitorsId", ignore = true)
-    @Mapping(target = "assignedUserId", ignore = true)
+    @Mapping(target = "dispatcherId", ignore = true)
     @Mapping(target = "bids", ignore = true)
     @Mapping(target = "fromLocationIds", ignore = true)
     @Mapping(target = "toLocationIds", ignore = true)

@@ -154,7 +154,6 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     }
 
     protected void initRealtimeUpdates() {
-
         wsClient.connect(
                 event -> Platform.runLater(() -> handleEventReceived(List.of(event))),
                 event -> Platform.runLater(() -> handleUserEvent(event))
@@ -342,20 +341,23 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         log.info("WS USER EVENT received: {}", event);
 
         if (event == null || event.getPayload() == null) return;
-
         if (event.getType() != RequestEvent.EventType.STATUS_CHANGED) return;
+        if (loggedInUser == null) return;
 
-        if (event.getPayload().status() == RequestStatusDto.ACCEPTED) {
-            showAssignedToast(event.getRequestId());
+        RequestEventDto dto = event.getPayload();
+        if (dto.status() != RequestStatusDto.ACCEPTED) return;
+
+        if (!Objects.equals(dto.dispatcherId(), loggedInUser.id())) {
+            log.debug("Skip ACCEPTED toast: dispatcherId={}, currentUserId={}", dto.dispatcherId(), loggedInUser.id());
+            return;
         }
-    }
 
-    private void showAssignedToast(Long requestId) {
         ToastService.showInfo(
                 windowService.getPrimaryStage(),
                 "Request dispatched",
-                "Request #" + requestId + " has been dispatched to you!"
+                "Request #" + event.getRequestId() + " has been dispatched to you!"
         );
+
     }
 
     private void reloadCurrentPageFromServer() {

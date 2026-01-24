@@ -84,7 +84,7 @@ public class RequestDetailsAssembler {
 
                 // -------- USERS --------
                 .author(userLookupService.toShortDto(request.getAuthorId()))
-                .assignedUser(userLookupService.toShortDto(request.getAssignedUserId()))
+                .assignedUser(userLookupService.toShortDto(request.getDispatcherId()))
                 .competitors(userLookupService.toShortDtoSet(request.getCompetitorsId()))
 
                 // -------- BIDS --------

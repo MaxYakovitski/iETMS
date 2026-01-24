@@ -343,7 +343,7 @@ public class RequestLifecycleService {
 
     private Shipment createShipment(Request request) {
         Shipment shipment = new Shipment(request);
-        shipment.assignDispatcher(request.getAssignedUserId());
+        shipment.assignDispatcher(request.getDispatcherId());
         return shipmentRepository.save(shipment);
     }
 
