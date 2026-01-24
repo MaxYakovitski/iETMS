@@ -86,7 +86,7 @@ ORDER BY
     @Query("""
         SELECT COUNT(r)
         FROM Request r
-        WHERE r.assignedUserId = :userId
+        WHERE r.dispatcherId = :userId
           AND r.issueDate BETWEEN :start AND :end
     """)
     int countByAssignedUser(@Param("userId") Long userId,
@@ -173,7 +173,7 @@ ORDER BY
 
     boolean existsByAuthorId(Long userId);
 
-    boolean existsByAssignedUserId(Long userId);
+    boolean existsByDispatcherId(Long userId);
 
     @Query("""
         SELECT COUNT(r) > 0
