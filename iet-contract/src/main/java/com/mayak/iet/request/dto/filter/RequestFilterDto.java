@@ -45,6 +45,7 @@ public class RequestFilterDto {
 
     private List<Long> authorIds;
     private List<Long> competitorIds;
+    private List<Long> dispatchersIds;
 
     private RequestSortField sortBy = RequestSortField.START_DATE;
     private boolean asc = true;
