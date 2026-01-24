@@ -171,6 +171,14 @@ ORDER BY
             params.put("competitorIds", filter.getCompetitorIds());
         }
 
+        // Dispatchers
+        if (filter.getDispatchersIds() != null && !filter.getDispatchersIds().isEmpty()) {
+            sql.append("""
+        AND r.dispatcher_id IN :dispatchersIds
+    """);
+            params.put("dispatchersIds", filter.getDispatchersIds());
+        }
+
         // --- Count query ---
         Query countQuery = entityManager.createNativeQuery("SELECT COUNT(*) " + sql);
         params.forEach(countQuery::setParameter);
