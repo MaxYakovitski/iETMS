@@ -4,5 +4,5 @@ public record UserPersonalStats (
         int placed,
         int joined,
         int bided,
-        int assigned) {
+        int dispatched) {
 }

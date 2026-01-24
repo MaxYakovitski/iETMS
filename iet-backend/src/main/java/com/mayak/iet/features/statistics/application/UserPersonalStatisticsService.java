@@ -33,7 +33,7 @@ public class UserPersonalStatisticsService {
                 MetricType.PLACED.count(requestRepository, userId, from, to),
                 MetricType.JOINED.count(requestRepository, userId, from, to),
                 MetricType.BIDED.count(requestRepository, userId, from, to),
-                MetricType.ASSIGNED.count(requestRepository, userId, from, to)
+                MetricType.DISPATCHED.count(requestRepository, userId, from, to)
         );
     }
 }

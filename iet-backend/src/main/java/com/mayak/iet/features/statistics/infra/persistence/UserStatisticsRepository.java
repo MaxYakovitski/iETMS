@@ -19,7 +19,7 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
         Integer getCreated();
         Integer getJoined();
         Integer getBided();
-        Integer getAssigned();
+        Integer getDispatched();
 
         BigDecimal getAvgResponseMinutes();
     }
@@ -46,7 +46,7 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
             COUNT(DISTINCT r_created.id) AS created,
             COUNT(DISTINCT rc.request_id) AS joined,
             COUNT(DISTINCT fb.request_id) AS bided,
-            COUNT(DISTINCT r_assigned.id) AS assigned,
+            COUNT(DISTINCT r_dispatched.id) AS dispatched,
 
             COALESCE(
                 ROUND(
@@ -75,9 +75,9 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
         LEFT JOIN requests r
             ON r.id = fb.request_id
 
-        LEFT JOIN requests r_assigned
-            ON r_assigned.assigned_user_id = u.id
-           AND r_assigned.issue_date BETWEEN :from AND :to
+        LEFT JOIN requests dispatched
+            ON r_dispatched.dispatched_user_id = u.id
+           AND r_dispatched.issue_date BETWEEN :from AND :to
 
         WHERE u.id = ANY(:userIds)
         GROUP BY u.id, u.name, u.surname

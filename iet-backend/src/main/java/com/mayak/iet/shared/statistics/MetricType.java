@@ -30,11 +30,11 @@ public enum MetricType {
         }
     },
 
-    ASSIGNED {
+    DISPATCHED {
         @Override
         public int count(RequestRepository repo, Long userId,
                          LocalDateTime from, LocalDateTime to) {
-            return repo.countByAssignedUser(userId, from, to);
+            return repo.countByDispatchedUser(userId, from, to);
         }
     };
 
