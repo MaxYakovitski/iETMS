@@ -1,6 +1,7 @@
 package com.mayak.iet.ui.home;
 
 import com.mayak.iet.integration.api.UserClient;
+import com.mayak.iet.ui.about.AboutController;
 import com.mayak.iet.user.dto.UserResponseDto;
 import com.mayak.iet.ui.analytics.controller.AnalyticsPopupController;
 import com.mayak.iet.ui.core.BasePopupController;
@@ -156,6 +157,17 @@ public class HomeController {
                 controller -> controller.init(windowService.getPrimaryStage(), loggedInUser),
                 "User",
                 USER_ICON
+        );
+    }
+
+    @FXML
+    public void handleAbout() {
+        windowService.openModalWindow(
+                View.ABOUT.getPath(),
+                AboutController.class,
+                controller -> controller.init(windowService.getPrimaryStage()),
+                "About",
+                null
         );
     }
 

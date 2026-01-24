@@ -31,6 +31,8 @@ public enum View {
 
     USER("/fxml/user.fxml"),
 
+    ABOUT("/fxml/about.fxml"),
+
     REQUEST_ITEM("/fxml/request_item.fxml"),
     REQUEST_COMMENT("/fxml/request_item_comment.fxml"),
     ADD_BID("/fxml/request_item_add_bid.fxml"),

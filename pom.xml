@@ -20,6 +20,7 @@
     <properties>
         <java.version>21</java.version>
         <javafx.version>21.0.7</javafx.version>
+        <app.version>0.1.0</app.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>

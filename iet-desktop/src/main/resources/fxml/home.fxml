@@ -34,6 +34,9 @@
         <Button text="User" mnemonicParsing="false" prefHeight="30.0"
                 style="-fx-background-color: #f9f9f9; -fx-border-color: transparent;" onAction="#handleUser"/>
 
+        <Button text="About" mnemonicParsing="false" prefHeight="30.0"
+                style="-fx-background-color: #f9f9f9; -fx-border-color: transparent;" onAction="#handleAbout"/>
+
         <Region HBox.hgrow="ALWAYS"/>
 
         <HBox alignment="CENTER" spacing="5">
