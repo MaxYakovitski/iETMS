@@ -14,6 +14,7 @@ public class RequestEventMapper {
         return new RequestEventDto(
                 mapType(req),
                 mapStatus(req),
+                mapDispatcherId(req),
                 req.getClientPrice(),
                 req.getBidPrice(),
                 req.getProfitMargin()
@@ -28,4 +29,9 @@ public class RequestEventMapper {
     private RequestTypeDto mapType(Request req) {
         return req.getRequestTypeDto();
     }
+
+    private Long mapDispatcherId(Request req) {
+        return req.getDispatcherId() != null ? req.getDispatcherId() : null;
+    }
+
 }

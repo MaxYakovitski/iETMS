@@ -1,5 +1,6 @@
 package com.mayak.iet.ui.workspace.planner.controller;
 
+import com.mayak.iet.request.dto.event.ShipmentEventDto;
 import com.mayak.iet.shipment.event.ShipmentEvent;
 import com.mayak.iet.infrastructure.error.ApiErrorUtils;
 import com.mayak.iet.infrastructure.tost.ToastService;
@@ -109,8 +110,12 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     private boolean hasMyShipments = false;
     private boolean hasMyTransports = false;
 
+    @Getter
+    private UserResponseDto loggedInUser;
+
     @Override
     public void setLoggedInUser(UserResponseDto user) {
+        this.loggedInUser = user;
         this.permissions = new UserPermissions(user);
     }
 
@@ -133,14 +138,23 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         loadMyTransports();
     }
 
-    private void handleShipmentUserEvent(ShipmentEvent<?> event) {
-        if (event.getType() == ShipmentEvent.EventType.CANCELED) {
-            ToastService.showInfo(
-                    windowService.getPrimaryStage(),
-                    "Shipment canceled",
-                    "Shipment #" + event.getShipmentId() + " has been canceled"
-            );
+    private void handleShipmentUserEvent(ShipmentEvent<ShipmentEventDto> event) {
+        if (event == null || event.getPayload() == null) return;
+        if (loggedInUser == null) return;
+
+        ShipmentEventDto dto = event.getPayload();
+
+        if (event.getType() != ShipmentEvent.EventType.CANCELED) return;
+
+        if (!Objects.equals(dto.dispatcherId(), loggedInUser.id())) {
+            log.debug("Skip shipment toast: dispatcherId={}, currentUserId={}", dto.dispatcherId(), loggedInUser.id());
+            return;
         }
+
+        ToastService.showInfo(
+                windowService.getPrimaryStage(),
+                "Shipment canceled",
+                "Shipment #" + event.getShipmentId() + " has been canceled");
     }
 
     @Override
