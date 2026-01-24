@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RequestMoreController {
 
-    @FXML public Label participantsLabel, participantsGroup, assignedToLabel, assignedPersonFullName, tIdLabel;
+    @FXML public Label participantsLabel, participantsGroup, dispatchedToLabel, dispatcherFullName, tIdLabel;
 
     @FXML public HBox tidContainer;
     @FXML public TextField tId;
@@ -66,7 +66,7 @@ public class RequestMoreController {
                         .collect(Collectors.joining(", "))
                         : "nobody joined yet"
         );
-        assignedPersonFullName.setText(
+        dispatcherFullName.setText(
                 details.assignedUser() != null
                         ? details.assignedUser().fullName()
                         : "not identified yet"

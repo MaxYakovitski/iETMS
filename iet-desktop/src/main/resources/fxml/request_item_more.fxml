@@ -25,8 +25,8 @@
 
     <HBox spacing="5">
         <VBox.margin><Insets left="10" right="10" /></VBox.margin>
-        <Label fx:id="assignedToLabel" text="Assigned to:"/>
-        <Label fx:id="assignedPersonFullName"/>
+        <Label fx:id="dispatchedToLabel" text="Dispatched to:"/>
+        <Label fx:id="dispatcherFullName"/>
     </HBox>
 
     <HBox fx:id="tidContainer" alignment="CENTER_LEFT" spacing="5" visible="false" managed="false">
