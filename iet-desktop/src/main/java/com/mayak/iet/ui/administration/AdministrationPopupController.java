@@ -48,7 +48,7 @@ public class AdministrationPopupController extends BasePopupController {
                                 structurePopup
                         ),
                         PopupMenuUtils.menuButton(
-                                "Users",
+                                "Employees",
                                 () -> navigate(View.SETTINGS_USERS),
                                 popup,
                                 structurePopup
