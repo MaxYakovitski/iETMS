@@ -66,8 +66,9 @@ public class RequestFilterController implements SecuredView, ViewLifecycle {
     @FXML public HBox requestTypeRow;
     @FXML private GridPane grid;
 
-    public CheckComboBox <UserResponseDto> authorsMultiSelectComboBox;
-    public CheckComboBox <UserResponseDto> competitorsMultiSelectComboBox;
+    @FXML public CheckComboBox <UserResponseDto> authorsMultiSelectComboBox;
+    @FXML public CheckComboBox <UserResponseDto> competitorsMultiSelectComboBox;
+    @FXML public CheckComboBox <UserResponseDto> dispatcherMultiSelectComboBox;
 
     @Setter
     private Stage stage;
@@ -92,6 +93,7 @@ public class RequestFilterController implements SecuredView, ViewLifecycle {
 
     private static final String REQUESTS_BY_COLLEAGUES = "requests by";
     private static final String JOINED_TO_REQUESTS = "joined";
+    private static final String DISPATCHED_TO = "dispatched to";
 
     @Override
     public void onShow() {
@@ -203,7 +205,8 @@ public class RequestFilterController implements SecuredView, ViewLifecycle {
                 ldmFromField,
                 ldmToField,
                 authorsMultiSelectComboBox,
-                competitorsMultiSelectComboBox
+                competitorsMultiSelectComboBox,
+                dispatcherMultiSelectComboBox
         );
 
         RequestFilterContext context = new RequestFilterContext(filter);
@@ -232,6 +235,7 @@ public class RequestFilterController implements SecuredView, ViewLifecycle {
                 transportComboBox.getCheckModel().clearChecks();
                 authorsMultiSelectComboBox.getCheckModel().clearChecks();
                 competitorsMultiSelectComboBox.getCheckModel().clearChecks();
+                dispatcherMultiSelectComboBox.getCheckModel().clearChecks();
 
                 requestTypeGroup.selectToggle(null);
                 shipmentTypeGroup.selectToggle(null);
@@ -306,10 +310,18 @@ public class RequestFilterController implements SecuredView, ViewLifecycle {
         } else {
             competitors = userClient.findColleaguesByDepartment(getUserDepartmentId());
         }
+
         MultiSelectComboBoxUtils.setupMultiSelect(
                 competitorsMultiSelectComboBox,
                 competitors,
                 JOINED_TO_REQUESTS,
+                u -> u.name() + " " + u.surname()
+        );
+
+        MultiSelectComboBoxUtils.setupMultiSelect(
+                dispatcherMultiSelectComboBox,
+                competitors,
+                DISPATCHED_TO,
                 u -> u.name() + " " + u.surname()
         );
     }
@@ -381,6 +393,13 @@ public class RequestFilterController implements SecuredView, ViewLifecycle {
                 competitorsMultiSelectComboBox.getItems().stream()
                         .filter(u -> filter.getCompetitorIds().contains(u.id()))
                         .forEach(competitorsMultiSelectComboBox.getCheckModel()::check);
+            }
+
+            dispatcherMultiSelectComboBox.getCheckModel().clearChecks();
+            if(filter.getDispatchersIds() != null) {
+                dispatcherMultiSelectComboBox.getItems().stream()
+                        .filter(u -> filter.getDispatchersIds().contains(u.id()))
+                        .forEach(dispatcherMultiSelectComboBox.getCheckModel()::check);
             }
         });
     }

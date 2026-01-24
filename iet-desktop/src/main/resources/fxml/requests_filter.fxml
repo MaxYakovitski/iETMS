@@ -124,6 +124,9 @@
 
             <CheckComboBox fx:id="competitorsMultiSelectComboBox" prefWidth="150" focusTraversable="false"
                            GridPane.rowIndex="14" GridPane.columnIndex="1"/>
+
+            <CheckComboBox fx:id="dispatcherMultiSelectComboBox" prefWidth="150" focusTraversable="false"
+                           GridPane.rowIndex="15" GridPane.columnIndex="1"/>
         </GridPane>
 
         <HBox alignment="CENTER">
