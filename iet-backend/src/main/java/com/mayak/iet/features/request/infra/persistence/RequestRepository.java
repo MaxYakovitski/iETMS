@@ -89,7 +89,7 @@ ORDER BY
         WHERE r.dispatcherId = :userId
           AND r.issueDate BETWEEN :start AND :end
     """)
-    int countByAssignedUser(@Param("userId") Long userId,
+    int countByDispatchedUser(@Param("userId") Long userId,
                             @Param("start") LocalDateTime start,
                             @Param("end") LocalDateTime end);
 
