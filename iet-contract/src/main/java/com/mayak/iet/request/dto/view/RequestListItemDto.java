@@ -34,5 +34,5 @@ public record RequestListItemDto(
         LocalDateTime issueDate,
 
         BigDecimal totalPrice,
-        UserNameDto assignedUser) {
+        UserNameDto dispatchedUser) {
 }

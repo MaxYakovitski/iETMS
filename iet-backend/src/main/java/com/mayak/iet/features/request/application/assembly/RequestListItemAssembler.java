@@ -53,7 +53,7 @@ public class RequestListItemAssembler {
                     .author(userLookupService.getName(r.getAuthorId()))
                     .issueDate(r.getIssueDate())
                     .totalPrice(totalPrice)
-                    .assignedUser(userLookupService.getName(r.getDispatcherId()))
+                    .dispatchedUser(userLookupService.getName(r.getDispatcherId()))
                     .build();
     }
 

@@ -140,7 +140,7 @@ public class ShipmentService {
      * Updates shipment data and applies an optional status transition.
      *
      * <p>
-     * Only the dispatcher assigned to the shipment is allowed to perform updates.
+     * Only the dispatcher is allowed to perform updates.
      * Status transitions are validated against the domain state machine and
      * require an explicit timestamp.
      * </p>
