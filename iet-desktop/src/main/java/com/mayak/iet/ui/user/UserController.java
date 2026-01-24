@@ -85,7 +85,7 @@ public class UserController {
             placedLabel.setText(String.valueOf(stats.placed()));
             joinedLabel.setText(String.valueOf(stats.joined()));
             bidedLabel.setText(String.valueOf(stats.bided()));
-            dispatchedLabel.setText(String.valueOf(stats.assigned()));
+            dispatchedLabel.setText(String.valueOf(stats.dispatched()));
 
         } catch (Exception e) {
             log.error("Failed to load personal statistics for user {}", user.id(), e);
