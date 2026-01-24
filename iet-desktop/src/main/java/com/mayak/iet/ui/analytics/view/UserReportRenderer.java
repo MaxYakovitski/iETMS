@@ -50,7 +50,7 @@ public class UserReportRenderer {
         grid.add(new Label(String.valueOf(item.placed())), 0, row);
         grid.add(new Label(String.valueOf(item.joined())), 1, row);
         grid.add(new Label(String.valueOf(item.bided())), 2, row);
-        grid.add(new Label(String.valueOf(item.assigned())), 3, row);
+        grid.add(new Label(String.valueOf(item.dispatched())), 3, row);
         grid.add(new Label(item.avgResponse().toString()), 4, row);
     }
 }
