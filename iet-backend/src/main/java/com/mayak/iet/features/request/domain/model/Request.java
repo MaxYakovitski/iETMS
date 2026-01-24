@@ -123,8 +123,8 @@ public abstract class Request {
     @Column(name = "user_id")
     private Set <Long> competitorsId =  new HashSet<>();
 
-    @JoinColumn(name = "assigned_user_id")
-    private Long assignedUserId;
+    @JoinColumn(name = "dispatcher_id")
+    private Long dispatcherId;
 
     @OneToMany(mappedBy = "request", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Bid> bids = new HashSet<>();

@@ -128,7 +128,7 @@ public class UserCommandService {
                 requestRepository.existsByAuthorId(id);
 
         boolean usedAsAssigned =
-                requestRepository.existsByAssignedUserId(id);
+                requestRepository.existsByDispatcherId(id);
 
         boolean usedAsCompetitor =
                 requestRepository.existsByCompetitor(id);

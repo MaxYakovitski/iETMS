@@ -48,7 +48,7 @@ public class RequestExcelRowMapper {
         row.createCell(cell++).setCellValue(request.getBidPrice() != null ? request.getBidPrice().doubleValue() : 0);
         row.createCell(cell++).setCellValue(request.getProfitMargin() != null ? request.getProfitMargin().doubleValue() : 0);
 
-        row.createCell(cell++).setCellValue(nzs(userNameById.get(request.getAssignedUserId())));
+        row.createCell(cell++).setCellValue(nzs(userNameById.get(request.getDispatcherId())));
         row.createCell(cell++).setCellValue(nzs(userNameById.get(request.getAuthorId())));
 
         setDate(row, cell, request.getIssueDate(), dateStyle);

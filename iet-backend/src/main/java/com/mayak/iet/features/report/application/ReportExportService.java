@@ -85,7 +85,7 @@ public class ReportExportService {
         Set<Long> userIds = requests.stream()
                 .flatMap(r -> Stream.of(
                         r.getAuthorId(),
-                        r.getAssignedUserId()
+                        r.getDispatcherId()
                 ))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
