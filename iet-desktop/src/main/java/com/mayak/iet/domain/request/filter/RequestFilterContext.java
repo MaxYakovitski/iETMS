@@ -21,16 +21,29 @@ public class RequestFilterContext {
                 || hasCollection(filter.getCompetitorIds())
                 || hasCollection(filter.getDispatchersIds())
                 || hasText(filter.getCompanyName())
+                || hasFrom()
+                || hasTo()
                 || hasDates()
                 || hasWeight()
                 || hasLdm()
                 || filter.getDangerous() != null;
     }
 
+    private boolean hasFrom() {
+        return hasText(filter.getFromCountry())
+                || hasText(filter.getFromZipCode())
+                || hasText(filter.getFromPlace());
+    }
+
+    private boolean hasTo() {
+        return hasText(filter.getToCountry())
+                || hasText(filter.getToZipCode())
+                || hasText(filter.getToPlace());
+    }
+
     private boolean hasDates() {
         return filter.getDatesFilterOption() != null &&
-                (filter.getStartDate() != null || filter.getEndDate() != null);
-    }
+                (filter.getStartDate() != null || filter.getEndDate() != null);}
 
     private boolean hasWeight() {
         return filter.getMinWeight() != null || filter.getMaxWeight() != null;
