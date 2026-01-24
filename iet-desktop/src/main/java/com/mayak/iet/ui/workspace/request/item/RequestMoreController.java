@@ -67,8 +67,8 @@ public class RequestMoreController {
                         : "nobody joined yet"
         );
         dispatcherFullName.setText(
-                details.assignedUser() != null
-                        ? details.assignedUser().fullName()
+                details.dispatchedUser() != null
+                        ? details.dispatchedUser().fullName()
                         : "not identified yet"
         );
         tId.setText(details.tid() != null ? details.tid() : "");

@@ -54,7 +54,7 @@ public record RequestDetailsDto (
         Set<BidViewDto> bids,
         Set<BidViewDto> activeBids,
 
-        UserLookupDto assignedUser,
+        UserLookupDto dispatchedUser,
         UserLookupDto author,
 
         LocalDateTime issueDate,
