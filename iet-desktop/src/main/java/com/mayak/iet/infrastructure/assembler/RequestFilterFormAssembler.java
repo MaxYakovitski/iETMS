@@ -41,7 +41,8 @@ public class RequestFilterFormAssembler {
             TextField ldmFrom,
             TextField ldmTo,
             CheckComboBox<UserResponseDto> authorsBox,
-            CheckComboBox<UserResponseDto> competitorsBox
+            CheckComboBox<UserResponseDto> competitorsBox,
+            CheckComboBox<UserResponseDto> dispatchersBox
     ) {
         RequestFilterDto filter = new RequestFilterDto();
 
@@ -86,6 +87,7 @@ public class RequestFilterFormAssembler {
         // ==================== COLLEAGUES ====================
         filter.setAuthorIds(extractIds(authorsBox));
         filter.setCompetitorIds(extractIds(competitorsBox));
+        filter.setDispatchersIds(extractIds(dispatchersBox));
 
         return filter;
     }
