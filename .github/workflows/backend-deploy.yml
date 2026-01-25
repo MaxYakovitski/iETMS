@@ -20,7 +20,8 @@ jobs:
           java-version: 21
 
       - name: Build backend
-        run: ./mvnw -B -pl iet-backend -am clean package
+        working-directory: iet-backend
+        run: ./mvnw -B -am clean package
 
       - name: Upload jar to server
         uses: appleboy/scp-action@v0.1.7
@@ -31,7 +32,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "iet-backend/target/iet-backend-1.0-SNAPSHOT.jar"
           target: "/opt/ietms/backend/app/"
-          strip_components: 2
 
       - name: Restart backend service
         uses: appleboy/ssh-action@v1.0.3
