@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# exploded jars / manual inspections
+**/META-INF/
