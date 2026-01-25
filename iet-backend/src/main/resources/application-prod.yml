@@ -20,6 +20,15 @@ logging:
     root: INFO
     org.hibernate.SQL: INFO
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
 app:
   admin:
     first-name: system
