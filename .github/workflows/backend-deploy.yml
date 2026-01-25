@@ -40,5 +40,5 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo systemctl restart ietms-backend
-            sudo systemctl status ietms-backend --no-pager
+            sudo -n /usr/bin/systemctl restart ietms-backend
+            sudo -n /usr/bin/systemctl status ietms-backend --no-pager
