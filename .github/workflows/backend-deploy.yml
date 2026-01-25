@@ -20,8 +20,9 @@ jobs:
           java-version: 21
 
       - name: Build backend
-        working-directory: iet-backend
-        run: ./mvnw -B -am clean package
+        run: |
+          chmod +x mvnw
+          ./mvnw -B -pl iet-backend -am clean package
 
       - name: Upload jar to server
         uses: appleboy/scp-action@v0.1.7
