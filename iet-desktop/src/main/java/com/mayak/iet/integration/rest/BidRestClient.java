@@ -15,7 +15,7 @@ import java.util.List;
 @Service
 public class BidRestClient extends AbstractRestClient implements BidClient {
 
-    private static final String BASE_URL = "http://localhost:8080/api/bids";
+    private static final String API = "/api/bids";
 
     public BidRestClient(RestTemplate restTemplate) {
         super(restTemplate);
@@ -25,7 +25,7 @@ public class BidRestClient extends AbstractRestClient implements BidClient {
     public List<BidViewDto> findByRequest(long requestId) {
         return exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .get(BASE_URL + "/by-request/{id}", requestId)
+                    .get(API + "/by-request/{id}", requestId)
                     .build();
 
             var response = restTemplate.exchange(
@@ -43,7 +43,7 @@ public class BidRestClient extends AbstractRestClient implements BidClient {
     public BidViewDto create(BidCreateDto dto) {
         return exchangeSafely(() -> {
             RequestEntity<BidCreateDto> request = RequestEntity
-                    .post(BASE_URL)
+                    .post(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
 
@@ -57,7 +57,7 @@ public class BidRestClient extends AbstractRestClient implements BidClient {
     public void delete(long bidId) {
         exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .delete(BASE_URL + "/{id}", bidId)
+                    .delete(API + "/{id}", bidId)
                     .build();
 
             restTemplate.exchange(request, Void.class);

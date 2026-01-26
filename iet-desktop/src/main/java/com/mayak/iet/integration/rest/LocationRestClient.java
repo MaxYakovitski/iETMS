@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 public class LocationRestClient extends AbstractRestClient implements LocationClient {
 
-    private static final String BASE_URL = "http://localhost:8080/api/locations";
+    private static final String API = "/api/locations";
 
     public LocationRestClient(RestTemplate restTemplate) {
         super(restTemplate);
@@ -24,7 +24,7 @@ public class LocationRestClient extends AbstractRestClient implements LocationCl
     public List<LocationDto> findAll() {
         return exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .get(BASE_URL)
+                    .get(API)
                     .build();
 
             var body = restTemplate.exchange(
@@ -40,7 +40,7 @@ public class LocationRestClient extends AbstractRestClient implements LocationCl
     public void create(LocationCreateDto dto) {
         exchangeSafely(() -> {
             RequestEntity<LocationCreateDto> request = RequestEntity
-                    .post(BASE_URL)
+                    .post(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
 
@@ -53,7 +53,7 @@ public class LocationRestClient extends AbstractRestClient implements LocationCl
     public void update(LocationDto dto) {
         exchangeSafely(() -> {
             RequestEntity<LocationDto> request = RequestEntity
-                    .put(BASE_URL)
+                    .put(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
 
@@ -66,7 +66,7 @@ public class LocationRestClient extends AbstractRestClient implements LocationCl
     public void delete(Long id) {
         exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .delete(BASE_URL + "/{id}", id)
+                    .delete(API + "/{id}", id)
                     .build();
 
             restTemplate.exchange(request, Void.class);

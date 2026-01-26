@@ -15,7 +15,7 @@ import java.util.List;
 @Service
 public class UserRestClient extends AbstractRestClient implements UserClient {
 
-    private static final String BASE_URL = "http://localhost:8080/api/users";
+    private static final String API = "/api/users";
 
     public UserRestClient(RestTemplate restTemplate) {
         super(restTemplate);
@@ -27,7 +27,7 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
 
             ResponseEntity<UserResponseDto> response =
                     restTemplate.exchange(
-                            BASE_URL + "/me",
+                            API + "/me",
                             HttpMethod.GET,
                             null,
                             UserResponseDto.class
@@ -40,33 +40,33 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
     //FULL
     @Override
     public List<UserResponseDto> findAll() {
-        return exchangeList(BASE_URL);
+        return exchangeList(API);
     }
 
     @Override
     public List<UserResponseDto> findClientSpecialists() {
-        return exchangeList(BASE_URL + "/client-specialists");
+        return exchangeList(API + "/client-specialists");
     }
 
     @Override
     public List<UserResponseDto> findClientSpecialistsByDepartment(Long depId) {
-        return exchangeList(BASE_URL + "/client-specialists/by-department/{id}", depId);
+        return exchangeList(API + "/client-specialists/by-department/{id}", depId);
     }
 
     @Override
     public List<UserResponseDto> findColleagues() {
-        return exchangeList(BASE_URL + "/colleagues");
+        return exchangeList(API + "/colleagues");
     }
 
     @Override
     public List<UserResponseDto> findColleaguesByDepartment(Long depId) {
-        return exchangeList(BASE_URL + "/colleagues/by-department/{id}", depId);
+        return exchangeList(API + "/colleagues/by-department/{id}", depId);
     }
 
     public void create(UserCreateDto dto) {
         exchangeSafely(() -> {
             RequestEntity<UserCreateDto> request = RequestEntity
-                    .post(BASE_URL)
+                    .post(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
 
@@ -79,7 +79,7 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
     public void update(Long id, UserUpdateDto dto) {
         exchangeSafely(() -> {
             RequestEntity<UserUpdateDto> request = RequestEntity
-                    .put(BASE_URL + "/{id}", id)
+                    .put(API + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
 
@@ -92,7 +92,7 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
     public void delete(Long id) {
         exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .delete(BASE_URL + "/{id}", id)
+                    .delete(API + "/{id}", id)
                     .build();
 
             restTemplate.exchange(request, Void.class);
@@ -104,7 +104,7 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
     public void changePassword(Long userId, String newPassword) {
         exchangeSafely(() -> {
             RequestEntity<ChangePasswordDto> request =
-                    RequestEntity.put(BASE_URL + "/{id}/password", userId)
+                    RequestEntity.put(API + "/{id}/password", userId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .body(new ChangePasswordDto(newPassword));
 
@@ -138,7 +138,7 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
 
             ResponseEntity<List<UserLookupDto>> response =
                     restTemplate.exchange(
-                            BASE_URL + "/client-specialists/lookup/by-department/{id}",
+                            API + "/client-specialists/lookup/by-department/{id}",
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {},
@@ -157,7 +157,7 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
 
             ResponseEntity<List<UserLookupDto>> response =
                     restTemplate.exchange(
-                            BASE_URL + "/colleagues/lookup/by-department/{id}",
+                            API + "/colleagues/lookup/by-department/{id}",
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {},

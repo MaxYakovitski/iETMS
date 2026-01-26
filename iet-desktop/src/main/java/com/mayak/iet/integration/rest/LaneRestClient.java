@@ -13,7 +13,7 @@ import java.util.List;
 @Service
 public class LaneRestClient extends AbstractRestClient implements LaneClient {
 
-    private static final String BASE_URL = "http://localhost:8080/api/lanes";
+    private static final String API = "/api/lanes";
 
     public LaneRestClient(RestTemplate restTemplate) {
         super(restTemplate);
@@ -23,7 +23,7 @@ public class LaneRestClient extends AbstractRestClient implements LaneClient {
     public List<LaneViewDto> findByCompany(long companyId) {
         return exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .get(BASE_URL + "/by-company/{companyId}", companyId)
+                    .get(API + "/by-company/{companyId}", companyId)
                     .build();
 
             var body = restTemplate.exchange(
@@ -39,7 +39,7 @@ public class LaneRestClient extends AbstractRestClient implements LaneClient {
     public LaneViewDto create(long companyId, LaneCreateDto dto) {
         return exchangeSafely(() -> {
             RequestEntity<LaneCreateDto> request = RequestEntity
-                    .post(BASE_URL + "/by-company/{companyId}", companyId)
+                    .post(API + "/by-company/{companyId}", companyId)
                     .body(dto);
 
             return restTemplate.exchange(
@@ -53,7 +53,7 @@ public class LaneRestClient extends AbstractRestClient implements LaneClient {
     public LaneViewDto update(long laneId, LaneCreateDto dto) {
         return exchangeSafely(() -> {
             RequestEntity<LaneCreateDto> request = RequestEntity
-                    .put(BASE_URL + "/{id}", laneId)
+                    .put(API + "/{id}", laneId)
                     .body(dto);
 
             return restTemplate.exchange(
@@ -67,7 +67,7 @@ public class LaneRestClient extends AbstractRestClient implements LaneClient {
     public void delete(long laneId) {
         exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .delete(BASE_URL + "/{id}", laneId)
+                    .delete(API + "/{id}", laneId)
                     .build();
 
             restTemplate.exchange(request, Void.class);

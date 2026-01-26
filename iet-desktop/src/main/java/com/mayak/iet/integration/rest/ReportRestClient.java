@@ -13,8 +13,7 @@ import java.time.LocalDate;
 @Service
 public class ReportRestClient extends AbstractRestClient implements ReportClient {
 
-    private static final String URL =
-            "http://localhost:8080/api/reports/requests.xlsx?type={type}&from={from}&to={to}";
+    private static final String API = "/api/reports/requests.xlsx?type={type}&from={from}&to={to}";
 
     public ReportRestClient(RestTemplate restTemplate) {
         super(restTemplate);
@@ -24,7 +23,7 @@ public class ReportRestClient extends AbstractRestClient implements ReportClient
     public void downloadRequestsReport(ReportType type, LocalDate from, LocalDate to, File targetFile) {
         exchangeSafely(() -> {
 
-            byte[] bytes = restTemplate.getForObject(URL, byte[].class, type.name(), from.toString(), to.toString());
+            byte[] bytes = restTemplate.getForObject(API, byte[].class, type.name(), from.toString(), to.toString());
 
             if (bytes == null) {
                 throw new RuntimeException("Empty report");

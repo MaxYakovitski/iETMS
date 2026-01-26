@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 public class DepartmentRestClient extends AbstractRestClient implements DepartmentClient {
 
-    private static final String BASE_URL = "http://localhost:8080/api/departments";
+    private static final String API = "/api/departments";
 
     public DepartmentRestClient(RestTemplate restTemplate) {
         super(restTemplate);
@@ -24,7 +24,7 @@ public class DepartmentRestClient extends AbstractRestClient implements Departme
     public List<DepartmentDto> findAll() {
         return exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .get(BASE_URL)
+                    .get(API)
                     .build();
 
             var body = restTemplate.exchange(
@@ -40,7 +40,7 @@ public class DepartmentRestClient extends AbstractRestClient implements Departme
     public void create(DepartmentCreateDto dto) {
         exchangeSafely(() -> {
             RequestEntity<DepartmentCreateDto> request = RequestEntity
-                    .post(BASE_URL)
+                    .post(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
 
@@ -53,7 +53,7 @@ public class DepartmentRestClient extends AbstractRestClient implements Departme
     public void update(DepartmentDto dto) {
         exchangeSafely(() -> {
             RequestEntity<DepartmentDto> request = RequestEntity
-                    .put(BASE_URL + "/{id}", dto.id())
+                    .put(API + "/{id}", dto.id())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
 
@@ -66,7 +66,7 @@ public class DepartmentRestClient extends AbstractRestClient implements Departme
     public void delete(long id) {
         exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .delete(BASE_URL + "/{id}", id)
+                    .delete(API + "/{id}", id)
                     .build();
 
             restTemplate.exchange(request, Void.class);

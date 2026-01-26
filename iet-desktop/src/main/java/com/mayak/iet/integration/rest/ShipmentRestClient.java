@@ -18,7 +18,7 @@ import java.util.List;
 @Service
 public class ShipmentRestClient extends AbstractRestClient implements ShipmentClient {
 
-    private static final String BASE_URL = "http://localhost:8080/api/shipments";
+    private static final String API = "/api/shipments";
 
     public ShipmentRestClient(RestTemplate restTemplate) {
         super(restTemplate);
@@ -28,7 +28,7 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
     public List<ShipmentListItemDto> findMyShipments(LocalDate date) {
         return exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .get(BASE_URL + "/my-shipments?date={date}", date)
+                    .get(API + "/my-shipments?date={date}", date)
                     .build();
 
             var body = restTemplate.exchange(
@@ -45,7 +45,7 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
         return exchangeSafely(() -> {
 
             RequestEntity<Void> request = RequestEntity
-                    .get(BASE_URL + "/my-transport-events?date={date}", date)
+                    .get(API + "/my-transport-events?date={date}", date)
                     .build();
 
             var body = restTemplate.exchange(
@@ -62,7 +62,7 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
         return exchangeSafely(() -> {
 
             RequestEntity<ShipmentUpdateDto> request = RequestEntity
-                    .patch(BASE_URL + "/{id}", dto.shipmentId())
+                    .patch(API + "/{id}", dto.shipmentId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
 
@@ -78,7 +78,7 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
         exchangeSafely(() -> {
             RequestEntity<CancelShipmentRequest> request =
                     RequestEntity
-                            .post(BASE_URL + "/{id}/cancel", shipmentId)
+                            .post(API + "/{id}/cancel", shipmentId)
                             .body(new CancelShipmentRequest(reason));
 
             restTemplate.exchange(request, Void.class);
