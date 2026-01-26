@@ -20,7 +20,7 @@ import java.math.BigDecimal;
 @Service
 public class RequestRestClient extends AbstractRestClient implements RequestClient {
 
-    private static final String BASE_URL = "http://localhost:8080/api/requests";
+    private static final String API = "/api/requests";
 
     public RequestRestClient(RestTemplate restTemplate) {
         super(restTemplate);
@@ -30,7 +30,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
     public PageDto<RequestListItemDto> findPage(int page, int size, RequestTypeDto type) {
         return exchangeSafely(() -> {
 
-            String url = BASE_URL + "?page={page}&size={size}&type={type}";
+            String url = API + "?page={page}&size={size}&type={type}";
 
             RequestEntity<Void> request = RequestEntity
                     .get(url, page, size, type)
@@ -47,7 +47,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
     public PageDto<RequestListItemDto> search(String query, int page, int size) {
         return exchangeSafely(() -> {
 
-            String url = BASE_URL + "/search?q={q}&page={page}&size={size}";
+            String url = API + "/search?q={q}&page={page}&size={size}";
 
             RequestEntity<Void> request = RequestEntity
                     .get(url, query, page, size)
@@ -64,7 +64,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
     public PageDto<RequestListItemDto> filter(RequestFilterDto filter, int page, int size) {
         return exchangeSafely(() -> {
 
-            String url = BASE_URL + "/filter?page={page}&size={size}";
+            String url = API + "/filter?page={page}&size={size}";
 
             RequestEntity<RequestFilterDto> request = RequestEntity
                     .post(url, page, size)
@@ -83,7 +83,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
         return exchangeSafely(() -> {
 
             RequestEntity<Void> request = RequestEntity
-                    .get(BASE_URL + "/{id}", requestId)
+                    .get(API + "/{id}", requestId)
                     .build();
 
             return restTemplate.exchange(request, RequestDetailsDto.class).getBody();
@@ -94,7 +94,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
     public void join(long requestId) {
         exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .post(BASE_URL + "/" + requestId + "/join")
+                    .post(API + "/" + requestId + "/join")
                     .build();
 
             restTemplate.exchange(request, Void.class);
@@ -106,7 +106,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
     public void leave(long requestId) {
         exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .post(BASE_URL + "/" + requestId + "/leave")
+                    .post(API + "/" + requestId + "/leave")
                     .build();
 
             restTemplate.exchange(request, Void.class);
@@ -118,7 +118,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
     public void offer(long requestId) {
         exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .post(BASE_URL + "/" + requestId + "/offer")
+                    .post(API + "/" + requestId + "/offer")
                     .build();
 
             restTemplate.exchange(request, Void.class);
@@ -130,7 +130,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
     public void accept(long requestId) {
         exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .post(BASE_URL + "/" + requestId + "/accept")
+                    .post(API + "/" + requestId + "/accept")
                     .contentType(MediaType.APPLICATION_JSON)
                     .build();
 
@@ -146,7 +146,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
             AcceptRequest body = new AcceptRequest(price);
 
             RequestEntity<AcceptRequest> request = RequestEntity
-                    .post(BASE_URL + "/" + requestId + "/accept")
+                    .post(API + "/" + requestId + "/accept")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body);
 
@@ -161,7 +161,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
             RefuseRequest body = new RefuseRequest(reasonCode);
 
             RequestEntity<RefuseRequest> request = RequestEntity
-                    .post(BASE_URL + "/" + requestId + "/refuse")
+                    .post(API + "/" + requestId + "/refuse")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body);
 
@@ -175,7 +175,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
         return exchangeSafely(() -> {
 
             RequestEntity<Void> request = RequestEntity
-                    .get(BASE_URL + "/" + requestId + "/exchange")
+                    .get(API + "/" + requestId + "/exchange")
                     .build();
 
             return restTemplate.exchange(request, String.class).getBody();
@@ -189,7 +189,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
             UpdateTidRequest body = new UpdateTidRequest(tid);
 
             RequestEntity<UpdateTidRequest> request = RequestEntity
-                    .patch(BASE_URL + "/" + requestId + "/tid")
+                    .patch(API + "/" + requestId + "/tid")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body);
 
@@ -203,7 +203,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
         return exchangeSafely(() -> {
 
             RequestEntity<BaseRequestDto> request = RequestEntity
-                    .post(BASE_URL)
+                    .post(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
 
@@ -215,7 +215,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
     public void delete(long requestId) {
         exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .delete(BASE_URL + "/" + requestId)
+                    .delete(API + "/" + requestId)
                     .build();
 
             restTemplate.exchange(request, Void.class);
@@ -227,7 +227,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
     public boolean hasShipment(long requestId) {
         return exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .get(BASE_URL + "/{id}/has-shipment", requestId)
+                    .get(API + "/{id}/has-shipment", requestId)
                     .build();
 
             Boolean result = restTemplate.exchange(

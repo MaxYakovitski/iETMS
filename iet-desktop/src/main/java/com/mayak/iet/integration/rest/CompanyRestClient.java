@@ -15,7 +15,7 @@ import java.util.Optional;
 @Service
 public class CompanyRestClient extends AbstractRestClient implements CompanyClient {
 
-    private static final String BASE_URL = "http://localhost:8080/api/companies";
+    private static final String API = "/api/companies";
 
     public CompanyRestClient(RestTemplate restTemplate) {
         super(restTemplate);
@@ -25,7 +25,7 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
     public List<CompanyDto> findAll() {
         return exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .get(BASE_URL)
+                    .get(API)
                     .build();
 
             var body = restTemplate.exchange(
@@ -41,7 +41,7 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
     public Optional<CompanyDto> findByName(String name) {
         return exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .get(BASE_URL + "/by-name?name={name}", name)
+                    .get(API + "/by-name?name={name}", name)
                     .build();
 
             return Optional.ofNullable(
@@ -56,7 +56,7 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
     public CompanyDto create(CompanyCreateDto dto) {
         return exchangeSafely(() -> {
             RequestEntity<CompanyCreateDto> request = RequestEntity
-                    .post(BASE_URL)
+                    .post(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
 
@@ -70,7 +70,7 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
     public void update(Long id, CompanyDto dto) {
         exchangeSafely(() -> {
             RequestEntity<CompanyDto> request = RequestEntity
-                    .put(BASE_URL + "/" + id)
+                    .put(API + "/" + id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
 
@@ -83,7 +83,7 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
     public void delete(Long id) {
         exchangeSafely(() -> {
             RequestEntity<Void> request = RequestEntity
-                    .delete(BASE_URL + "/" + id)
+                    .delete(API + "/" + id)
                     .build();
 
             restTemplate.exchange(request, Void.class);
