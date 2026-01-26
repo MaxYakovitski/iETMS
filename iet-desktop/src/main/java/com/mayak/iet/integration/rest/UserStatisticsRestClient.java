@@ -1,5 +1,6 @@
 package com.mayak.iet.integration.rest;
 
+import com.mayak.iet.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.iet.integration.api.UserStatisticsClient;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -11,8 +12,8 @@ public class UserStatisticsRestClient extends AbstractRestClient implements User
 
     private static final String API = "/api/statistics/users";
 
-    public UserStatisticsRestClient(RestTemplate restTemplate) {
-        super(restTemplate);
+    public UserStatisticsRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     public UserPersonalStats getCurrentMonthStats(Long userId) {

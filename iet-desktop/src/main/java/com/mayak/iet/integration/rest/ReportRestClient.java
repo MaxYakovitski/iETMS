@@ -1,5 +1,6 @@
 package com.mayak.iet.integration.rest;
 
+import com.mayak.iet.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.iet.integration.api.ReportClient;
 import com.mayak.iet.statistics.ReportType;
 import org.springframework.stereotype.Service;
@@ -15,8 +16,8 @@ public class ReportRestClient extends AbstractRestClient implements ReportClient
 
     private static final String API = "/api/reports/requests.xlsx?type={type}&from={from}&to={to}";
 
-    public ReportRestClient(RestTemplate restTemplate) {
-        super(restTemplate);
+    public ReportRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     @Override
