@@ -1,5 +1,6 @@
 package com.mayak.iet.integration.rest;
 
+import com.mayak.iet.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.iet.request.dto.bid.BidCreateDto;
 import com.mayak.iet.request.dto.bid.BidViewDto;
 import com.mayak.iet.integration.api.BidClient;
@@ -17,8 +18,8 @@ public class BidRestClient extends AbstractRestClient implements BidClient {
 
     private static final String API = "/api/bids";
 
-    public BidRestClient(RestTemplate restTemplate) {
-        super(restTemplate);
+    public BidRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate,  connectionMonitor);
     }
 
     @Override

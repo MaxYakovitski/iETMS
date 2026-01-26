@@ -2,6 +2,7 @@ package com.mayak.iet.integration.rest;
 
 import com.mayak.iet.department.dto.DepartmentCreateDto;
 import com.mayak.iet.department.dto.DepartmentDto;
+import com.mayak.iet.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.iet.integration.api.DepartmentClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
@@ -16,8 +17,8 @@ public class DepartmentRestClient extends AbstractRestClient implements Departme
 
     private static final String API = "/api/departments";
 
-    public DepartmentRestClient(RestTemplate restTemplate) {
-        super(restTemplate);
+    public DepartmentRestClient(RestTemplate restTemplate,  BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate,   connectionMonitor);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.mayak.iet.integration.rest;
 
+import com.mayak.iet.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.iet.integration.api.UserClient;
 import com.mayak.iet.user.dto.*;
 import org.springframework.core.ParameterizedTypeReference;
@@ -17,8 +18,8 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
 
     private static final String API = "/api/users";
 
-    public UserRestClient(RestTemplate restTemplate) {
-        super(restTemplate);
+    public UserRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     @Override

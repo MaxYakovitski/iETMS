@@ -1,6 +1,7 @@
 package com.mayak.iet.integration.rest;
 
 import com.mayak.iet.common.dto.page.PageDto;
+import com.mayak.iet.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.iet.request.dto.command.AcceptRequest;
 import com.mayak.iet.request.dto.command.RefuseRequest;
 import com.mayak.iet.request.dto.command.UpdateTidRequest;
@@ -22,8 +23,8 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
 
     private static final String API = "/api/requests";
 
-    public RequestRestClient(RestTemplate restTemplate) {
-        super(restTemplate);
+    public RequestRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     @Override

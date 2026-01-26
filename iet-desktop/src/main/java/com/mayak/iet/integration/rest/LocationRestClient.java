@@ -1,5 +1,6 @@
 package com.mayak.iet.integration.rest;
 
+import com.mayak.iet.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.iet.location.dto.LocationCreateDto;
 import com.mayak.iet.location.dto.LocationDto;
 import com.mayak.iet.integration.api.LocationClient;
@@ -16,8 +17,8 @@ public class LocationRestClient extends AbstractRestClient implements LocationCl
 
     private static final String API = "/api/locations";
 
-    public LocationRestClient(RestTemplate restTemplate) {
-        super(restTemplate);
+    public LocationRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     @Override
