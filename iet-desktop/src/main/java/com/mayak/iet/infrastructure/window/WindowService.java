@@ -341,9 +341,11 @@ public class WindowService {
         Platform.runLater(() -> {
             closeAllDetachedWindows();
             bringPrimaryStageToFront();
-            initConnectionOverlay();
-            connectionOverlayController.showDisconnected();
-            connectionOverlay.setVisible(true);
+            Platform.runLater(() -> {
+                initConnectionOverlay();
+                connectionOverlayController.showDisconnected();
+                connectionOverlay.setVisible(true);
+            });
         });
     }
 
