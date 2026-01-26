@@ -3,12 +3,12 @@ package com.mayak.iet.integration.websocket;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mayak.iet.app.BackendProperties;
 import com.mayak.iet.request.dto.event.RequestEventDto;
 import com.mayak.iet.request.event.RequestEvent;
 import com.mayak.iet.integration.auth.AuthState;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.*;
 import org.springframework.stereotype.Component;
@@ -17,8 +17,6 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -27,27 +25,22 @@ import static com.mayak.iet.ws.WsDestinations.TOPIC_REQUESTS;
 
 @Component
 @Slf4j
-public class RequestStompClient {
+public class RequestStompClient extends AbstractStompClient{
 
     private static final TypeReference<RequestEvent<RequestEventDto>> EVENT_TYPE =
             new TypeReference<>() {};
 
     private final WebSocketStompClient stompClient;
     private final ObjectMapper mapper;
-    private final String url;
+    private final String wsUrl;
     private final AuthState authState;
-
-    private volatile StompSession session;
-    private volatile boolean connected;
 
     private Consumer<RequestEvent<RequestEventDto>> lastTopicHandler;
     private Consumer<RequestEvent<RequestEventDto>> lastUserHandler;
 
-    private final ScheduledExecutorService reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
-
-    public RequestStompClient(AuthState authState, @Value("${backend.ws-url:ws://localhost:8080/ws}") String url) {
+    public RequestStompClient(AuthState authState, BackendProperties backendProperties) {
         this.authState = authState;
-        this.url = url;
+        this.wsUrl = backendProperties.wsUrl();
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient());
         this.stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -57,13 +50,10 @@ public class RequestStompClient {
             Consumer<RequestEvent<RequestEventDto>> onTopicEvent,
             Consumer<RequestEvent<RequestEventDto>> onUserEvent) {
 
+        if (connected || shuttingDown) return;
+
         this.lastTopicHandler = onTopicEvent;
         this.lastUserHandler = onUserEvent;
-
-        if (connected) {
-            log.debug("WS already connected, skipping connect()");
-            return;
-        }
 
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         if (authState.isAuthenticated()) {
@@ -73,7 +63,7 @@ public class RequestStompClient {
             log.warn("WS connection without auth token");
         }
 
-        stompClient.connectAsync(url, headers, new StompSessionHandlerAdapter() {
+        stompClient.connectAsync(wsUrl, headers, new StompSessionHandlerAdapter() {
 
                     @Override
                     public void afterConnected(@NotNull StompSession session, @NotNull StompHeaders headers) {
@@ -90,14 +80,15 @@ public class RequestStompClient {
                     public void handleTransportError(@NotNull StompSession session, @NotNull Throwable exception) {
                         connected = false;
                         log.warn("WS transport error", exception);
+                        if (!shuttingDown) scheduleReconnect();
 
-                        scheduleReconnect();
                     }
                 }
         );
     }
 
     private void scheduleReconnect() {
+        if (lastTopicHandler == null || lastUserHandler == null) return;
         reconnectExecutor.schedule(() -> connect(lastTopicHandler, lastUserHandler), 3, TimeUnit.SECONDS);
     }
 
@@ -131,15 +122,6 @@ public class RequestStompClient {
     }
 
     public synchronized void disconnect() {
-        if (session != null && session.isConnected()) {
-            try {
-                session.disconnect();
-                log.info("WS disconnected");
-            } catch (Exception e) {
-                log.warn("WS disconnect failed", e);
-            }
-        }
-        session = null;
-        connected = false;
+        disconnectInternal("Request");
     }
 }

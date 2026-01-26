@@ -3,12 +3,12 @@ package com.mayak.iet.integration.websocket;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mayak.iet.app.BackendProperties;
 import com.mayak.iet.request.dto.event.ShipmentEventDto;
 import com.mayak.iet.shipment.event.ShipmentEvent;
 import com.mayak.iet.integration.auth.AuthState;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -20,8 +20,6 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -30,29 +28,22 @@ import static com.mayak.iet.ws.WsDestinations.TOPIC_SHIPMENTS;
 
 @Component
 @Slf4j
-public class ShipmentStompClient {
+public class ShipmentStompClient extends AbstractStompClient {
 
     private static final TypeReference<ShipmentEvent<ShipmentEventDto>> EVENT_TYPE =
             new TypeReference<>() {};
 
     private final WebSocketStompClient stompClient;
     private final ObjectMapper mapper;
-    private final String url;
+    private final String wsUrl;
     private final AuthState authState;
-
-    private volatile StompSession session;
-    private volatile boolean connected;
 
     private Consumer<ShipmentEvent<ShipmentEventDto>> lastTopicHandler;
     private Consumer<ShipmentEvent<ShipmentEventDto>> lastUserHandler;
 
-    private final ScheduledExecutorService reconnectExecutor =
-            Executors.newSingleThreadScheduledExecutor();
-
-    public ShipmentStompClient(AuthState authState, @Value("${backend.ws-url:ws://localhost:8080/ws}") String url
-    ) {
+    public ShipmentStompClient(AuthState authState, BackendProperties backendProperties) {
         this.authState = authState;
-        this.url = url;
+        this.wsUrl = backendProperties.wsUrl();
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient());
         this.stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -62,20 +53,18 @@ public class ShipmentStompClient {
             Consumer<ShipmentEvent<ShipmentEventDto>> onTopicEvent,
             Consumer<ShipmentEvent<ShipmentEventDto>> onUserEvent
     ) {
+        if (connected || shuttingDown) return;
+
         this.lastTopicHandler = onTopicEvent;
         this.lastUserHandler = onUserEvent;
 
-        if (connected) {
-            log.debug("Shipment WS already connected");
-            return;
-        }
 
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         if (authState.isAuthenticated()) {
             headers.setBearerAuth(authState.getToken());
         }
 
-        stompClient.connectAsync(url, headers, new StompSessionHandlerAdapter() {
+        stompClient.connectAsync(wsUrl, headers, new StompSessionHandlerAdapter() {
 
             @Override
             public void afterConnected(@NotNull StompSession session, @NotNull StompHeaders headers) {
@@ -89,13 +78,14 @@ public class ShipmentStompClient {
             @Override
             public void handleTransportError(@NotNull StompSession session, @NotNull Throwable exception) {
                 connected = false;
-                log.warn("Shipment WS transport error", exception);
-                scheduleReconnect();
+                log.warn("WS transport error", exception);
+                if (!shuttingDown) scheduleReconnect();
             }
         });
     }
 
     private void scheduleReconnect() {
+        if (lastTopicHandler == null || lastUserHandler == null) return;
         reconnectExecutor.schedule(() -> connect(lastTopicHandler, lastUserHandler), 3, TimeUnit.SECONDS);
     }
 
@@ -126,10 +116,6 @@ public class ShipmentStompClient {
     }
 
     public synchronized void disconnect() {
-        if (session != null && session.isConnected()) {
-            session.disconnect();
-        }
-        session = null;
-        connected = false;
+        disconnectInternal("Shipment");
     }
 }
