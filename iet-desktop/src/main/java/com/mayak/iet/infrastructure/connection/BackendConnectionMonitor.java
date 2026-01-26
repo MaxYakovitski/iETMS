@@ -1,5 +1,6 @@
 package com.mayak.iet.infrastructure.connection;
 
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.springframework.stereotype.Service;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Service;
 public class BackendConnectionMonitor {
 
     private final ObjectProperty<BackendConnectionState> state =
-            new SimpleObjectProperty<>(BackendConnectionState.CONNECTED);
+            new SimpleObjectProperty<>(BackendConnectionState.UNKNOWN);
 
     public ObjectProperty<BackendConnectionState> stateProperty() {
         return state;
@@ -19,15 +20,16 @@ public class BackendConnectionMonitor {
     }
 
     public void markDisconnected(Throwable cause) {
-        if (state.get() != BackendConnectionState.DISCONNECTED) {
-            state.set(BackendConnectionState.DISCONNECTED);
-        }
+        updateState(BackendConnectionState.DISCONNECTED);
     }
 
     public void markConnected() {
-        if (state.get() != BackendConnectionState.CONNECTED) {
-            state.set(BackendConnectionState.CONNECTED);
-        }
+        updateState(BackendConnectionState.CONNECTED);
+    }
+
+    private void updateState(BackendConnectionState newState) {
+        if (state.get() == newState) return;
+        Platform.runLater(() -> state.set(newState));
     }
 
 }
