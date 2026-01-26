@@ -1,5 +1,6 @@
 package com.mayak.iet.integration.rest;
 
+import com.mayak.iet.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.iet.lane.dto.LaneCreateDto;
 import com.mayak.iet.lane.dto.LaneViewDto;
 import com.mayak.iet.integration.api.LaneClient;
@@ -15,8 +16,8 @@ public class LaneRestClient extends AbstractRestClient implements LaneClient {
 
     private static final String API = "/api/lanes";
 
-    public LaneRestClient(RestTemplate restTemplate) {
-        super(restTemplate);
+    public LaneRestClient(RestTemplate restTemplate,  BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     @Override

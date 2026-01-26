@@ -1,12 +1,15 @@
 package com.mayak.iet.infrastructure.window;
 
+import com.mayak.iet.ui.connection.ConnectionOverlayController;
 import com.mayak.iet.ui.core.ViewLifecycle;
 import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -34,6 +37,10 @@ public class WindowService {
 
     private final ApplicationContext applicationContext;
     private final Map<WindowKey, Stage> detachedRegistry = new ConcurrentHashMap<>();
+
+    private Parent connectionOverlay;
+    private ConnectionOverlayController connectionOverlayController;
+
     @Getter @Setter private Stage primaryStage;
 
     public <T> void openModalWindow(String fxmlPath,
@@ -320,5 +327,74 @@ public class WindowService {
                 ? controllerClass.cast(rawController)
                 : (T) rawController;
         return new Loaded<>(root, controller);
+    }
+
+    public void showLoading() {
+        Platform.runLater(() -> {
+            initConnectionOverlay();
+            connectionOverlayController.showLoading();
+            connectionOverlay.setVisible(true);
+        });
+    }
+
+    public void showBackendUnavailable() {
+        Platform.runLater(() -> {
+            closeAllDetachedWindows();
+            bringPrimaryStageToFront();
+            Platform.runLater(() -> {
+                initConnectionOverlay();
+                connectionOverlayController.showDisconnected();
+                connectionOverlay.setVisible(true);
+            });
+        });
+    }
+
+    public void hideBlockingOverlay() {
+        Platform.runLater(() -> {
+            if (connectionOverlay != null) {
+                connectionOverlay.setVisible(false);
+            }
+        });
+    }
+
+    private void initConnectionOverlay() {
+        if (connectionOverlay != null) return;
+
+        Loaded<ConnectionOverlayController> loaded =
+                loadControllerWithNode("/fxml/connection_overlay.fxml");
+
+        connectionOverlay = loaded.node();
+        connectionOverlayController = loaded.controller();
+
+        Scene scene = primaryStage.getScene();
+        Parent root = scene.getRoot();
+
+        if (root instanceof StackPane stack) {
+            stack.getChildren().add(connectionOverlay);
+        } else {
+            StackPane wrapper = new StackPane(root, connectionOverlay);
+            scene.setRoot(wrapper);
+        }
+    }
+
+    public void closeAllDetachedWindows() {
+        Platform.runLater(() -> {
+            detachedRegistry.values().forEach(stage -> {
+                try {
+                    stage.close();
+                } catch (Exception ignored) {}
+            });
+            detachedRegistry.clear();
+        });
+    }
+
+    public void bringPrimaryStageToFront() {
+        Platform.runLater(() -> {
+            if (primaryStage != null) {
+                primaryStage.show();
+                primaryStage.toFront();
+                primaryStage.requestFocus();
+            }
+        });
     }
 }

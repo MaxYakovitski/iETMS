@@ -1,5 +1,6 @@
 package com.mayak.iet.integration.rest;
 
+import com.mayak.iet.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.iet.integration.api.ShipmentClient;
 import com.mayak.iet.shipment.dto.command.CancelShipmentRequest;
 import com.mayak.iet.shipment.dto.enums.ShipmentCancelReasonDto;
@@ -20,8 +21,8 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
 
     private static final String API = "/api/shipments";
 
-    public ShipmentRestClient(RestTemplate restTemplate) {
-        super(restTemplate);
+    public ShipmentRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     @Override
