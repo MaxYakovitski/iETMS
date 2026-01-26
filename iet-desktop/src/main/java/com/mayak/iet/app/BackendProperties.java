@@ -1,4 +1,9 @@
 package com.mayak.iet.app;
 
-public class BackendProperties {
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "backend")
+public record BackendProperties (
+        String baseUrl,
+        String wsUrl) {
 }

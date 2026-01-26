@@ -3,11 +3,11 @@ package com.mayak.iet.integration.websocket;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mayak.iet.app.BackendProperties;
 import com.mayak.iet.extension.event.ExtensionDraftInvalidEvent;
 import com.mayak.iet.integration.auth.AuthState;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -18,45 +18,33 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 @Component
 @Slf4j
-public class ExtensionStompClient {
+public class ExtensionStompClient extends AbstractStompClient {
 
     private static final TypeReference<ExtensionDraftInvalidEvent> EVENT_TYPE =
             new TypeReference<>() {};
 
     private final WebSocketStompClient stompClient;
     private final ObjectMapper mapper;
-    private final String url;
+    private final String wsUrl;
     private final AuthState authState;
-
-    private volatile StompSession session;
-    private volatile boolean connected;
 
     private Consumer<ExtensionDraftInvalidEvent> lastHandler;
 
-    private final ScheduledExecutorService reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
-
-    public ExtensionStompClient(
-            AuthState authState,
-            @Value("${backend.ws-url:ws://localhost:8080/ws}") String url
-    ) {
+    public ExtensionStompClient(AuthState authState, BackendProperties backendProperties) {
         this.authState = authState;
-        this.url = url;
+        this.wsUrl = backendProperties.wsUrl();
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient());
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
     public synchronized void connect(Consumer<ExtensionDraftInvalidEvent> onEvent) {
-
         this.lastHandler = onEvent;
-
-        if (connected) {
+        if (connected || shuttingDown) {
             log.debug("Extension WS already connected");
             return;
         }
@@ -66,18 +54,13 @@ public class ExtensionStompClient {
             headers.setBearerAuth(authState.getToken());
         }
 
-        stompClient.connectAsync(url, headers, new StompSessionHandlerAdapter() {
+        stompClient.connectAsync(wsUrl, headers, new StompSessionHandlerAdapter() {
 
             @Override
             public void afterConnected(@NotNull StompSession session, @NotNull StompHeaders headers) {
                 ExtensionStompClient.this.session = session;
                 connected = true;
-
-                session.subscribe(
-                        "/user/queue/extension",
-                        frameHandler(onEvent)
-                );
-
+                session.subscribe("/user/queue/extension", frameHandler(onEvent));
                 log.info("WS EXTENSION connected");
             }
 
@@ -88,7 +71,7 @@ public class ExtensionStompClient {
             ) {
                 connected = false;
                 log.warn("Extension WS transport error", exception);
-                scheduleReconnect();
+                if (!shuttingDown) scheduleReconnect();
             }
         });
     }
@@ -122,22 +105,11 @@ public class ExtensionStompClient {
     }
 
     private void scheduleReconnect() {
-        reconnectExecutor.schedule(
-                () -> connect(lastHandler),
-                3,
-                TimeUnit.SECONDS
-        );
+        if (lastHandler == null) return;
+        reconnectExecutor.schedule(() -> connect(lastHandler), 3, TimeUnit.SECONDS);
     }
 
     public synchronized void disconnect() {
-        if (session != null && session.isConnected()) {
-            try {
-                session.disconnect();
-                log.info("WS EXTENSION disconnected");
-            } catch (Exception e) {
-                log.warn("WS EXTENSION disconnect failed", e);
-            }
-        }
-        session = null;
+        disconnectInternal("Extension");
     }
 }

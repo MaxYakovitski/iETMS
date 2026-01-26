@@ -1,4 +1,4 @@
-package com.mayak.iet.app;
+package com.mayak.iet;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
