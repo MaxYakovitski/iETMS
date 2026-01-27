@@ -172,6 +172,26 @@
                             <outputDirectory>${project.build.directory}/lib</outputDirectory>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>copy-native-host</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.mayak.iet</groupId>
+                                    <artifactId>iet-native-host</artifactId>
+                                    <version>1.0.0</version>
+                                    <destFileName>iet-native-host.jar</destFileName>
+                                    <outputDirectory>
+                                        ${project.build.directory}/jpackage-input/app/native-host
+                                    </outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
