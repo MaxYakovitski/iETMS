@@ -44,7 +44,9 @@ public enum View {
     FINAL_PRICE("/fxml/request_item_final_price.fxml"),
 
     FILTER("/fxml/requests_filter.fxml"),
-    SEARCH("/fxml/requests_search.fxml");
+    SEARCH("/fxml/requests_search.fxml"),
+
+    UPDATE("/fxml/update.fxml");
 
     private final String path;
 
