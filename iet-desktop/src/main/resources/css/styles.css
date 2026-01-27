@@ -739,3 +739,20 @@
 #laneButton.text-field-error {
     -fx-border-color: red;
 }
+
+.update-progress {
+    -fx-pref-height: 20;
+}
+
+.update-progress .track {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 5;
+    -fx-border-color: #c8c8c8;
+    -fx-border-radius: 5;
+}
+
+.update-progress .bar {
+    -fx-background-color: #81c784;
+    -fx-background-radius: 5;
+    -fx-padding: 0;
+}

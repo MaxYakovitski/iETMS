@@ -34,24 +34,11 @@ public class JavaFxApplication extends Application {
         windowService.setPrimaryStage(primaryStage);
         AlertUtils.setWindowService(windowService);
 
-        try {
-            WindowService.Loaded<LoginController> loaded =
-                    windowService.loadControllerWithNode(View.LOGIN.getPath(), LoginController.class);
-
-            Scene loginScene = new Scene(loaded.node());
-
             Image icon = new Image(Objects.requireNonNull(getClass().getResource("/icons/icon.png")).toString());
             primaryStage.getIcons().add(icon);
             primaryStage.setTitle("iETMS");
 
-            primaryStage.setScene(loginScene);
-            primaryStage.setResizable(false);
-            primaryStage.centerOnScreen();
-            primaryStage.show();
-
-        } catch (Exception e) {
-            log.error("Failed to load LoginController FXML", e);
-        }
+            springContext.getBean(DesktopBootstrap.class).start(primaryStage);
     }
 
     @Override
