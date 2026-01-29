@@ -239,6 +239,8 @@
                                 <configuration>
                                     <executable>jpackage</executable>
                                     <arguments>
+                                        <argument>--app-version</argument>
+                                        <argument>${app.version}</argument>
                                         <argument>
                                             @${project.basedir}/src/main/resources/installer/jpackage-windows.properties
                                         </argument>
