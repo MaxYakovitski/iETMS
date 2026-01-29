@@ -183,26 +183,6 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>copy-native-host</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.mayak.iet</groupId>
-                                    <artifactId>iet-native-host</artifactId>
-                                    <version>${project.version}</version>
-                                    <destFileName>iet-native-host.jar</destFileName>
-                                    <outputDirectory>
-                                        ${project.build.directory}/jpackage-input/app/native-host
-                                    </outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>copy-main-jar</id>
                         <phase>package</phase>
                         <goals>
@@ -263,6 +243,35 @@
                                             @${project.basedir}/src/main/resources/installer/jpackage-windows.properties
                                         </argument>
                                     </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>copy-native-host</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>
+                                        ${project.build.directory}/jpackage-input/app/native-host
+                                    </outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>
+                                                ${project.parent.basedir}/iet-native-host/target
+                                            </directory>
+                                            <includes>
+                                                <include>iet-native-host-${project.version}.jar</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
                                 </configuration>
                             </execution>
                         </executions>
