@@ -14,7 +14,7 @@ public class AuthRestClient implements AuthClient {
 
     public LoginResponseDto login(String email, String password) {
         return restTemplate.postForObject(
-                "/auth/login",
+                "/api/auth/login",
                 new LoginRequestDto(email, password),
                 LoginResponseDto.class
         );
