@@ -37,14 +37,14 @@ jobs:
           mvn -B -pl iet-desktop -am clean package \
             -Pwindows-installer \
             -Dapp.version=${{ steps.version.outputs.version }}
-          
+
       - name: Locate MSI
         id: msi
         shell: bash
         run: |
           MSI=$(ls iet-desktop/target/*.msi)
           echo "file=$MSI" >> $GITHUB_OUTPUT
-          
+
       - name: Calculate checksum & size
         id: meta
         shell: bash
@@ -54,7 +54,7 @@ jobs:
           SIZE=$(stat -c%s "$FILE" || stat -f%z "$FILE")
           echo "sha256=$SHA" >> $GITHUB_OUTPUT
           echo "size=$SIZE" >> $GITHUB_OUTPUT
-          
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -62,7 +62,7 @@ jobs:
           name: iETMS Desktop ${{ steps.version.outputs.version }}
           files: |
             ${{ steps.msi.outputs.file }}
-            
+
       - name: Checkout updates repository
         uses: actions/checkout@v4
         with:
@@ -73,24 +73,24 @@ jobs:
       - name: Update manifest.json
         shell: bash
         run: |
-            VERSION="${{ steps.version.outputs.version }}"
-            SHA="${{ steps.meta.outputs.sha256 }}"
-            SIZE="${{ steps.meta.outputs.size }}"
-            DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-            
-            cat > updates/windows/manifest.json <<EOF
-            {
-              "app": "iETMS-desktop",
-              "platform": "windows",
-              "latestVersion": "$VERSION",
-              "mandatory": false,
-              "releaseDate": "$DATE",
-              "download": {
-                "type": "msi",
-                "url": "https://github.com/MaxYakovitski/iETMS/releases/download/desktop-v$VERSION/iETMS-$VERSION.msi",
-                "sha256": "$SHA",
-                "size": $SIZE
-              },
-              "notes": "Release $VERSION"
-            }
-            EOF
+          VERSION="${{ steps.version.outputs.version }}"
+          SHA="${{ steps.meta.outputs.sha256 }}"
+          SIZE="${{ steps.meta.outputs.size }}"
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          cat > updates/windows/manifest.json <<EOF
+          {
+            "app": "iETMS-desktop",
+            "platform": "windows",
+            "latestVersion": "$VERSION",
+            "mandatory": false,
+            "releaseDate": "$DATE",
+            "download": {
+              "type": "msi",
+              "url": "https://github.com/MaxYakovitski/iETMS/releases/download/desktop-v$VERSION/iETMS-$VERSION.msi",
+              "sha256": "$SHA",
+              "size": $SIZE
+            },
+            "notes": "Release $VERSION"
+          }
+          EOF
