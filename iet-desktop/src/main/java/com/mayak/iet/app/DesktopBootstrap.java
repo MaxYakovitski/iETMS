@@ -1,7 +1,6 @@
 package com.mayak.iet.app;
 
 import com.mayak.iet.infrastructure.update.UpdateCheckResult;
-import com.mayak.iet.infrastructure.update.UpdateListener;
 import com.mayak.iet.infrastructure.update.UpdateService;
 import com.mayak.iet.infrastructure.window.WindowService;
 import com.mayak.iet.support.enums.View;
@@ -16,10 +15,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DesktopBootstrap {
-
-    private static final int EXIT_UPDATE_REQUIRED = 100;
-    private static final int EXIT_OK = 0;
-    private static final int EXIT_FATAL = 1;
 
     private final UpdateService updateService;
     private final WindowService windowService;
@@ -54,8 +49,6 @@ public class DesktopBootstrap {
 
         UpdateController controller = loaded.controller();
 
-        controller.showChecking();
-
         stage.setScene(new Scene(loaded.node()));
         stage.setResizable(false);
         stage.centerOnScreen();
@@ -65,48 +58,6 @@ public class DesktopBootstrap {
             stage.setOnCloseRequest(Event::consume);
         }
 
-        updateService.downloadUpdate(result, new UpdateListener() {
-
-            @Override
-            public void onStart(String current, String target) {
-                controller.showDownloading();
-            }
-
-            @Override
-            public void onMessage(String message) {
-                controller.updateStatusMessage(message);
-            }
-
-            @Override
-            public void onProgress(double progress) {
-                controller.updateProgress(progress);
-            }
-
-            @Override
-            public void onComplete() {
-                controller.showCompleted();
-                restartApplication();
-            }
-
-            @Override
-            public void onError(Throwable error) {
-                if (result.forced()) {
-                    controller.showForcedUpdateError(
-                            "This update is required to continue.\n Please restart the application."
-                    );
-                } else {
-                    controller.showError("update failed: " + error.getMessage());
-                    showLogin(stage);
-                }
-            }
-        });
-    }
-
-    private void restartApplication() {
-        System.exit(EXIT_UPDATE_REQUIRED);
-    }
-
-    private void exitApplication() {
-        System.exit(1);
+        controller.start(result);
     }
 }

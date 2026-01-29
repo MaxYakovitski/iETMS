@@ -1,23 +1,72 @@
 package com.mayak.iet.ui.update;
 
+import com.mayak.iet.infrastructure.update.UpdateCheckResult;
+import com.mayak.iet.infrastructure.update.UpdateListener;
+import com.mayak.iet.infrastructure.update.UpdateService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class UpdateController {
 
     @FXML private Label messageLabel;
     @FXML private ProgressBar progressBar;
 
+    private final UpdateService updateService;
+
     @FXML
     private void initialize() {
         progressBar.setProgress(0);
+    }
+
+    public void start(UpdateCheckResult result) {
+
+        showChecking();
+
+        if (result.forced()) {
+            startMandatoryUpdate(result);
+        }
+    }
+
+    private void startMandatoryUpdate(UpdateCheckResult result) {
+
+        updateService.setListener(new UpdateListener() {
+
+            @Override
+            public void onStart(String current, String target) {
+                showDownloading();
+            }
+
+            @Override
+            public void onMessage(String message) {
+                updateStatusMessage(message);
+            }
+
+            @Override
+            public void onProgress(double progress) {
+                updateProgress(progress);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                showForcedUpdateError(
+                        "This update is required to continue.\nPlease restart the application."
+                );
+            }
+        });
+
+        if (result.forced()) {
+            showChecking();
+            updateService.startMandatoryUpdate(result);
+        }
     }
 
     public void showChecking() {
@@ -40,26 +89,6 @@ public class UpdateController {
 
     public void updateProgress(double progress) {
         runFx(() -> progressBar.setProgress(progress));
-    }
-
-    public void showFinalizing() {
-        runFx(() -> {
-            messageLabel.setText("finalizing update…");
-            progressBar.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
-        });
-    }
-
-    public void showCompleted() {
-        runFx(() -> {
-            messageLabel.setText("application will restart now");
-            progressBar.setProgress(1.0);
-        });
-    }
-
-    public void showError(String message) {
-        runFx(() -> {
-            messageLabel.setText(message);
-        });
     }
 
     public void showForcedUpdateError(String message) {

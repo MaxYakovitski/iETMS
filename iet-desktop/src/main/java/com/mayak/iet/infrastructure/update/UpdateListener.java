@@ -8,7 +8,5 @@ public interface UpdateListener {
 
     void onProgress(double progress);
 
-    void onComplete();
-
     void onError(Throwable error);
 }
