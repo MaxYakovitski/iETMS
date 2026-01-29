@@ -22,6 +22,10 @@ jobs:
       - name: Build backend
         run: mvn -B -pl iet-backend -am clean package -DskipTests
 
+      - name: Prepare backend jar
+        run: |
+          mv iet-backend/target/iet-backend-*.jar iet-backend/target/iet-backend.jar
+
       - name: Upload jar to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -29,7 +33,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "iet-backend/target/iet-backend-1.0-SNAPSHOT.jar"
+          source: "iet-backend/target/iet-backend.jar"
           target: "/opt/ietms/backend/app/"
 
       - name: Restart backend service
@@ -41,4 +45,21 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             sudo -n /usr/bin/systemctl restart ietms-backend
-            sudo -n /usr/bin/systemctl status ietms-backend --no-pager
+
+      - name: Wait for backend health
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            for i in {1..10}; do
+              if curl -sf http://localhost:8080/actuator/health | grep UP; then
+                echo "Backend is UP"
+                exit 0
+              fi
+              sleep 3
+            done
+            echo "Backend did not start"
+            exit 1
