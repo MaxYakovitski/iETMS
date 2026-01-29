@@ -33,7 +33,11 @@ jobs:
           echo "Desktop version: $VERSION"
 
       - name: Build MSI
-        run: mvn -B -pl iet-desktop -am clean package -Pwindows-installer -Dapp.version=${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          mvn -B -pl iet-desktop -am clean package \
+            -Pwindows-installer \
+            -Dapp.version=${{ steps.version.outputs.version }}
 
       - name: Locate MSI
         id: msi
