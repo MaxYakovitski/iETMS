@@ -183,26 +183,6 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>copy-native-host</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.mayak.iet</groupId>
-                                    <artifactId>iet-native-host</artifactId>
-                                    <version>${project.version}</version>
-                                    <destFileName>iet-native-host.jar</destFileName>
-                                    <outputDirectory>
-                                        ${project.build.directory}/jpackage-input/app/native-host
-                                    </outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>copy-main-jar</id>
                         <phase>package</phase>
                         <goals>
