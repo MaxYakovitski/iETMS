@@ -36,6 +36,16 @@
                 <scope>import</scope>
             </dependency>
 
+            <!--SECURITY NOTE:
+            logback CVEs are configuration-based. Backend runs with immutable JAR and no external logback.xml.
+            Risk accepted for release 0.1.0. -->
+
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.5.13</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
@@ -95,7 +105,7 @@
             <dependency>
                 <groupId>com.mayak.iet</groupId>
                 <artifactId>iet-contract</artifactId>
-                <version>${project.version}</version>
+                <version>0.1.0</version>
             </dependency>
 
             <dependency>
