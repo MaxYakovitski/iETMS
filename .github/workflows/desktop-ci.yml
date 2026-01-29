@@ -5,6 +5,9 @@ on:
     tags:
       - desktop-v*
 
+permissions:
+  contents: write
+
 jobs:
   build-windows-msi:
     name: Build Windows MSI
@@ -14,7 +17,6 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      # Desktop is built on Java 21 LTS for MSI stability
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -24,28 +26,71 @@ jobs:
       - name: Extract version from tag
         id: version
         shell: bash
-        # uses GitHub-hosted bash on windows-latest
         run: |
           TAG_NAME="${GITHUB_REF#refs/tags/}"
           VERSION="${TAG_NAME#desktop-v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Desktop version: $VERSION"
 
-      - name: Build desktop JAR
+      - name: Build MSI
         run: |
           mvn -B -pl iet-desktop -am clean package \
             -Pwindows-installer \
             -Dapp.version=${{ steps.version.outputs.version }}
-
-      - name: Verify MSI exists
+          
+      - name: Locate MSI
+        id: msi
         shell: bash
         run: |
-          ls -lh iet-desktop/target/*.msi
-
-      - name: Upload MSI artifact
-        uses: actions/upload-artifact@v4
+          MSI=$(ls iet-desktop/target/*.msi)
+          echo "file=$MSI" >> $GITHUB_OUTPUT
+          
+      - name: Calculate checksum & size
+        id: meta
+        shell: bash
+        run: |
+          FILE="${{ steps.msi.outputs.file }}"
+          SHA=$(sha256sum "$FILE" | cut -d' ' -f1)
+          SIZE=$(stat -c%s "$FILE" || stat -f%z "$FILE")
+          echo "sha256=$SHA" >> $GITHUB_OUTPUT
+          echo "size=$SIZE" >> $GITHUB_OUTPUT
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: iETMS-desktop-${{ steps.version.outputs.version }}-msi
-          path: |
-            iet-desktop/target/*.msi
+          tag_name: desktop-v${{ steps.version.outputs.version }}
+          name: iETMS Desktop ${{ steps.version.outputs.version }}
+          files: |
+            ${{ steps.msi.outputs.file }}
+            
+      - name: Checkout updates repository
+        uses: actions/checkout@v4
+        with:
+          repository: MaxYakovitski/iETMS-updates
+          path: updates
+          token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Update manifest.json
+        shell: bash
+        run: |
+            VERSION="${{ steps.version.outputs.version }}"
+            SHA="${{ steps.meta.outputs.sha256 }}"
+            SIZE="${{ steps.meta.outputs.size }}"
+            DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            
+            cat > updates/windows/manifest.json <<EOF
+            {
+              "app": "iETMS-desktop",
+              "platform": "windows",
+              "latestVersion": "$VERSION",
+              "mandatory": false,
+              "releaseDate": "$DATE",
+              "download": {
+                "type": "msi",
+                "url": "https://github.com/MaxYakovitski/iETMS/releases/download/desktop-v$VERSION/iETMS-$VERSION.msi",
+                "sha256": "$SHA",
+                "size": $SIZE
+              },
+              "notes": "Release $VERSION"
+            }
+            EOF
