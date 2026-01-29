@@ -2,8 +2,13 @@ package com.mayak.iet.config;
 
 import com.mayak.iet.app.BackendProperties;
 import com.mayak.iet.integration.auth.AuthState;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
@@ -11,6 +16,8 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 public class RestClientConfig {
 
     @Bean
+    @Primary
+    @Qualifier("backendRestTemplate")
     public RestTemplate restTemplate(AuthState authState, BackendProperties backendProperties) {
 
         RestTemplate restTemplate = new RestTemplate();
@@ -24,5 +31,19 @@ public class RestClientConfig {
         });
 
         return restTemplate;
+    }
+
+    @Bean
+    @Qualifier("updateRestTemplate")
+    public RestTemplate updateRestTemplate() {
+
+        CloseableHttpClient client = HttpClients.custom()
+                .disableAutomaticRetries()
+                .build();
+
+        HttpComponentsClientHttpRequestFactory factory =
+                new HttpComponentsClientHttpRequestFactory(client);
+
+        return new RestTemplate(factory);
     }
 }
