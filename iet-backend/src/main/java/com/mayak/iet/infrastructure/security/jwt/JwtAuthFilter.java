@@ -23,6 +23,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getRequestURI().equals("/api/auth/login");
+    }
+
+    @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
@@ -36,14 +41,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = authHeader.substring(7);
 
         try {
+            String token = authHeader.substring(7);
             Long userId = jwtService.extractUserId(token);
             var authorities = jwtService.extractAuthorities(token);
             var authentication = new UsernamePasswordAuthenticationToken(userId, null, authorities);
-
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
         } catch (Exception e) {
