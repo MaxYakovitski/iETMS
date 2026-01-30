@@ -207,6 +207,27 @@
                             </execution>
 
                             <execution>
+                                <id>copy-updater</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>com.mayak.iet</groupId>
+                                            <artifactId>iet-desktop-updater</artifactId>
+                                            <version>${project.version}</version>
+                                            <destFileName>iet-desktop-updater.jar</destFileName>
+                                            <outputDirectory>
+                                                ${project.build.directory}/jpackage-input/app/updater
+                                            </outputDirectory>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+
+                            <execution>
                                 <id>copy-lib</id>
                                 <phase>package</phase>
                                 <goals>
