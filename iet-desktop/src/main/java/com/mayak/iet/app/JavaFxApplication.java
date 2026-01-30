@@ -2,6 +2,7 @@ package com.mayak.iet.app;
 
 import com.mayak.iet.DesktopSpringBootApplication;
 import com.mayak.iet.infrastructure.error.AlertUtils;
+import com.mayak.iet.infrastructure.nativehost.NativeHostRegistrar;
 import com.mayak.iet.infrastructure.window.WindowService;
 import com.mayak.iet.support.enums.View;
 import com.mayak.iet.ui.auth.LoginController;
@@ -24,6 +25,7 @@ public class JavaFxApplication extends Application {
 
     @Override
     public void init() {
+        NativeHostRegistrar.ensureRegistered();
         springContext = new SpringApplicationBuilder(DesktopSpringBootApplication.class).headless(false).run();
         Locale.setDefault(Locale.UK);
     }
