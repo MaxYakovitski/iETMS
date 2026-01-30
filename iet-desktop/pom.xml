@@ -235,7 +235,7 @@
                                         <artifactItem>
                                             <groupId>com.mayak.iet</groupId>
                                             <artifactId>iet-native-host</artifactId>
-                                            <version>${project.version}</version>
+                                            <version>1.0.0</version>
                                             <destFileName>iet-native-host.jar</destFileName>
                                             <outputDirectory>
                                                 ${project.build.directory}/jpackage-input/app/native-host
