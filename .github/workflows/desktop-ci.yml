@@ -1,6 +1,7 @@
-name: Desktop CI (MSI)
+name: Desktop MSI Build
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - desktop-v*
@@ -13,39 +14,56 @@ jobs:
     name: Build Windows MSI
     runs-on: windows-latest
 
+    env:
+      APP_NAME: iETMS
+      APP_VERSION: ${{ github.ref_name }}
+      BACKEND_URL: http://165.22.92.183:8080
+      BACKEND_WS_URL: ws://165.22.92.183:8080/ws
+
     steps:
-      - name: Checkout sources
+      # 1. Checkout sources
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Setup JDK 21
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
-      - name: Extract version from tag
+      # 3. Extract version from tag (desktop-vX.Y.Z → X.Y.Z)
+      - name: Extract app version
         id: version
         shell: bash
         run: |
-          TAG_NAME="${GITHUB_REF#refs/tags/}"
-          VERSION="${TAG_NAME#desktop-v}"
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#desktop-v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Desktop version: $VERSION"
+          echo "Building Desktop version: $VERSION"
 
-      - name: Build MSI
+      # 4. Build MSI via Maven + jpackage
+      - name: Build Desktop MSI
         shell: bash
         run: |
-          mvn -B -pl iet-desktop -am clean package \
+          mvn clean package \
             -Pwindows-installer \
-            -Dapp.version=${{ steps.version.outputs.version }}
+            -DskipTests \
+            -Dapp.version=${{ steps.version.outputs.version }} \
+            -Dspring.profiles.active=prod \
+            -Dbackend.base-url=${{ env.BACKEND_URL }} \
+            -Dbackend.ws-url=${{ env.BACKEND_WS_URL }}
 
+      # 5. Locate MSI (ВАЖНА: installer/)
       - name: Locate MSI
         id: msi
         shell: bash
         run: |
-          MSI=$(ls iet-desktop/target/*.msi)
+          MSI=$(ls iet-desktop/target/installer/*.msi)
           echo "file=$MSI" >> $GITHUB_OUTPUT
+          echo "MSI found: $MSI"
 
+      # 6. Calculate checksum & size
       - name: Calculate checksum & size
         id: meta
         shell: bash
@@ -56,6 +74,14 @@ jobs:
           echo "sha256=$SHA" >> $GITHUB_OUTPUT
           echo "size=$SIZE" >> $GITHUB_OUTPUT
 
+      # 7. Upload MSI as workflow artifact
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iETMS-msi
+          path: iet-desktop/target/installer/*.msi
+
+      # 8. Create GitHub Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -64,6 +90,7 @@ jobs:
           files: |
             ${{ steps.msi.outputs.file }}
 
+      # 9. Checkout updates repository
       - name: Checkout updates repository
         uses: actions/checkout@v4
         with:
@@ -71,6 +98,7 @@ jobs:
           path: updates
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # 10. Update Windows manifest.json
       - name: Update manifest.json
         shell: bash
         run: |
@@ -78,6 +106,8 @@ jobs:
           SHA="${{ steps.meta.outputs.sha256 }}"
           SIZE="${{ steps.meta.outputs.size }}"
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          mkdir -p updates/windows
 
           cat > updates/windows/manifest.json <<EOF
           {
@@ -88,10 +118,10 @@ jobs:
             "releaseDate": "$DATE",
             "download": {
               "type": "msi",
-              "url": "https://github.com/MaxYakovitski/iETMS/releases/download/desktop-v$VERSION/iETMS-$VERSION.msi",
+              "url": "https://github.com/${{ github.repository }}/releases/download/desktop-v$VERSION/iETMS-$VERSION.msi",
               "sha256": "$SHA",
               "size": $SIZE
             },
-            "notes": "Release $VERSION"
+            "notes": "Desktop release $VERSION"
           }
           EOF
