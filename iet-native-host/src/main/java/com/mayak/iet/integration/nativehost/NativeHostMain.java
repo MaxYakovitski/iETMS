@@ -34,12 +34,10 @@ public class NativeHostMain {
                 try {
                     length = Integer.reverseBytes(in.readInt());
                 } catch (Exception e) {
-                    // Chrome закрыў pipe
                     break;
                 }
 
                 if (length <= 0 || length > 1_000_000) {
-                    // safety guard
                     break;
                 }
 
@@ -56,7 +54,6 @@ public class NativeHostMain {
                 switch (type) {
 
                     case "PING" -> write(out, Map.of("type", "PONG"));
-
                     case "GET_TOKEN" -> handleGetToken(out);
 
                     default -> write(out, Map.of(
@@ -66,7 +63,6 @@ public class NativeHostMain {
                 }
             }
         } catch (Exception ignored) {
-            // native host
         }
     }
 
