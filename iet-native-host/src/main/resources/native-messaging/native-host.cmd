@@ -3,5 +3,9 @@ setlocal
 
 set APP_HOME=%~dp0
 
-java -Xrs -Djava.awt.headless=true ^
-  -jar "%APP_HOME%\iet-native-host.jar"
+"%APP_HOME%\runtime\bin\java.exe" ^
+  -Xrs ^
+  -Djava.awt.headless=true ^
+  -Dfile.encoding=UTF-8 ^
+  -jar "%APP_HOME%\iet-native-host.jar" ^
+  1>NUL 2>NUL
