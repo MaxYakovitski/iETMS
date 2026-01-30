@@ -14,34 +14,22 @@ public class WindowsUpdaterMain {
 
         Path msi = Path.of(args[0]).toAbsolutePath();
 
-        // 1. Пачакай, пакуль desktop завершыцца
         waitForProcessToExit("iETMS.exe", Duration.ofSeconds(30));
 
-        // 2. Усталёўка
-        Process install = new ProcessBuilder(
-                "msiexec",
-                "/i",
-                msi.toString(),
-                "/qn",
-                "/norestart"
-        ).inheritIO().start();
+        Process install = new ProcessBuilder("msiexec", "/i", msi.toString(), "/qn", "/norestart")
+                .inheritIO().start();
 
         int code = install.waitFor();
         if (code != 0) System.exit(code);
 
-        // 3. Запуск desktop
-        new ProcessBuilder(
-                "cmd", "/c", "start", "\"\"", "\"C:\\Program Files\\iETMS\\iETMS.exe\""
-        ).start();
+        new ProcessBuilder("cmd", "/c", "start", "\"\"", "\"C:\\Program Files\\iETMS\\iETMS.exe\"").start();
     }
 
     private static void waitForProcessToExit(String processName, Duration timeout) throws Exception {
         long deadline = System.currentTimeMillis() + timeout.toMillis();
 
         while (System.currentTimeMillis() < deadline) {
-            Process p = new ProcessBuilder(
-                    "tasklist", "/FI", "IMAGENAME eq " + processName
-            ).start();
+            Process p = new ProcessBuilder("tasklist", "/FI", "IMAGENAME eq " + processName).start();
 
             String output = new String(p.getInputStream().readAllBytes());
             if (!output.contains(processName)) return;
