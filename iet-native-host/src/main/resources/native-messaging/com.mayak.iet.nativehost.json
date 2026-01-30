@@ -4,6 +4,6 @@
   "path": "C:\\Program Files\\iETMS\\app\\native-host\\native-host.cmd",
   "type": "stdio",
   "allowed_origins": [
-    "chrome-extension://jegajicdjefgfmhgpnolehlcohmhocnp/"
+    "chrome-extension://true extension id/"
   ]
 }
