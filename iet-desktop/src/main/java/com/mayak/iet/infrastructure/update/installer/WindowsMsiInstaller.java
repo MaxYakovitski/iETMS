@@ -19,7 +19,8 @@ public class WindowsMsiInstaller implements UpdateInstaller {
                 "java",
                 "-jar",
                 updaterJar.toAbsolutePath().toString(),
-                msiFile.toAbsolutePath().toString()).start();
+                msiFile.toAbsolutePath().toString())
+                .inheritIO().start();
 
         System.exit(0);
     }

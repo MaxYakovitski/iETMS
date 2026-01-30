@@ -9,20 +9,33 @@ public final class UpdatePaths {
     private UpdatePaths() {
     }
 
-    public static Path baseDir() {
-        String localAppData = System.getenv("LOCALAPPDATA");
-        return Path.of(localAppData, APP_NAME);
+    /** C:\Program Files\iETMS */
+    public static Path installDir() {
+        return Path.of(
+                System.getenv("PROGRAMFILES"),
+                APP_NAME
+        );
+    }
+
+    public static Path appDir() {
+        return installDir().resolve("app");
+    }
+
+    public static Path updaterJar() {
+        return appDir()
+                .resolve("updater")
+                .resolve("iet-desktop-updater.jar");
     }
 
     public static Path updatesDir() {
-        return baseDir().resolve("updates");
+        return Path.of(
+                System.getenv("LOCALAPPDATA"),
+                APP_NAME,
+                "updates"
+        );
     }
 
     public static Path msiFile(String version) {
         return updatesDir().resolve("iETMS-" + version + ".msi");
-    }
-
-    public static Path updaterJar() {
-        return baseDir().resolve("updater").resolve("iet-desktop-updater.jar");
     }
 }

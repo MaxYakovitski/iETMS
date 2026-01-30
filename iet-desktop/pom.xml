@@ -172,13 +172,14 @@
     </build>
 
     <profiles>
+
         <profile>
             <id>windows-installer</id>
 
             <build>
                 <plugins>
 
-                    <!-- 1. Prepare jpackage layout -->
+                    <!-- 1. Капіруем desktop jar -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-dependency-plugin</artifactId>
@@ -186,11 +187,9 @@
                         <executions>
 
                             <execution>
-                                <id>copy-main-jar</id>
+                                <id>copy-desktop</id>
                                 <phase>package</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
+                                <goals><goal>copy</goal></goals>
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
@@ -206,12 +205,11 @@
                                 </configuration>
                             </execution>
 
+                            <!-- 2. Капіруем updater jar -->
                             <execution>
                                 <id>copy-updater</id>
                                 <phase>package</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
+                                <goals><goal>copy</goal></goals>
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
@@ -227,12 +225,31 @@
                                 </configuration>
                             </execution>
 
+                            <!-- 3. Капіруем native-host jar -->
+                            <execution>
+                                <id>copy-native-host-jar</id>
+                                <phase>package</phase>
+                                <goals><goal>copy</goal></goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>com.mayak.iet</groupId>
+                                            <artifactId>iet-native-host</artifactId>
+                                            <version>${project.version}</version>
+                                            <destFileName>iet-native-host.jar</destFileName>
+                                            <outputDirectory>
+                                                ${project.build.directory}/jpackage-input/app/native-host
+                                            </outputDirectory>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+
+                            <!-- 4. Lib -->
                             <execution>
                                 <id>copy-lib</id>
                                 <phase>package</phase>
-                                <goals>
-                                    <goal>copy-dependencies</goal>
-                                </goals>
+                                <goals><goal>copy-dependencies</goal></goals>
                                 <configuration>
                                     <outputDirectory>
                                         ${project.build.directory}/jpackage-input/app/lib
@@ -243,7 +260,33 @@
                         </executions>
                     </plugin>
 
-                    <!-- 2. Build MSI -->
+                    <!-- 5. Капіруем native-host.cmd + json + register-native-host.bat -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>copy-installer-files</id>
+                                <phase>package</phase>
+                                <goals><goal>copy-resources</goal></goals>
+                                <configuration>
+                                    <outputDirectory>
+                                        ${project.build.directory}/jpackage-input/app/native-host
+                                    </outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>
+                                                ${project.basedir}/../iet-native-host/src/main/resources/native-messaging
+                                            </directory>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- 6. MSI -->
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
@@ -252,9 +295,7 @@
                             <execution>
                                 <id>build-msi</id>
                                 <phase>package</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
+                                <goals><goal>exec</goal></goals>
                                 <configuration>
                                     <executable>jpackage</executable>
                                     <arguments>
@@ -269,10 +310,10 @@
                         </executions>
                     </plugin>
 
-
                 </plugins>
             </build>
         </profile>
+
     </profiles>
 
 </project>

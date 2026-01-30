@@ -1,6 +1,7 @@
 package com.mayak.iet.updater;
 
 import java.nio.file.Path;
+import java.time.Duration;
 
 public class WindowsUpdaterMain {
 
@@ -13,15 +14,41 @@ public class WindowsUpdaterMain {
 
         Path msi = Path.of(args[0]).toAbsolutePath();
 
-        Thread.sleep(3000);
+        // 1. Пачакай, пакуль desktop завершыцца
+        waitForProcessToExit("iETMS.exe", Duration.ofSeconds(30));
 
-        Process process = new ProcessBuilder("msiexec", "/i", msi.toString(), "/qn", "/norestart")
-                .inheritIO().start();
+        // 2. Усталёўка
+        Process install = new ProcessBuilder(
+                "msiexec",
+                "/i",
+                msi.toString(),
+                "/qn",
+                "/norestart"
+        ).inheritIO().start();
 
-        int code = process.waitFor();
+        int code = install.waitFor();
         if (code != 0) System.exit(code);
 
-        new ProcessBuilder("cmd", "/c", "start", "\"\"", "\"C:\\Program Files\\iETMS\\iETMS.exe\"")
-                .start();
+        // 3. Запуск desktop
+        new ProcessBuilder(
+                "cmd", "/c", "start", "\"\"", "\"C:\\Program Files\\iETMS\\iETMS.exe\""
+        ).start();
+    }
+
+    private static void waitForProcessToExit(String processName, Duration timeout) throws Exception {
+        long deadline = System.currentTimeMillis() + timeout.toMillis();
+
+        while (System.currentTimeMillis() < deadline) {
+            Process p = new ProcessBuilder(
+                    "tasklist", "/FI", "IMAGENAME eq " + processName
+            ).start();
+
+            String output = new String(p.getInputStream().readAllBytes());
+            if (!output.contains(processName)) return;
+
+            Thread.sleep(500);
+        }
+
+        throw new IllegalStateException("Desktop still running after timeout");
     }
 }
