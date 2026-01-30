@@ -11,11 +11,11 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>iet-backend</module>
         <module>iet-contract</module>
-        <module>iet-desktop</module>
-        <module>iet-desktop-updater</module>
+        <module>iet-backend</module>
         <module>iet-native-host</module>
+        <module>iet-desktop-updater</module>
+        <module>iet-desktop</module>
     </modules>
 
     <properties>
