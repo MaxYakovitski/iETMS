@@ -34,35 +34,31 @@ public class NativeHostMain {
                 try {
                     length = Integer.reverseBytes(in.readInt());
                 } catch (Exception e) {
-                    break;
+                    return;
                 }
 
                 if (length <= 0 || length > 1_000_000) {
-                    break;
+                    continue;
                 }
 
                 byte[] payload = new byte[length];
                 in.readFully(payload);
 
                 String message = new String(payload, StandardCharsets.UTF_8);
-
                 Map<?, ?> request = MAPPER.readValue(message, Map.class);
                 String type = (String) request.get("type");
 
                 if (type == null) continue;
 
                 switch (type) {
-
                     case "PING" -> write(out, Map.of("type", "PONG"));
                     case "GET_TOKEN" -> handleGetToken(out);
-
-                    default -> write(out, Map.of(
-                            "type", "ERROR",
-                            "message", "Unknown type: " + type
+                    default -> write(out, Map.of("type", "ERROR", "message", "Unknown type: " + type
                     ));
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
         }
     }
 
