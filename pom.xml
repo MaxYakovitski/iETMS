@@ -14,6 +14,7 @@
         <module>iet-backend</module>
         <module>iet-contract</module>
         <module>iet-desktop</module>
+        <module>iet-desktop-updater</module>
         <module>iet-native-host</module>
     </modules>
 
