@@ -1,9 +1,0 @@
-{
-  "name": "com.mayak.iet.nativehost",
-  "description": "iETMS Chrome Native Messaging Host",
-  "path": "C:\\Program Files\\iETMS\\app\\native-host\\native-host.cmd",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://true extension id/"
-  ]
-}
