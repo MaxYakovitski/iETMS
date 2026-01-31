@@ -7,5 +7,4 @@ set APP_HOME=%~dp0
   -Xrs ^
   -Djava.awt.headless=true ^
   -Dfile.encoding=UTF-8 ^
-  -jar "%APP_HOME%\iet-native-host.jar" ^
-  2>NUL
+  -jar "%APP_HOME%\iet-native-host.jar"
