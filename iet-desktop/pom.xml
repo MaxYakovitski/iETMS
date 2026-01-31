@@ -225,26 +225,6 @@
                                 </configuration>
                             </execution>
 
-                            <!-- 3. Капіруем native-host jar -->
-                            <execution>
-                                <id>copy-native-host-jar</id>
-                                <phase>package</phase>
-                                <goals><goal>copy</goal></goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>com.mayak.iet</groupId>
-                                            <artifactId>iet-native-host</artifactId>
-                                            <version>1.0.0</version>
-                                            <destFileName>iet-native-host.jar</destFileName>
-                                            <outputDirectory>
-                                                ${project.build.directory}/jpackage-input/app/native-host
-                                            </outputDirectory>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-
                             <!-- 4. Lib -->
                             <execution>
                                 <id>copy-lib</id>
@@ -260,33 +240,6 @@
                         </executions>
                     </plugin>
 
-                    <!-- 5. Капіруем native-host.cmd + json + register-native-host.bat -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <version>3.3.1</version>
-                        <executions>
-                            <execution>
-                                <id>copy-installer-files</id>
-                                <phase>package</phase>
-                                <goals><goal>copy-resources</goal></goals>
-                                <configuration>
-                                    <outputDirectory>
-                                        ${project.build.directory}/jpackage-input/app/native-host
-                                    </outputDirectory>
-                                    <resources>
-                                        <resource>
-                                            <directory>
-                                                ${project.basedir}/../iet-native-host/src/main/resources/native-messaging
-                                            </directory>
-                                        </resource>
-                                    </resources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-
-                    <!-- 6. MSI -->
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>

@@ -2,13 +2,9 @@ package com.mayak.iet.app;
 
 import com.mayak.iet.DesktopSpringBootApplication;
 import com.mayak.iet.infrastructure.error.AlertUtils;
-import com.mayak.iet.infrastructure.nativehost.NativeHostRegistrar;
 import com.mayak.iet.infrastructure.window.WindowService;
-import com.mayak.iet.support.enums.View;
-import com.mayak.iet.ui.auth.LoginController;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +21,6 @@ public class JavaFxApplication extends Application {
 
     @Override
     public void init() {
-        NativeHostRegistrar.ensureRegistered();
         springContext = new SpringApplicationBuilder(DesktopSpringBootApplication.class).headless(false).run();
         Locale.setDefault(Locale.UK);
     }
