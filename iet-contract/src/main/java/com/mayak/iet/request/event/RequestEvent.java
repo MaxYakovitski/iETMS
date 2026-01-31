@@ -11,7 +11,6 @@ public class RequestEvent <T> {
     public enum EventType {
         CREATED,
         UPDATED,
-        STATUS_CHANGED,
         DELETED
     }
 
