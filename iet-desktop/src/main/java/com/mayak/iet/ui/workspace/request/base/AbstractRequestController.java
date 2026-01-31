@@ -341,7 +341,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         log.info("WS USER EVENT received: {}", event);
 
         if (event == null || event.getPayload() == null) return;
-        if (event.getType() != RequestEvent.EventType.STATUS_CHANGED) return;
+        if (event.getType() != RequestEvent.EventType.UPDATED) return;
         if (loggedInUser == null) return;
 
         RequestEventDto dto = event.getPayload();
