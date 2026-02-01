@@ -190,7 +190,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
             UpdateTidRequest body = new UpdateTidRequest(tid);
 
             RequestEntity<UpdateTidRequest> request = RequestEntity
-                    .patch(API + "/" + requestId + "/tid")
+                    .put(API + "/" + requestId + "/tid")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body);
 
