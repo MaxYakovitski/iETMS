@@ -18,14 +18,4 @@ public enum RequestStatus {
             default -> false;
         };
     }
-
-    public boolean canTransitionTo(RequestStatus next) {
-        return switch (this) {
-            case NEW -> next == IN_PROGRESS || next == BIDDING;
-            case IN_PROGRESS -> next == BIDDING;
-            case BIDDING -> next == OFFERED;
-            case OFFERED -> next == ACCEPTED || next == REFUSED;
-            default -> false;
-        };
-    }
 }
