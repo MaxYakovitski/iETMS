@@ -137,7 +137,7 @@ public class RequestLifecycleService {
         if (request.getStatus() == RequestStatus.BIDDING) return;
         lifecycle.markBidding(request);
         requestRepository.save(request);
-        notificationService.publishEvent(RequestEvent.EventType.STATUS_CHANGED, request);
+        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -158,7 +158,7 @@ public class RequestLifecycleService {
         lifecycle.offer(request);
 
         requestRepository.save(request);
-        notificationService.publishEvent(RequestEvent.EventType.STATUS_CHANGED, request);
+        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -189,8 +189,8 @@ public class RequestLifecycleService {
         shipmentRepository.findById(request.getId())
                 .orElseGet(() -> createShipment(request));
 
-        notificationService.publishEvent(RequestEvent.EventType.STATUS_CHANGED, request);
-        notificationService.publishToUser(userId, RequestEvent.EventType.STATUS_CHANGED, request);
+        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+        notificationService.publishToUser(userId, RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -216,7 +216,7 @@ public class RequestLifecycleService {
 
         lifecycle.refuse(request, reason);
         requestRepository.save(request);
-        notificationService.publishEvent(RequestEvent.EventType.STATUS_CHANGED, request);
+        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -326,7 +326,7 @@ public class RequestLifecycleService {
 
         if (request.getStatus() != before) {
             requestRepository.save(request);
-            notificationService.publishEvent(RequestEvent.EventType.STATUS_CHANGED, request);
+            notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
         }
     }
 
