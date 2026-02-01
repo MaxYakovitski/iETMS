@@ -21,19 +21,19 @@ public class RefuseReasonResolver {
         // common
         for (ReasonCode code : ReasonCode.values()) {
             if (code.isUserSelectable()) {
-                result.add(new RefuseReasonOptionDto(code.name(), code.getLabel()));
+                result.add(new RefuseReasonOptionDto(code.name(), code.getCode()));
             }
         }
 
         if (request instanceof SpotRequest) {
             for (SpotReasonCode code : SpotReasonCode.values()) {
-                result.add(new RefuseReasonOptionDto(code.name(), code.getLabel()));
+                result.add(new RefuseReasonOptionDto(code.name(), code.getCode()));
             }
         }
 
         if (request instanceof ContractRequest) {
             for (ContractReasonCode code : ContractReasonCode.values()) {
-                result.add(new RefuseReasonOptionDto(code.name(), code.getLabel()));
+                result.add(new RefuseReasonOptionDto(code.name(), code.getCode()));
             }
         }
 

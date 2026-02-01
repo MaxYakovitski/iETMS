@@ -5,13 +5,10 @@ import lombok.Getter;
 
 @Getter
 public enum ContractReasonCode implements RefuseReason {
-    NO_CORRESPONDING_TRUCK("NO_CORRESPONDING_TRUCK", "no corresponding truck");
+    NO_CORRESPONDING_TRUCK;
 
-    private final String code;
-    private final String label;
-
-    ContractReasonCode(String code, String label) {
-        this.code = code;
-        this.label = label;
+    @Override
+    public String getCode() {
+        return name();
     }
 }
