@@ -338,19 +338,11 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     }
 
     private void handleUserEvent(RequestEvent<RequestEventDto> event) {
-        log.info("WS USER EVENT received: {}", event);
-
         if (event == null || event.getPayload() == null) return;
         if (event.getType() != RequestEvent.EventType.UPDATED) return;
-        if (loggedInUser == null) return;
 
         RequestEventDto dto = event.getPayload();
         if (dto.status() != RequestStatusDto.ACCEPTED) return;
-
-        if (!Objects.equals(dto.dispatcherId(), loggedInUser.id())) {
-            log.debug("Skip ACCEPTED toast: dispatcherId={}, currentUserId={}", dto.dispatcherId(), loggedInUser.id());
-            return;
-        }
 
         ToastService.showInfo(
                 windowService.getPrimaryStage(),

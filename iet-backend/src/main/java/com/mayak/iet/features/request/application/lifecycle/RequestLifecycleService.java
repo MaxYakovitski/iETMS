@@ -192,7 +192,8 @@ public class RequestLifecycleService {
                 .orElseGet(() -> createShipment(request));
 
         notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
-        notificationService.publishToUser(userId, RequestEvent.EventType.UPDATED, request);
+        Long dispatcherId = request.getDispatcherId();
+        notificationService.publishToUser(dispatcherId, RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
