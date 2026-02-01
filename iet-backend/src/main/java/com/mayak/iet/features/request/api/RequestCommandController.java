@@ -74,7 +74,8 @@ public class RequestCommandController {
         requestCommandService.refuse(id, request.reason(), userId);
     }
 
-    @PatchMapping("/{id}/tid")
+    @PutMapping("/{id}/tid")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateTid(
             @PathVariable("id") long id,
             @RequestBody UpdateTidRequest request,

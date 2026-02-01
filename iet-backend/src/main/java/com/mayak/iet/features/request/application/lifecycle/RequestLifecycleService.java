@@ -265,6 +265,7 @@ public class RequestLifecycleService {
 
         request.setTid(tid);
         requestRepository.save(request);
+        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
 
