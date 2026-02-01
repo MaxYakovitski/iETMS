@@ -243,6 +243,7 @@ public class RequestLifecycleService {
     public void onBidsChanged(Long requestId) {
         Request request = getOrThrow(requestId);
         refreshStatus(request);
+        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
