@@ -1,5 +1,6 @@
 package com.mayak.iet.features.statistics.application;
 
+import com.mayak.iet.features.request.infra.mapping.RefuseReasonMapper;
 import com.mayak.iet.statistics.DepartmentStatsDto;
 import com.mayak.iet.statistics.MonthlyCountDto;
 import com.mayak.iet.statistics.RefuseReasonCountDto;
@@ -7,9 +8,7 @@ import com.mayak.iet.features.request.domain.model.ContractRequest;
 import com.mayak.iet.features.request.domain.model.RefuseReason;
 import com.mayak.iet.features.request.domain.model.Request;
 import com.mayak.iet.features.request.domain.model.SpotRequest;
-import com.mayak.iet.features.request.domain.enums.ContractReasonCode;
 import com.mayak.iet.features.request.domain.enums.RequestStatus;
-import com.mayak.iet.features.request.domain.enums.SpotReasonCode;
 import com.mayak.iet.features.request.infra.persistence.RequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +28,7 @@ import java.util.stream.Collectors;
 public class DepartmentStatisticsService {
 
     private final RequestRepository requestRepository;
+    private final RefuseReasonMapper refuseReasonMapper;
 
     public DepartmentStatsDto getDepartmentStats(
             Long departmentId,
@@ -120,13 +120,7 @@ public class DepartmentStatisticsService {
     }
 
     private RefuseReason mapReason(Class<? extends Request> type, String code) {
-        if (type == SpotRequest.class) {
-            return SpotReasonCode.valueOf(code);
-        }
-        if (type == ContractRequest.class) {
-            return ContractReasonCode.valueOf(code);
-        }
-        throw new IllegalArgumentException("Unknown request type: " + type);
+        return refuseReasonMapper.fromCode(code);
     }
 
     private List<MonthlyCountDto> buildMonthlyCompression(
@@ -162,7 +156,7 @@ public class DepartmentStatisticsService {
 
     private List<RefuseReasonCountDto> toReasonDtoList(Map<RefuseReason, Integer> map) {
         return map.entrySet().stream()
-                .map(e -> new RefuseReasonCountDto(e.getKey().getLabel(), e.getValue()))
+                .map(e -> new RefuseReasonCountDto(e.getKey().getCode(), e.getValue()))
                 .toList();
     }
 

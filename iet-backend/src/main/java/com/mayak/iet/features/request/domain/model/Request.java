@@ -142,7 +142,13 @@ public abstract class Request {
     }
 
     @Transient
-    public abstract void setReason(RefuseReason reason);
+    public void setReason(RefuseReason reason) {
+        if (reason == null) {
+            this.refuseReason = null;
+            return;
+        }
+        this.refuseReason = reason.getCode();
+    }
 
     @Transient
     public RequestTypeDto getRequestTypeDto() {
