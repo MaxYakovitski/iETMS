@@ -111,6 +111,7 @@ public class RequestLifecycleService {
         requestRepository.save(request);
 
         refreshStatus(request);
+        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -124,6 +125,7 @@ public class RequestLifecycleService {
         requestRepository.save(request);
 
         refreshStatus(request);
+        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
