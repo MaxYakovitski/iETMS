@@ -35,6 +35,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "iet-backend/target/iet-backend.jar"
           target: "/opt/ietms/backend/app/"
+          strip_components: 2
 
       - name: Restart backend service
         uses: appleboy/ssh-action@v1.0.3
