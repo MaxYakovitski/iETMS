@@ -146,7 +146,6 @@ public class ClientRequestsController extends AbstractRequestController {
     public void onHide() {
         super.onHide();
         extensionActive = false;
-        extensionStompClient.disconnect();
     }
 
     private void setupFormFields() {
