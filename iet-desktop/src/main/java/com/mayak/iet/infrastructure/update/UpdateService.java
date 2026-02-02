@@ -6,7 +6,10 @@ import javafx.application.Platform;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,7 +21,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-
 
 @Service
 @Slf4j
@@ -38,7 +40,7 @@ public class UpdateService {
     private UpdateState state = UpdateState.IDLE;
 
     public UpdateService(
-            @Qualifier("updateRestTemplate") RestTemplate restTemplate,
+            RestTemplate restTemplate,
             AppVersionProvider versionProvider,
             UpdateInstaller installer) {
 
@@ -89,19 +91,25 @@ public class UpdateService {
 
         new Thread(() -> {
             try {
-                Files.createDirectories(targetFile.getParent());
-                URL url = URI.create(result.downloadUrl()).toURL();
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.connect();
 
                 long totalBytes = result.downloadSize();
                 long downloaded = 0;
 
-                listener.onStart(result.currentVersion(), result.latestVersion());
+                ResponseEntity<Resource> response =
+                        restTemplate.exchange(result.downloadUrl(), HttpMethod.GET, HttpEntity.EMPTY, Resource.class);
+
+
+                if (!response.getStatusCode().is2xxSuccessful()) {
+                    throw new IllegalStateException(
+                            "Update download failed, status=" + response.getStatusCode()
+                    );
+                }
+
+                Resource resource = response.getBody();
+                if (resource == null) throw new IllegalStateException("Empty update download response");
 
                 try (
-                        InputStream in = conn.getInputStream();
+                        InputStream in = resource.getInputStream();
                         OutputStream out = Files.newOutputStream(
                                 targetFile,
                                 StandardOpenOption.CREATE,

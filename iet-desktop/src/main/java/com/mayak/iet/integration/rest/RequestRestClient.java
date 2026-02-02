@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.net.URI;
 
 @Service
 public class RequestRestClient extends AbstractRestClient implements RequestClient {
@@ -190,7 +191,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
             UpdateTidRequest body = new UpdateTidRequest(tid);
 
             RequestEntity<UpdateTidRequest> request = RequestEntity
-                    .put(API + "/" + requestId + "/tid")
+                    .method(HttpMethod.PATCH, URI.create(API + "/" + requestId + "/tid"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body);
 
