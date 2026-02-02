@@ -108,8 +108,4 @@ public class ExtensionStompClient extends AbstractStompClient {
         if (lastHandler == null) return;
         reconnectExecutor.schedule(() -> connect(lastHandler), 3, TimeUnit.SECONDS);
     }
-
-    public synchronized void disconnect() {
-        disconnectInternal("Extension");
-    }
 }
