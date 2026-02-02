@@ -140,21 +140,14 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     private void handleShipmentUserEvent(ShipmentEvent<ShipmentEventDto> event) {
         if (event == null || event.getPayload() == null) return;
-        if (loggedInUser == null) return;
+        if (event.getType() != ShipmentEvent.EventType.STATUS_CHANGED) return;
 
-        ShipmentEventDto dto = event.getPayload();
-
-        if (event.getType() != ShipmentEvent.EventType.CANCELED) return;
-
-        if (!Objects.equals(dto.dispatcherId(), loggedInUser.id())) {
-            log.debug("Skip shipment toast: dispatcherId={}, currentUserId={}", dto.dispatcherId(), loggedInUser.id());
-            return;
+        if (ShipmentStatusDto.CANCELED.name().equals(event.getPayload().status())) {
+            ToastService.showInfo(
+                    windowService.getPrimaryStage(),
+                    "Shipment canceled",
+                    "Shipment #" + event.getShipmentId() + " has been canceled");
         }
-
-        ToastService.showInfo(
-                windowService.getPrimaryStage(),
-                "Shipment canceled",
-                "Shipment #" + event.getShipmentId() + " has been canceled");
     }
 
     @Override

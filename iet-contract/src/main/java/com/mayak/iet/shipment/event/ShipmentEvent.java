@@ -10,10 +10,7 @@ import java.time.Instant;
 public class ShipmentEvent <T> {
 
     public enum EventType {
-        CREATED,
-        UPDATED,
         STATUS_CHANGED,
-        CANCELED
     }
 
     private final Long shipmentId;
