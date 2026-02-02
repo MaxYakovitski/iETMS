@@ -125,3 +125,18 @@ jobs:
             "notes": "Desktop release $VERSION"
           }
           EOF
+
+      - name: Commit manifest.json
+        working-directory: updates
+        shell: bash
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add windows/manifest.json
+          git commit -m "Update Windows manifest to ${{ steps.version.outputs.version }}"
+
+      - name: Push manifest update
+        working-directory: updates
+        shell: bash
+        run: |
+          git push origin main
