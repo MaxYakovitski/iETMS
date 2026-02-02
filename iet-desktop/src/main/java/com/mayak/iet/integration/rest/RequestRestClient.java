@@ -189,13 +189,7 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
         exchangeSafely(() -> {
 
             UpdateTidRequest body = new UpdateTidRequest(tid);
-
-            RequestEntity<UpdateTidRequest> request = RequestEntity
-                    .method(HttpMethod.PATCH, URI.create(API + "/" + requestId + "/tid"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(body);
-
-            restTemplate.exchange(request, Void.class);
+            restTemplate.exchange(API + "/" + requestId + "/tid", HttpMethod.PATCH, new HttpEntity<>(body), Void.class);
             return null;
         });
     }
