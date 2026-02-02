@@ -15,9 +15,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -88,16 +85,27 @@ public class UpdateService {
         setState(UpdateState.DOWNLOADING);
 
         Path targetFile = UpdatePaths.msiFile(result.latestVersion());
+        log.info("[UPDATE] mandatory update started");
+        log.info("[UPDATE] currentVersion={}", result.currentVersion());
+        log.info("[UPDATE] targetVersion={}", result.latestVersion());
+        log.info("[UPDATE] downloadUrl={}", result.downloadUrl());
+        log.info("[UPDATE] targetFile={}", targetFile.toAbsolutePath());
+        log.info("[UPDATE] expectedSize={}", result.downloadSize());
+        log.info("[UPDATE] expectedSha256={}", result.expectedSha256());
 
+        log.info("[UPDATE] starting update-worker thread");
         new Thread(() -> {
+            log.info("[UPDATE] update-worker thread started");
             try {
 
                 long totalBytes = result.downloadSize();
                 long downloaded = 0;
 
+                log.info("[UPDATE] starting HTTP download");
                 ResponseEntity<Resource> response =
                         restTemplate.exchange(result.downloadUrl(), HttpMethod.GET, HttpEntity.EMPTY, Resource.class);
 
+                log.info("[UPDATE] HTTP status={}", response.getStatusCode());
 
                 if (!response.getStatusCode().is2xxSuccessful()) {
                     throw new IllegalStateException(
@@ -106,7 +114,16 @@ public class UpdateService {
                 }
 
                 Resource resource = response.getBody();
-                if (resource == null) throw new IllegalStateException("Empty update download response");
+                if (resource == null) {
+                    log.error("[UPDATE] download response body is NULL");
+                    throw new IllegalStateException("Empty update download response");
+                }
+
+                log.info("[UPDATE] resource class={}", resource.getClass().getName());
+                log.info("[UPDATE] ensuring target directory exists: {}",
+                        targetFile.getParent().toAbsolutePath());
+
+                Files.createDirectories(targetFile.getParent());
 
                 try (
                         InputStream in = resource.getInputStream();
@@ -131,10 +148,14 @@ public class UpdateService {
                     }
                 }
 
+                log.info("[UPDATE] download completed, bytesDownloaded={}", downloaded);
+                log.info("[UPDATE] file size on disk={}", Files.size(targetFile));
+
                 setState(UpdateState.VERIFYING);
 
                 if (result.expectedSha256() != null && !result.expectedSha256().isBlank()) {
                     String actualSha256 = ChecksumUtils.sha256(targetFile);
+                    log.info("[UPDATE] actualSha256={}", actualSha256);
                     if (!actualSha256.equalsIgnoreCase(result.expectedSha256())) {
                         throw new IllegalStateException(
                                 "Checksum mismatch: expected=" + result.expectedSha256()
@@ -144,12 +165,14 @@ public class UpdateService {
                 }
 
                 setState(UpdateState.INSTALLING);
+                log.info("[UPDATE] launching MSI installer: {}", targetFile.toAbsolutePath());
                 installer.install(targetFile);
 
                 Platform.exit();
                 System.exit(0);
 
             } catch (Exception e) {
+                log.error("[UPDATE] mandatory update failed", e);
                 setState(UpdateState.FAILED);
                 listener.onError(e);
             }
