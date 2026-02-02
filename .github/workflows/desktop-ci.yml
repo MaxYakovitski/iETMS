@@ -114,7 +114,7 @@ jobs:
             "app": "iETMS-desktop",
             "platform": "windows",
             "latestVersion": "$VERSION",
-            "mandatory": false,
+            "mandatory": true,
             "releaseDate": "$DATE",
             "download": {
               "type": "msi",
