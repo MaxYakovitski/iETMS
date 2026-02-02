@@ -49,16 +49,30 @@ public class ShipmentStompClient extends AbstractStompClient {
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
+    /**
+     * Public API.
+     * Declares intent that WS must stay connected.
+     */
     public void connect(
             Consumer<ShipmentEvent<ShipmentEventDto>> onTopicEvent,
             Consumer<ShipmentEvent<ShipmentEventDto>> onUserEvent
     ) {
-        if (connected || shuttingDown) return;
-
         this.lastTopicHandler = onTopicEvent;
         this.lastUserHandler = onUserEvent;
 
+        requestConnect();
 
+        if (!connected && !shuttingDown) {
+            doConnect();
+        }
+    }
+
+    /**
+     * Internal connect implementation.
+     * MUST be called only if desiredConnected == true
+     */
+    private synchronized  void doConnect() {
+        if (connected || shuttingDown || !desiredConnected) return;
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         if (authState.isAuthenticated()) {
             headers.setBearerAuth(authState.getToken());
@@ -71,8 +85,8 @@ public class ShipmentStompClient extends AbstractStompClient {
                 ShipmentStompClient.this.session = session;
                 connected = true;
 
-                session.subscribe(TOPIC_SHIPMENTS, frameHandler(onTopicEvent));
-                session.subscribe("/user" + QUEUE_SHIPMENTS, frameHandler(onUserEvent));
+                session.subscribe(TOPIC_SHIPMENTS, frameHandler(lastTopicHandler));
+                session.subscribe("/user" + QUEUE_SHIPMENTS, frameHandler(lastUserHandler));
             }
 
             @Override
@@ -85,8 +99,8 @@ public class ShipmentStompClient extends AbstractStompClient {
     }
 
     private void scheduleReconnect() {
-        if (lastTopicHandler == null || lastUserHandler == null) return;
-        reconnectExecutor.schedule(() -> connect(lastTopicHandler, lastUserHandler), 3, TimeUnit.SECONDS);
+        if (!desiredConnected || shuttingDown) return;
+        reconnectExecutor.schedule(this::doConnect, 3, TimeUnit.SECONDS);
     }
 
     private StompFrameHandler frameHandler(
@@ -116,6 +130,6 @@ public class ShipmentStompClient extends AbstractStompClient {
     }
 
     public synchronized void disconnect() {
-        disconnectInternal("Shipment");
+        requestDisconnect();
     }
 }

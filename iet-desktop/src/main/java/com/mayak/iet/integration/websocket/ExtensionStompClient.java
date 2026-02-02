@@ -42,12 +42,25 @@ public class ExtensionStompClient extends AbstractStompClient {
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
-    public synchronized void connect(Consumer<ExtensionDraftInvalidEvent> onEvent) {
+    /**
+     * Public API.
+     * Declares intent that WS must stay connected.
+     */
+    public void connect(Consumer<ExtensionDraftInvalidEvent> onEvent) {
         this.lastHandler = onEvent;
-        if (connected || shuttingDown) {
-            log.debug("Extension WS already connected");
-            return;
+        requestConnect();
+
+        if (!connected && !shuttingDown) {
+            doConnect();
         }
+    }
+
+    /**
+     * Internal connect implementation.
+     * MUST be called only if desiredConnected == true
+     */
+    private synchronized  void doConnect() {
+        if (connected || shuttingDown || !desiredConnected) return;
 
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         if (authState.isAuthenticated()) {
@@ -60,7 +73,7 @@ public class ExtensionStompClient extends AbstractStompClient {
             public void afterConnected(@NotNull StompSession session, @NotNull StompHeaders headers) {
                 ExtensionStompClient.this.session = session;
                 connected = true;
-                session.subscribe("/user/queue/extension", frameHandler(onEvent));
+                session.subscribe("/user/queue/extension", frameHandler(lastHandler));
                 log.info("WS EXTENSION connected");
             }
 
@@ -105,11 +118,11 @@ public class ExtensionStompClient extends AbstractStompClient {
     }
 
     private void scheduleReconnect() {
-        if (lastHandler == null) return;
-        reconnectExecutor.schedule(() -> connect(lastHandler), 3, TimeUnit.SECONDS);
+        if (!desiredConnected || shuttingDown) return;
+        reconnectExecutor.schedule(this::doConnect, 3, TimeUnit.SECONDS);
     }
 
     public synchronized void disconnect() {
-        disconnectInternal("Extension");
+        requestDisconnect();
     }
 }

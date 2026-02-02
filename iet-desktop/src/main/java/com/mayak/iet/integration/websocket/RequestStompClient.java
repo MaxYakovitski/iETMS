@@ -46,14 +46,30 @@ public class RequestStompClient extends AbstractStompClient{
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
+    /**
+     * Public API.
+     * Declares intent that WS must stay connected.
+     */
     public void connect(
             Consumer<RequestEvent<RequestEventDto>> onTopicEvent,
             Consumer<RequestEvent<RequestEventDto>> onUserEvent) {
 
-        if (connected || shuttingDown) return;
-
         this.lastTopicHandler = onTopicEvent;
         this.lastUserHandler = onUserEvent;
+
+        requestConnect();
+
+        if (!connected && !shuttingDown) {
+            doConnect();
+        }
+    }
+
+    /**
+     * Internal connect implementation.
+     * MUST be called only if desiredConnected == true
+     */
+    private synchronized void doConnect() {
+        if (connected || shuttingDown || !desiredConnected) return;
 
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         if (authState.isAuthenticated()) {
@@ -69,18 +85,15 @@ public class RequestStompClient extends AbstractStompClient{
                     public void afterConnected(@NotNull StompSession session, @NotNull StompHeaders headers) {
                         RequestStompClient.this.session = session;
                         connected = true;
-
-                        //GLOBAL EVENTS
-                        session.subscribe(TOPIC_REQUESTS, frameHandler(onTopicEvent));
-                        //USER-SPECIFIC EVENTS
-                        session.subscribe("/user" + QUEUE_REQUESTS, frameHandler(onUserEvent));
+                        session.subscribe(TOPIC_REQUESTS, frameHandler(lastTopicHandler));
+                        session.subscribe("/user" + QUEUE_REQUESTS, frameHandler(lastUserHandler));
                     }
 
                     @Override
                     public void handleTransportError(@NotNull StompSession session, @NotNull Throwable exception) {
                         connected = false;
                         log.warn("WS transport error", exception);
-                        if (!shuttingDown) scheduleReconnect();
+                        if (!shuttingDown && desiredConnected) scheduleReconnect();
 
                     }
                 }
@@ -88,13 +101,11 @@ public class RequestStompClient extends AbstractStompClient{
     }
 
     private void scheduleReconnect() {
-        if (lastTopicHandler == null || lastUserHandler == null) return;
-        reconnectExecutor.schedule(() -> connect(lastTopicHandler, lastUserHandler), 3, TimeUnit.SECONDS);
+        if (!desiredConnected || shuttingDown) return;
+        reconnectExecutor.schedule(this::doConnect, 3, TimeUnit.SECONDS);
     }
 
-    private StompFrameHandler frameHandler(
-            Consumer<RequestEvent<RequestEventDto>> consumer
-    ) {
+    private StompFrameHandler frameHandler(Consumer<RequestEvent<RequestEventDto>> consumer) {
         return new StompFrameHandler() {
 
             @Override
@@ -111,8 +122,7 @@ public class RequestStompClient extends AbstractStompClient{
                 }
 
                 try {
-                    RequestEvent<RequestEventDto> event =
-                            mapper.readValue(bytes, EVENT_TYPE);
+                    RequestEvent<RequestEventDto> event = mapper.readValue(bytes, EVENT_TYPE);
                     consumer.accept(event);
                 } catch (Exception e) {
                     log.error("WS payload deserialize failed", e);
@@ -122,6 +132,6 @@ public class RequestStompClient extends AbstractStompClient{
     }
 
     public synchronized void disconnect() {
-        disconnectInternal("Request");
+        requestDisconnect();
     }
 }
