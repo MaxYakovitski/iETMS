@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - 'iet-desktop/**'
+      - '.github/workflows/desktop-*.yml'
+      - '.github/workflows/desktop-ci.yml'
+      - '.github/workflows/desktop*.yml'
+      - 'docs/**'
+      - 'README.md'
 
 jobs:
   deploy-backend:
