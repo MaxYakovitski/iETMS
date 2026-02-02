@@ -16,11 +16,12 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 public class RestClientConfig {
 
     @Bean
-    @Primary
-    @Qualifier("backendRestTemplate")
     public RestTemplate restTemplate(AuthState authState, BackendProperties backendProperties) {
 
-        RestTemplate restTemplate = new RestTemplate();
+        CloseableHttpClient client = HttpClients.custom().disableAutomaticRetries().build();
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(client);
+
+        RestTemplate restTemplate = new RestTemplate(factory);
         restTemplate.setUriTemplateHandler(new DefaultUriBuilderFactory(backendProperties.baseUrl()));
 
         restTemplate.getInterceptors().add((request, body, execution) -> {
@@ -31,19 +32,5 @@ public class RestClientConfig {
         });
 
         return restTemplate;
-    }
-
-    @Bean
-    @Qualifier("updateRestTemplate")
-    public RestTemplate updateRestTemplate() {
-
-        CloseableHttpClient client = HttpClients.custom()
-                .disableAutomaticRetries()
-                .build();
-
-        HttpComponentsClientHttpRequestFactory factory =
-                new HttpComponentsClientHttpRequestFactory(client);
-
-        return new RestTemplate(factory);
     }
 }
