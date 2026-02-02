@@ -150,11 +150,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         }
     }
 
-    @Override
-    public void onHide() {
-        shipmentWsClient.disconnect();
-    }
-
     @FXML
     private void initialize() {
         TextUtils.allowOnlyLatin(true, carrierField, licensePlateField, transportOrder);
