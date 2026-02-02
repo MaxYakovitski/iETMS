@@ -162,11 +162,16 @@ public class ShipmentService {
             throw new UnauthorizedException("Only dispatcher can update shipment");
         }
 
-        applyStatusTransition(dto, shipment);
+        boolean statusChanged = applyStatusTransition(dto, shipment);
         applyCarrier(dto, shipment);
         applyLicense(dto, shipment);
         applyTransportOrder(dto, shipment);
         applyComments(dto, shipment);
+
+        if (statusChanged) {
+            shipmentNotificationService.publishEvent(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
+            shipmentNotificationService.publishToDispatcher(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
+        }
 
         return assembler.assembleCurrent(shipment);
     }
@@ -185,31 +190,28 @@ public class ShipmentService {
      * @throws InvalidShipmentStatusTransitionException if the transition is not allowed
      * @throws DeliveryTimeLineException if the transition timestamp is missing
      */
-    private void applyStatusTransition(ShipmentUpdateDto dto, Shipment shipment) {
-        if (dto.status() != null) {
-            ShipmentStatus target = ShipmentStatus.valueOf(dto.status().name());
-            ShipmentStatus current = shipment.getStatus();
+    private boolean applyStatusTransition(ShipmentUpdateDto dto, Shipment shipment) {
+        if (dto.status() == null) return false;
+        ShipmentStatus target = ShipmentStatus.valueOf(dto.status().name());
+        ShipmentStatus current = shipment.getStatus();
 
-            if (!current.canTransitionTo(target)) {
-                throw new InvalidShipmentStatusTransitionException(current, target);
-            }
-
-            if (dto.statusAt() == null) {
-                throw new DeliveryTimeLineException(
-                        "Status time must be provided when changing shipment status"
-                );
-            }
-
-            shipment.validateStatusChange(target, dto.statusAt());
-
-            switch (target) {
-                case LOADED -> shipment.markLoaded(dto.statusAt());
-                case DROPPED -> shipment.markDropped(dto.statusAt());
-                default -> throw new IllegalStateException(
-                        "Unsupported shipment update status: " + target
-                );
-            }
+        if (!current.canTransitionTo(target)) {
+            throw new InvalidShipmentStatusTransitionException(current, target);
         }
+
+        if (dto.statusAt() == null) {
+            throw new DeliveryTimeLineException("Status time must be provided when changing shipment status");
+        }
+
+        shipment.validateStatusChange(target, dto.statusAt());
+
+        switch (target) {
+            case LOADED -> shipment.markLoaded(dto.statusAt());
+            case DROPPED -> shipment.markDropped(dto.statusAt());
+            default -> throw new IllegalStateException("Unsupported shipment update status: " + target);
+        }
+
+        return true;
     }
 
     private void applyComments(ShipmentUpdateDto dto, Shipment shipment) {
@@ -284,8 +286,8 @@ public class ShipmentService {
 
         shipment.cancel(reason);
 
-        shipmentNotificationService.publishEvent(ShipmentEvent.EventType.CANCELED, shipment);
-        shipmentNotificationService.publishToDispatcher(ShipmentEvent.EventType.CANCELED, shipment);
+        shipmentNotificationService.publishEvent(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
+        shipmentNotificationService.publishToDispatcher(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
     }
 
 }
