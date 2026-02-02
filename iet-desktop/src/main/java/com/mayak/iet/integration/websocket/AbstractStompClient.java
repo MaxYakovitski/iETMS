@@ -8,19 +8,22 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
-public class AbstractStompClient {
+public abstract class AbstractStompClient {
 
     protected volatile StompSession session;
     protected volatile boolean connected;
     protected volatile boolean shuttingDown;
 
+    /**
+     * Indicates whether this WS client SHOULD be connected
+     * according to application/session state.
+     */
     protected volatile boolean desiredConnected;
 
-    protected final ScheduledExecutorService reconnectExecutor =
-            Executors.newSingleThreadScheduledExecutor();
+    protected final ScheduledExecutorService reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
 
     /**
-     * Mark this client as "should stay connected" and connect if not connected.
+     * Request WS to stay connected for the lifetime of the session.
      * Idempotent.
      */
     public synchronized void requestConnect() {
@@ -28,25 +31,23 @@ public class AbstractStompClient {
     }
 
     /**
-     * Mark this client as "should NOT stay connected".
+     * Request WS to disconnect and stay disconnected.
      * Used on logout / app shutdown.
      */
     public synchronized void requestDisconnect() {
         desiredConnected = false;
-        disconnectSession(getClass().getSimpleName());
+        disconnectSession();
     }
 
-    protected synchronized void disconnectSession(String name) {
-
+    protected synchronized void disconnectSession() {
         if (session != null && session.isConnected()) {
             try {
                 session.disconnect();
-                log.info("{} WS disconnected", name);
+                log.info("{} WS disconnected", getClass().getSimpleName());
             } catch (Exception e) {
-                log.warn("{} WS disconnect failed", name, e);
+                log.warn("{} WS disconnect failed", getClass().getSimpleName(), e);
             }
         }
-
         session = null;
         connected = false;
     }
@@ -56,6 +57,7 @@ public class AbstractStompClient {
         shuttingDown = true;
         desiredConnected = false;
         reconnectExecutor.shutdownNow();
+        disconnectSession();
         log.info("{} WS executor shutdown", getClass().getSimpleName());
     }
 }
