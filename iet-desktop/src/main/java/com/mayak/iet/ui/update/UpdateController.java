@@ -28,8 +28,12 @@ public class UpdateController {
     }
 
     public void start(UpdateCheckResult result) {
-
         showChecking();
+
+        if (!result.updateRequired()) {
+            log.info("[UPDATE] no update required, current == latest");
+            return;
+        }
 
         if (result.forced()) {
             startMandatoryUpdate(result);
