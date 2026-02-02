@@ -96,7 +96,7 @@ jobs:
         with:
           repository: MaxYakovitski/iETMS-updates
           path: updates
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.UPDATES_REPO_TOKEN }}
 
       # 10. Update Windows manifest.json
       - name: Update manifest.json
@@ -126,17 +126,18 @@ jobs:
           }
           EOF
 
-      - name: Commit manifest.json
+      - name: Commit and push manifest.json
         working-directory: updates
         shell: bash
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add windows/manifest.json
-          git commit -m "Update Windows manifest to ${{ steps.version.outputs.version }}"
+          git config user.name "iETMS CI"
+          git config user.email "ci@ietms.local"
 
-      - name: Push manifest update
-        working-directory: updates
-        shell: bash
-        run: |
-          git push origin main
+          git add windows/manifest.json
+
+          if git diff --cached --quiet; then
+            echo "No manifest changes to commit"
+          else
+            git commit -m "Update Windows manifest to ${{ steps.version.outputs.version }}"
+            git push origin main
+          fi
