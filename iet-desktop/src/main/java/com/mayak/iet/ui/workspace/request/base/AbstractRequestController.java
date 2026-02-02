@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -91,6 +92,11 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
 
     protected volatile boolean active = true;
     protected volatile boolean pauseUpdates = false;
+    private boolean listInitialized = false;
+
+    private final AtomicBoolean reloadScheduled = new AtomicBoolean(false);
+    private final ScheduledExecutorService reloadExecutor = Executors.newSingleThreadScheduledExecutor();
+
 
     @Override
     public void setupListView() {
@@ -137,7 +143,10 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     // ==================== SHOW/HIDE ====================
     @Override
     public void onShow() {
-        setupListView();
+        if (!listInitialized) {
+            setupListView();
+            listInitialized = true;
+        }
         this.active = true;
 
         if (!hotkeysRegistered) {
@@ -155,9 +164,8 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
 
     protected void initRealtimeUpdates() {
         wsClient.connect(
-                event -> Platform.runLater(() -> handleEventReceived(List.of(event))),
-                event -> Platform.runLater(() -> handleUserEvent(event))
-        );
+                event -> handleEventReceived(List.of(event)),
+                this::handleUserEvent);
     }
 
     @Override
@@ -167,6 +175,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
             uiUpdater.shutdownNow();
             uiUpdater = null;
         }
+        reloadExecutor.shutdownNow();
         activeSearchQuery = null;
         log.info("{} -> onHide() called", getClass().getSimpleName());
     }
@@ -329,11 +338,22 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
             log.debug("WS batch ignored: no events for requestType={}", requestType);
             return;
         }
+        scheduleReload();
 
         List<Long> ids = events.stream().map(RequestEvent::getRequestId).distinct().toList();
         log.debug("WS batch accepted: {} events, affected requestIds={}, requestType={}", events.size(), ids, requestType);
+    }
 
-        reloadCurrentPageFromServer();
+    private void scheduleReload() {
+        if (!reloadScheduled.compareAndSet(false, true)) return;
+
+        reloadExecutor.schedule(() -> {
+            try {
+                reloadCurrentPageFromServer();
+            } finally {
+                reloadScheduled.set(false);
+            }
+        }, 150, TimeUnit.MILLISECONDS);
     }
 
     private void handleUserEvent(RequestEvent<RequestEventDto> event) {
@@ -361,8 +381,8 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
             if (filterSnapshot != null) return requestClient.filter(filterSnapshot, page,  PAGE_SIZE);
             return requestClient.findPage(page, PAGE_SIZE, requestType);
         }).thenAccept(items -> Platform.runLater(() -> {
-            requestItems.setAll(items.getContent());
-            requestsListView.refresh();
+            requestItems.clear();
+            requestItems.addAll(items.getContent());
             showEmptyMessage(items.getContent().isEmpty());
         })).exceptionally(ex -> {
             log.error("ValidationError reloading current page from DB", ex);
