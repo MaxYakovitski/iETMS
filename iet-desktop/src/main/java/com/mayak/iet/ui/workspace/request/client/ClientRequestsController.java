@@ -135,7 +135,6 @@ public class ClientRequestsController extends AbstractRequestController {
     @Override
     public void onShow() {
         super.onShow();
-
         extensionActive = true;
         extensionStompClient.connect(event ->
                 Platform.runLater(() -> handleExtensionEvent(event)));
