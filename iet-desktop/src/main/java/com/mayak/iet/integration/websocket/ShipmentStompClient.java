@@ -114,8 +114,4 @@ public class ShipmentStompClient extends AbstractStompClient {
             }
         };
     }
-
-    public synchronized void disconnect() {
-        disconnectInternal("Shipment");
-    }
 }

@@ -168,7 +168,6 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
             uiUpdater = null;
         }
         activeSearchQuery = null;
-        wsClient.disconnect();
         log.info("{} -> onHide() called", getClass().getSimpleName());
     }
 

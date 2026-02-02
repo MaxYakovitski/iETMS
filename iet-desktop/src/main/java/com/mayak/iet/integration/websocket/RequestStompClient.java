@@ -120,8 +120,4 @@ public class RequestStompClient extends AbstractStompClient{
             }
         };
     }
-
-    public synchronized void disconnect() {
-        disconnectInternal("Request");
-    }
 }
