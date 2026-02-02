@@ -14,11 +14,29 @@ public class AbstractStompClient {
     protected volatile boolean connected;
     protected volatile boolean shuttingDown;
 
+    protected volatile boolean desiredConnected;
+
     protected final ScheduledExecutorService reconnectExecutor =
             Executors.newSingleThreadScheduledExecutor();
 
-    protected synchronized void disconnectInternal(String name) {
-        shuttingDown = true;
+    /**
+     * Mark this client as "should stay connected" and connect if not connected.
+     * Idempotent.
+     */
+    public synchronized void requestConnect() {
+        desiredConnected = true;
+    }
+
+    /**
+     * Mark this client as "should NOT stay connected".
+     * Used on logout / app shutdown.
+     */
+    public synchronized void requestDisconnect() {
+        desiredConnected = false;
+        disconnectSession(getClass().getSimpleName());
+    }
+
+    protected synchronized void disconnectSession(String name) {
 
         if (session != null && session.isConnected()) {
             try {
@@ -36,6 +54,7 @@ public class AbstractStompClient {
     @PreDestroy
     public void shutdown() {
         shuttingDown = true;
+        desiredConnected = false;
         reconnectExecutor.shutdownNow();
         log.info("{} WS executor shutdown", getClass().getSimpleName());
     }
