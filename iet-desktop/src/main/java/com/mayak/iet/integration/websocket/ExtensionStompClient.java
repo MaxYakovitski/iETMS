@@ -121,11 +121,4 @@ public class ExtensionStompClient extends AbstractStompClient {
         if (!desiredConnected || shuttingDown) return;
         reconnectExecutor.schedule(this::doConnect, 3, TimeUnit.SECONDS);
     }
-<<<<<<< ours
-
-    public synchronized void disconnect() {
-        requestDisconnect();
-    }
-=======
->>>>>>> theirs
 }
