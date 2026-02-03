@@ -16,37 +16,36 @@ public class AbstractStompClient {
 
     protected volatile boolean desiredConnected;
 
-    protected final ScheduledExecutorService reconnectExecutor =
-            Executors.newSingleThreadScheduledExecutor();
+    protected final ScheduledExecutorService reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
 
     /**
-     * Mark this client as "should stay connected" and connect if not connected.
+     * Request WS to stay connected for the lifetime of the session.
      * Idempotent.
      */
     public synchronized void requestConnect() {
         desiredConnected = true;
+        log.warn("{} requestConnect()", getClass().getSimpleName());
     }
 
     /**
-     * Mark this client as "should NOT stay connected".
+     * Request WS to disconnect and stay disconnected.
      * Used on logout / app shutdown.
      */
     public synchronized void requestDisconnect() {
         desiredConnected = false;
-        disconnectSession(getClass().getSimpleName());
+        log.warn("{} requestDisconnect()", getClass().getSimpleName());
+        disconnectSession();
     }
 
-    protected synchronized void disconnectSession(String name) {
-
+    protected synchronized void disconnectSession() {
         if (session != null && session.isConnected()) {
             try {
                 session.disconnect();
-                log.info("{} WS disconnected", name);
+                log.info("{} WS disconnected", getClass().getSimpleName());
             } catch (Exception e) {
-                log.warn("{} WS disconnect failed", name, e);
+                log.warn("{} WS disconnect failed", getClass().getSimpleName(), e);
             }
         }
-
         session = null;
         connected = false;
     }
@@ -56,6 +55,7 @@ public class AbstractStompClient {
         shuttingDown = true;
         desiredConnected = false;
         reconnectExecutor.shutdownNow();
+        disconnectSession();
         log.info("{} WS executor shutdown", getClass().getSimpleName());
     }
 }
