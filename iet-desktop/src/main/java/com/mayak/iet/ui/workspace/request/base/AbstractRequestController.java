@@ -139,7 +139,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     public void onShow() {
         setupListView();
         this.active = true;
-
+        wsClient.requestConnect();
         if (!hotkeysRegistered) {
             Scene scene = requestsListView.getScene();
             if (scene != null) {
@@ -148,21 +148,18 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
             }
         }
 
-        filterState.get()
-                .ifPresentOrElse(this::applyFilter, this::loadDefaultPage);
+        filterState.get().ifPresentOrElse(this::applyFilter, this::loadDefaultPage);
         initRealtimeUpdates();
     }
 
     protected void initRealtimeUpdates() {
-        wsClient.connect(
-                event -> Platform.runLater(() -> handleEventReceived(List.of(event))),
-                event -> Platform.runLater(() -> handleUserEvent(event))
-        );
+        wsClient.connect(event -> handleEventReceived(List.of(event)), this::handleUserEvent);
     }
 
     @Override
     public void onHide() {
         active = false;
+        wsClient.requestDisconnect();
         if (uiUpdater != null) {
             uiUpdater.shutdownNow();
             uiUpdater = null;
@@ -329,11 +326,10 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
             log.debug("WS batch ignored: no events for requestType={}", requestType);
             return;
         }
+        reloadCurrentPageFromServer();
 
         List<Long> ids = events.stream().map(RequestEvent::getRequestId).distinct().toList();
         log.debug("WS batch accepted: {} events, affected requestIds={}, requestType={}", events.size(), ids, requestType);
-
-        reloadCurrentPageFromServer();
     }
 
     private void handleUserEvent(RequestEvent<RequestEventDto> event) {
@@ -361,8 +357,8 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
             if (filterSnapshot != null) return requestClient.filter(filterSnapshot, page,  PAGE_SIZE);
             return requestClient.findPage(page, PAGE_SIZE, requestType);
         }).thenAccept(items -> Platform.runLater(() -> {
+            requestItems.clear();
             requestItems.setAll(items.getContent());
-            requestsListView.refresh();
             showEmptyMessage(items.getContent().isEmpty());
         })).exceptionally(ex -> {
             log.error("ValidationError reloading current page from DB", ex);
