@@ -128,11 +128,4 @@ public class ShipmentStompClient extends AbstractStompClient {
             }
         };
     }
-<<<<<<< ours
-
-    public synchronized void disconnect() {
-        requestDisconnect();
-    }
-=======
->>>>>>> theirs
 }
