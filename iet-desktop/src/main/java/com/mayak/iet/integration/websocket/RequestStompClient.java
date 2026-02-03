@@ -130,8 +130,11 @@ public class RequestStompClient extends AbstractStompClient{
             }
         };
     }
+<<<<<<< ours
 
     public synchronized void disconnect() {
         requestDisconnect();
     }
+=======
+>>>>>>> theirs
 }
