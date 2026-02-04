@@ -8,16 +8,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
-public abstract class AbstractStompClient {
+public class AbstractStompClient {
 
     protected volatile StompSession session;
     protected volatile boolean connected;
     protected volatile boolean shuttingDown;
 
-    /**
-     * Indicates whether this WS client SHOULD be connected
-     * according to application/session state.
-     */
     protected volatile boolean desiredConnected;
 
     protected final ScheduledExecutorService reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -28,6 +24,7 @@ public abstract class AbstractStompClient {
      */
     public synchronized void requestConnect() {
         desiredConnected = true;
+        log.warn("{} requestConnect()", getClass().getSimpleName());
     }
 
     /**
@@ -36,6 +33,7 @@ public abstract class AbstractStompClient {
      */
     public synchronized void requestDisconnect() {
         desiredConnected = false;
+        log.warn("{} requestDisconnect()", getClass().getSimpleName());
         disconnectSession();
     }
 
@@ -48,6 +46,7 @@ public abstract class AbstractStompClient {
                 log.warn("{} WS disconnect failed", getClass().getSimpleName(), e);
             }
         }
+
         session = null;
         connected = false;
     }
