@@ -92,9 +92,8 @@ public class RequestDetailsAssembler {
                 .activeBids(mapBids(activeBids))
 
                 // -------- PRICES --------
-                .bidPrice(resolveBidPrice(request))
                 .profitMargin(resolveProfitMargin(request))
-                .displayPrice(resolveDisplayPrice(request))
+                .price(resolvePrice(request))
                 .refuseReasons(resolveRefuseReasons(request))
 
                 // -------- LANE --------
@@ -130,13 +129,6 @@ public class RequestDetailsAssembler {
         return bidMapper.toViewDtoSet(bids);
     }
 
-    private BigDecimal resolveBidPrice(Request request) {
-        if (request instanceof ContractRequest contract) {
-            return contract.getTotalPrice();
-        }
-        return null;
-    }
-
     private BigDecimal resolveProfitMargin(Request request) {
         if (request instanceof ContractRequest contract) {
             return contract.getProfitMargin();
@@ -144,7 +136,7 @@ public class RequestDetailsAssembler {
         return null;
     }
 
-    private BigDecimal resolveDisplayPrice(Request request) {
+    private BigDecimal resolvePrice(Request request) {
         return switch (request) {
             case ContractRequest c -> c.getTotalPrice();
             case SpotRequest s -> s.getClientPrice();

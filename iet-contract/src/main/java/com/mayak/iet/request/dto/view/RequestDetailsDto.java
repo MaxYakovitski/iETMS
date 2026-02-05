@@ -58,8 +58,7 @@ public record RequestDetailsDto (
         UserLookupDto author,
 
         LocalDateTime issueDate,
-        BigDecimal bidPrice,
-        BigDecimal displayPrice,
+        BigDecimal price,
         BigDecimal profitMargin,
         List<RefuseReasonOptionDto> refuseReasons,
 

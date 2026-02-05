@@ -208,6 +208,8 @@ public class WindowService {
                 Image icon = new Image(Objects.requireNonNull(getClass().getResource(iconPath)).toString());
                 stage.getIcons().add(icon);
             } catch (Exception ignored) {}
+        } else {
+            stage.getIcons().clear();
         }
 
         stage.setOnShown(event -> {
