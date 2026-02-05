@@ -13,6 +13,7 @@ public interface RequestsParent {
 
     ParentType getParentType();
     ObservableList<RequestListItemDto> getRequestItems();
+    default void invalidateRequest(Long requestId) {}
 
     void setHomeController(HomeController homeController);
     HomeController getHomeController();

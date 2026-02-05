@@ -8,6 +8,7 @@ import com.mayak.iet.integration.api.RequestClient;
 import com.mayak.iet.request.dto.filter.RequestFilterDto;
 import com.mayak.iet.request.dto.view.RequestDetailsDto;
 import com.mayak.iet.request.dto.view.RequestListItemDto;
+import com.mayak.iet.ui.workspace.request.item.RequestItemController;
 import com.mayak.iet.user.dto.UserResponseDto;
 import com.mayak.iet.request.event.RequestEvent;
 import com.mayak.iet.ui.core.SecuredView;
@@ -25,10 +26,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.ScrollBar;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
@@ -53,49 +51,117 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     @FXML protected ProgressIndicator loadingIndicator;
     @FXML protected Label emptyMessageLabel;
 
+    protected final RequestClient requestClient;
+    protected final WindowService windowService;
+    protected final RequestFilterState filterState;
+    protected final RequestStompClient wsClient;
+
     @Getter @Setter
     HomeController homeController;
 
     @Getter
     private UserResponseDto loggedInUser;
 
+    @Getter
+    protected final ObservableList<RequestListItemDto> requestItems = FXCollections.observableArrayList();
+    private final ConcurrentMap<Long, RequestItemController> visible = new ConcurrentHashMap<>();
+
+    protected RequestFilterDto activeFilter;
+    protected String activeSearchQuery;
+
+    @Getter @Setter
+    protected RequestTypeDto requestType;
+
+    @Getter @Setter
+    protected Stage stage;
+
+    protected static final int PAGE_SIZE = 100;
+
+    protected int currentPage = 0;
+    protected boolean loading = false;
+    protected boolean allLoaded = false;
+
+    private boolean overlayVisible = false;
+    private boolean hotkeysRegistered = false;
+
+    protected volatile boolean active = true;
+    protected volatile boolean pauseUpdates = false;
+
+    protected ScheduledExecutorService uiUpdater;
+
+    private final ScheduledExecutorService wsDebouncer =
+            Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "ws-debouncer");
+                t.setDaemon(true);
+                return t;
+            });
+
+    private ScheduledFuture<?> pendingReload;
+
+    protected final ConcurrentMap<Long, CompletableFuture<RequestDetailsDto>> detailsCache = new ConcurrentHashMap<>();
+
+    private static final int PREFETCH_RADIUS = 50;
+
+
     @Override
     public void setLoggedInUser(UserResponseDto user) {
         this.loggedInUser = user;
     }
 
-    protected final RequestClient requestClient;
-    protected final WindowService windowService;
-    protected final RequestFilterState filterState;
+    @Override
+    public Optional<RequestFilterDto> getLastAppliedFilter() {
+        return Optional.ofNullable(activeFilter);
+    }
 
-    @Getter
-    protected final ObservableList<RequestListItemDto> requestItems = FXCollections.observableArrayList();
+    @Override
+    public void onShow() {
+        setupListView();
+        this.active = true;
+        wsClient.requestConnect();
+        if (!hotkeysRegistered) {
+            Scene scene = requestsListView.getScene();
+            if (scene != null) {
+                registerHotkeys(scene);
+                hotkeysRegistered = true;
+            }
+        }
 
-    protected RequestFilterDto activeFilter;
+        filterState.get().ifPresentOrElse(this::applyFilter, this::loadDefaultPage);
+        initRealtimeUpdates();
+    }
 
-    protected String activeSearchQuery;
-    @Getter @Setter
-    protected RequestTypeDto requestType;
-    @Getter @Setter
-    protected Stage stage;
+    @Override
+    public void onHide() {
+        active = false;
+        wsClient.requestDisconnect();
 
-    protected static final int PAGE_SIZE = 100;
-    protected int currentPage = 0;
-    protected boolean loading = false;
-    protected boolean allLoaded = false;
-    private boolean overlayVisible = false;
-    private boolean hotkeysRegistered = false;
+        if (pendingReload != null) {
+            pendingReload.cancel(true);
+            pendingReload = null;
+        }
 
-    protected final RequestStompClient wsClient;
-    protected ScheduledExecutorService uiUpdater;
-
-    protected volatile boolean active = true;
-    protected volatile boolean pauseUpdates = false;
+        if (uiUpdater != null) {
+            uiUpdater.shutdownNow();
+            uiUpdater = null;
+        }
+        activeSearchQuery = null;
+        log.info("{} -> onHide() called", getClass().getSimpleName());
+    }
 
     @Override
     public void setupListView() {
         requestsListView.setItems(requestItems);
-        requestsListView.setCellFactory(cell -> new RequestCell(windowService, loggedInUser, this));
+        requestsListView.setCellFactory(lv -> {
+            RequestCell cell = new RequestCell(windowService, loggedInUser, this);
+
+            cell.indexProperty().addListener((obs, oldIdx, newIdx) -> {
+                int idx = newIdx.intValue();
+                if (idx < 0) return;
+                prefetchAroundIndex(idx);
+            });
+
+            return cell;
+        });
 
         requestsListView.skinProperty().addListener((obs, oldSkin, newSkin) -> {
             ScrollBar verticalBar = getVerticalScrollBar(requestsListView);
@@ -124,51 +190,67 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         });
     }
 
-    protected void loadDetailsAndFillForm(Long requestId) {
-        try {
-            RequestDetailsDto details = requestClient.getDetails(requestId);
-            fillFormWithRequest(details);
-        } catch (Exception e) {
-            log.error("Error while filling details for {}", requestId, e);
-            AlertUtils.showWarning("Failed to load request details.");
-        }
-    }
-
-    // ==================== SHOW/HIDE ====================
-    @Override
-    public void onShow() {
-        setupListView();
-        this.active = true;
-        wsClient.requestConnect();
-        if (!hotkeysRegistered) {
-            Scene scene = requestsListView.getScene();
-            if (scene != null) {
-                registerHotkeys(scene);
-                hotkeysRegistered = true;
+    protected ScrollBar getVerticalScrollBar(ListView<?> listView) {
+        for (Node node : listView.lookupAll(".scroll-bar")) {
+            if (node instanceof ScrollBar bar && bar.getOrientation() == Orientation.VERTICAL) {
+                return bar;
             }
         }
-
-        filterState.get().ifPresentOrElse(this::applyFilter, this::loadDefaultPage);
-        initRealtimeUpdates();
+        return null;
     }
 
-    protected void initRealtimeUpdates() {
-        wsClient.connect(event -> handleEventReceived(List.of(event)), this::handleUserEvent);
+    public CompletableFuture<RequestDetailsDto> getDetailsAsync(Long id) {
+        return detailsCache.computeIfAbsent(id,
+                key -> CompletableFuture.supplyAsync(() -> requestClient.getDetails(key))
+        );
     }
 
     @Override
-    public void onHide() {
-        active = false;
-        wsClient.requestDisconnect();
-        if (uiUpdater != null) {
-            uiUpdater.shutdownNow();
-            uiUpdater = null;
-        }
-        activeSearchQuery = null;
-        log.info("{} -> onHide() called", getClass().getSimpleName());
+    public void invalidateRequest(Long requestId) {
+        if (!active || requestId == null) return;
+        detailsCache.remove(requestId);
+        refreshOne(requestId);
     }
 
-    // ==================== PAGINATION ====================
+    public void registerVisible(Long id, RequestItemController c) {
+        if (id != null && c != null) visible.put(id, c);
+    }
+
+    public void unregisterVisible(Long id) {
+        if (id == null) return;
+        visible.remove(id);
+    }
+
+    private void refreshOne(Long id) {
+        RequestItemController c = visible.get(id);
+        if (c == null) return;
+
+        CompletableFuture
+                .supplyAsync(() -> requestClient.getDetails(id))
+                .thenAccept(dto -> Platform.runLater(() -> {
+                    if (!Objects.equals(c.getRequestId(), id)) return;
+                    c.attachDetails(dto);
+                }))
+                .exceptionally(ex -> {
+                    log.warn("Failed to refresh request {}", id, ex);
+                    return null;
+                });
+    }
+
+    protected void prefetchAroundIndex(int center) {
+        int size = requestItems.size();
+        if (size == 0) return;
+
+        int from = Math.max(0, center - PREFETCH_RADIUS);
+        int to   = Math.min(size - 1, center + PREFETCH_RADIUS);
+
+        for (int i = from; i <= to; i++) {
+            Long id = requestItems.get(i).id();
+            getDetailsAsync(id);
+        }
+    }
+
+    // ==================== Pagination API ====================
     protected void loadDefaultPage() {
         resetPagination();
         showLoading(true);
@@ -220,7 +302,16 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         });
     }
 
-    // ==================== FILTER ====================
+    protected void resetPagination() {
+        currentPage = 0;
+        allLoaded = false;
+        requestItems.clear();
+    }
+
+    protected void onPageLoaded() {}
+
+
+    // ==================== Filter / search API ====================
     public void applyFilter(RequestFilterDto filter) {
         safeUpdate(() -> {
             if (!active) return;
@@ -245,7 +336,6 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         });
     }
 
-    // ==================== SEARCH ====================
     public void applySearch(String query) {
         safeUpdate(() -> {
             if (!active) return;
@@ -264,10 +354,19 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         });
     }
 
-    protected void resetPagination() {
-        currentPage = 0;
-        allLoaded = false;
-        requestItems.clear();
+    protected void loadDetailsAndFillForm(Long requestId) {
+        CompletableFuture
+                .supplyAsync(() -> requestClient.getDetails(requestId))
+                .thenAccept(details ->
+                        Platform.runLater(() -> fillFormWithRequest(details))
+                )
+                .exceptionally(ex -> {
+                    log.error("Error while filling details for {}", requestId, ex);
+                    Platform.runLater(() ->
+                            AlertUtils.showWarning("Failed to load request details.")
+                    );
+                    return null;
+                });
     }
 
     // ==================== UI ====================
@@ -303,7 +402,6 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     // ==================== THREAD SAFETY ====================
     @Override
     public void pauseUpdates() {pauseUpdates = true;}
-
     @Override
     public void resumeUpdates() {pauseUpdates = false;}
 
@@ -314,22 +412,46 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     }
 
     // ==================== WEB SOCKET EVENT HANDLING ====================
+    protected void initRealtimeUpdates() {
+        wsClient.connect(event -> handleEventReceived(List.of(event)), this::handleUserEvent);
+    }
+
     private void handleEventReceived(List<RequestEvent<RequestEventDto>> events) {
         if (!active || pauseUpdates || events.isEmpty()) return;
 
-        boolean relevant = events.stream()
+        boolean statusChanged = events.stream()
                 .map(RequestEvent::getPayload)
                 .filter(Objects::nonNull)
-                .anyMatch(dto -> requestType == null || dto.type() == requestType);
+                .map(RequestEventDto::status)
+                .anyMatch(Objects::nonNull);
 
-        if (!relevant) {
-            log.debug("WS batch ignored: no events for requestType={}", requestType);
-            return;
+        if (statusChanged) scheduleSortedReload();
+        events.stream().map(RequestEvent::getRequestId).distinct().forEach(this::invalidateRequest);
+    }
+
+    private void scheduleSortedReload() {
+        if (pendingReload != null && !pendingReload.isDone()) {
+            pendingReload.cancel(false);
         }
-        reloadCurrentPageFromServer();
+        pendingReload = wsDebouncer.schedule(this::reloadSortedPageFromServer, 120, TimeUnit.MILLISECONDS
+        );
+    }
 
-        List<Long> ids = events.stream().map(RequestEvent::getRequestId).distinct().toList();
-        log.debug("WS batch accepted: {} events, affected requestIds={}, requestType={}", events.size(), ids, requestType);
+    private void reloadSortedPageFromServer() {
+        RequestFilterDto filterSnapshot = activeFilter;
+        String searchSnapshot = activeSearchQuery;
+
+        CompletableFuture
+                .supplyAsync(() -> {
+                    if (searchSnapshot != null)
+                        return requestClient.search(searchSnapshot, 0, PAGE_SIZE);
+                    if (filterSnapshot != null)
+                        return requestClient.filter(filterSnapshot, 0, PAGE_SIZE);
+                    return requestClient.findPage(0, PAGE_SIZE, requestType);
+                })
+                .thenAccept(result -> Platform.runLater(() -> {
+                    requestItems.setAll(result.getContent());
+                }));
     }
 
     private void handleUserEvent(RequestEvent<RequestEventDto> event) {
@@ -347,6 +469,14 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
 
     }
 
+    private synchronized void scheduleReload() {
+        if (pendingReload != null && !pendingReload.isDone()) {
+            pendingReload.cancel(false);
+        }
+
+        pendingReload = wsDebouncer.schedule(this::reloadCurrentPageFromServer, 150, TimeUnit.MILLISECONDS);
+    }
+
     private void reloadCurrentPageFromServer() {
         RequestFilterDto filterSnapshot = activeFilter;
         String searchSnapshot = activeSearchQuery;
@@ -357,8 +487,9 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
             if (filterSnapshot != null) return requestClient.filter(filterSnapshot, page,  PAGE_SIZE);
             return requestClient.findPage(page, PAGE_SIZE, requestType);
         }).thenAccept(items -> Platform.runLater(() -> {
-            requestItems.clear();
-            requestItems.setAll(items.getContent());
+            if (!requestItems.isEmpty()) {
+                return;
+            }
             showEmptyMessage(items.getContent().isEmpty());
         })).exceptionally(ex -> {
             log.error("ValidationError reloading current page from DB", ex);
@@ -367,20 +498,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         });
     }
 
-    protected ScrollBar getVerticalScrollBar(ListView<?> listView) {
-        for (Node node : listView.lookupAll(".scroll-bar")) {
-            if (node instanceof ScrollBar bar && bar.getOrientation() == Orientation.VERTICAL) {
-                return bar;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Optional<RequestFilterDto> getLastAppliedFilter() {
-        return Optional.ofNullable(activeFilter);
-    }
-
+    // ==================== Hotkeys ====================
     protected void registerHotkeys(Scene scene) {
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
 
@@ -417,7 +535,6 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
             homeController.handleFilter();
         }
     }
-    protected void onPageLoaded() {}
     protected void onSearchHotkey() {}
 
     protected boolean supportsFilterHotkey() {return false;}

@@ -39,6 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Controller
@@ -101,15 +103,23 @@ public class ClientRequestsController extends AbstractRequestController {
         ftlRadioButton.setToggleGroup(shipmentTypeGroup);
         ltlRadioButton.setToggleGroup(shipmentTypeGroup);
 
-        Set<String> companies = companyClient.findAll()
-                .stream()
-                .map(CompanyDto::name)
-                .collect(Collectors.toSet());
-
         setupFormFields();
         bindState();
-        onCompanyConfirmed();
-        AutoCompleteUtils.setupAutoCompletion(companyField, companies);
+
+        Set<String> companySuggestions = ConcurrentHashMap.newKeySet();
+        AutoCompleteUtils.setupAutoCompletion(companyField, companySuggestions);
+
+        CompletableFuture.supplyAsync(() ->
+                        companyClient.findAll()
+                                .stream()
+                                .map(CompanyDto::name)
+                                .collect(Collectors.toSet()))
+                .thenAccept(result ->
+                        Platform.runLater(() -> companySuggestions.addAll(result)))
+                .exceptionally(ex -> {
+                    log.warn("Company autocomplete preload failed", ex);
+                    return null;
+                });
 
         validationUI = new ValidationUIHelper(Map.ofEntries(
                 Map.entry("requestType", spotRadioButton),
@@ -190,6 +200,7 @@ public class ClientRequestsController extends AbstractRequestController {
             render();
         });
 
+        companyField.setOnAction(e -> onCompanyConfirmed());
         companyField.textProperty().addListener((obs, oldVal, newVal) -> {
             if (!requestState.isContract()) {
                 return;
@@ -211,26 +222,46 @@ public class ClientRequestsController extends AbstractRequestController {
 
         String value = TextUtils.safeTrim(companyField.getText());
         if (value == null) return;
+        CompletableFuture.runAsync(() -> {
+            try {
+                Optional<CompanyDto> company = companyClient.findByName(value);
+                Platform.runLater(() -> {
+                    company.ifPresentOrElse(
+                            this::loadLanesAsync,
+                            () -> AlertUtils.showError("Company not found."));
+                        }
+                );
 
-        try {
-            companyClient.findByName(value)
-                    .ifPresentOrElse(
-                            this::openLaneSelector,
-                            () -> AlertUtils.showError("Company not found.")
-                    );
-        } catch (ApiException ex) {
-            log.warn("Company lookup failed", ex);
-            AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to find company."));
-        }
+            } catch (ApiException ex) {
+                log.warn("Company lookup failed", ex);
+                Platform.runLater(() -> {
+                    AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to find company."));
+                });
+            }
+        });
     }
 
-    private void openLaneSelector(CompanyDto company) {
-        List<LaneViewDto> lanes = laneClient.findByCompany(company.id());
-        if (lanes.isEmpty()) {
-            AlertUtils.showError("No available lanes for this customerName.");
-            return;
-        }
+    private void loadLanesAsync(CompanyDto company) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                List<LaneViewDto> lanes = laneClient.findByCompany(company.id());
+                Platform.runLater(() -> {
+                    if (lanes.isEmpty()) {
+                        AlertUtils.showError("No available lanes for this customer.");
+                        return;
+                    }
+                    showLaneSelector(lanes);
+                });
+            } catch (ApiException ex) {
+                log.warn("Lane lookup failed", ex);
+                Platform.runLater(() ->
+                    AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to load lanes."))
+                );
+            }
+        });
+    }
 
+    private void showLaneSelector(List<LaneViewDto> lanes) {
         LaneSelectorController ctrl = windowService.openModalAndWait(
                 View.LANES.getPath(),
                 LaneSelectorController.class,
@@ -494,23 +525,6 @@ public class ClientRequestsController extends AbstractRequestController {
 
     @FXML
     public void handleLaneSelect() {
-        if (!requestState.isContract()) return;
-
-        String company = TextUtils.safeTrim(requestState.getCompanyName());
-        if (company == null) {
-            AlertUtils.showError("Select company first");
-            return;
-        }
-
-        try {
-            companyClient.findByName(company)
-                    .ifPresentOrElse(
-                            this::openLaneSelector,
-                            () -> AlertUtils.showError("Company not found.")
-                    );
-        } catch (ApiException ex) {
-            log.warn("Company lookup failed", ex);
-            AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to lookup company."));
-        }
+        onCompanyConfirmed();
     }
 }
