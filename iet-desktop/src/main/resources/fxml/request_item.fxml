@@ -109,7 +109,7 @@
                 <font><Font size="13"/></font>
             </Button>
             <Button fx:id="bidButton" prefWidth="100" prefHeight="22" text="BID"
-                    alignment="CENTER" onAction="#handleBid"/>
+                    disable="true" alignment="CENTER" onAction="#handleBid"/>
         </VBox>
 
         <VBox prefWidth="80" minHeight="60" alignment="CENTER">
@@ -120,7 +120,7 @@
 
         <VBox prefWidth="40" minHeight="60" alignment="CENTER">
             <Pane prefWidth="20" minHeight="60">
-                <Button fx:id="joinButton" contentDisplay="GRAPHIC_ONLY"
+                <Button fx:id="joinButton"  visible="false" contentDisplay="GRAPHIC_ONLY"
                         layoutY="15" prefWidth="20" prefHeight="20"
                         style="-fx-background-color: transparent;" onAction="#handleJoin">
                     <graphic>
@@ -130,7 +130,7 @@
                     </graphic>
                 </Button>
 
-                <Button fx:id="confirmedAndOfferedButton" contentDisplay="GRAPHIC_ONLY"
+                <Button fx:id="confirmedAndOfferedButton" visible="false" contentDisplay="GRAPHIC_ONLY"
                         layoutY="12.5" prefWidth="25" prefHeight="25"
                         style="-fx-background-color: transparent;" onAction="#handleConfirm">
                     <graphic>
@@ -140,7 +140,7 @@
                     </graphic>
                 </Button>
 
-                <Button fx:id="acceptButton" contentDisplay="GRAPHIC_ONLY"
+                <Button fx:id="acceptButton" visible="false" contentDisplay="GRAPHIC_ONLY"
                         layoutX="2.5" prefWidth="20" prefHeight="20"
                         style="-fx-background-color: transparent;" onAction="#handleAccept">
                     <graphic>
@@ -150,7 +150,7 @@
                     </graphic>
                 </Button>
 
-                <Button fx:id="refuseButton" contentDisplay="GRAPHIC_ONLY"
+                <Button fx:id="refuseButton" visible="false" contentDisplay="GRAPHIC_ONLY"
                         layoutX="3.0" layoutY="30" prefWidth="18" prefHeight="18"
                         style="-fx-background-color: transparent;" onAction="#handleRefuse">
                     <graphic>

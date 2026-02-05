@@ -426,7 +426,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
                     controller.setOnChanged(() -> parent.invalidateRequest(requestId));
                     controller.onShow();
                 },
-                "BID HISTORY",
+                "Bid history",
                 null,
                 this.stage
         );
