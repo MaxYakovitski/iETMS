@@ -18,7 +18,8 @@ public class ShipmentExecutionPolicy {
     }
 
     public boolean canCancel(ShipmentListItemDto dto) {
-        return !hasExecution(dto)
+        return hasStatus(dto, ShipmentStatusDto.PLANNED)
+                && !hasExecution(dto)
                 && !hasStatus(dto, ShipmentStatusDto.CANCELED);
     }
 
@@ -26,5 +27,9 @@ public class ShipmentExecutionPolicy {
         return dto.timestamps()
                 .stream()
                 .anyMatch(t -> t.status() == status);
+    }
+
+    public boolean existsAsOfDate(ShipmentListItemDto dto) {
+        return hasStatus(dto, ShipmentStatusDto.PLANNED);
     }
 }

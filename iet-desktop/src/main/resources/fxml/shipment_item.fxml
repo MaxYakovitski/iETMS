@@ -129,7 +129,7 @@
             <Label fx:id="authorSurname"/>
         </VBox>
 
-        <VBox minHeight="60" spacing="5" alignment="CENTER">
+        <VBox minHeight="60" minWidth="120" spacing="5" alignment="CENTER">
             <Label fx:id="eventLabel"/>
             <Label fx:id="eventTime"/>
         </VBox>
