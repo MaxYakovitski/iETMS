@@ -14,13 +14,12 @@ public class ShipmentCell extends ListCell<ShipmentListItemDto> implements ViewL
     private final StackPane container;
 
     public ShipmentCell(WindowService windowService) {
-
         String fxmlPath = View.SHIPMENT_ITEM.getPath();
-
         WindowService.Loaded<ShipmentItemController> loaded =
                 windowService.loadControllerWithNode(fxmlPath, ShipmentItemController.class);
 
         controller = loaded.controller();
+        controller.onShowOnce();
         container = new StackPane();
         container.getChildren().add(controller.requestPane);
     }
@@ -31,10 +30,11 @@ public class ShipmentCell extends ListCell<ShipmentListItemDto> implements ViewL
 
         if (empty || item == null) {
             setGraphic(null);
-        } else {
-            controller.setData(item);
-            controller.onShow();
-            setGraphic(container);
+            return;
         }
+
+        controller.updateItem(item);
+        setGraphic(container);
+
     }
 }

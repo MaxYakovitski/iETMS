@@ -55,32 +55,37 @@ public class ShipmentItemController implements ViewLifecycle {
 
     @Getter @Setter
     private Long shipmentId;
+
     private ShipmentListItemDto dto;
+    private boolean initialized;
 
     @FXML
     private void initialize() {
         LabelTooltipUtils.attachAutoTooltip(customerReference, customer, carrierLabel, authorName);
     }
 
-    @Override
-    public void onShow() {
-        if (dto == null) return;
-        initStaticView();
-        updateDynamicView();
+    public void onShowOnce() {
+        if (initialized) return;
+        initialized = true;
+
+        applyStyles();
     }
 
-    public void setData(ShipmentListItemDto dto) {
+    public void updateItem(ShipmentListItemDto dto) {
         this.dto = dto;
         this.shipmentId = dto != null ? dto.id() : null;
-    }
 
-    public void initStaticView() {
+        if (dto == null) {
+            hideEvent();
+            return;
+        }
+
         ShipmentItemViewData v = presenter.present(dto);
 
         applyTexts(v);
-        applyStyles();
         applyVisibility();
         applyLastEvent();
+        updateDynamicView();
     }
 
     private void applyTexts(ShipmentItemViewData v) {
