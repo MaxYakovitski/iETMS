@@ -1,5 +1,9 @@
 package com.mayak.iet.ui.workspace.request.item;
 
+import com.mayak.iet.infrastructure.error.ApiErrorUtils;
+import com.mayak.iet.infrastructure.error.UiError;
+import com.mayak.iet.integration.api.RequestClient;
+import com.mayak.iet.integration.exception.ApiException;
 import com.mayak.iet.request.dto.bid.BidViewDto;
 import com.mayak.iet.company.dto.CompanyDto;
 import com.mayak.iet.request.dto.enums.RequestStatusDto;
@@ -7,8 +11,6 @@ import com.mayak.iet.request.dto.enums.RequestTypeDto;
 import com.mayak.iet.request.dto.refuse.RefuseReasonOptionDto;
 import com.mayak.iet.request.dto.view.RequestDetailsDto;
 import com.mayak.iet.user.dto.UserResponseDto;
-import com.mayak.iet.integration.api.RequestClient;
-import com.mayak.iet.integration.exception.ApiException;
 import com.mayak.iet.ui.core.SecuredView;
 import com.mayak.iet.ui.core.ViewLifecycle;
 import com.mayak.iet.ui.workspace.request.base.RequestsParent;
@@ -16,8 +18,6 @@ import com.mayak.iet.ui.workspace.request.item.bid.AddBidController;
 import com.mayak.iet.ui.workspace.request.item.bid.BidHistoryController;
 import com.mayak.iet.support.enums.View;
 import com.mayak.iet.infrastructure.error.AlertUtils;
-import com.mayak.iet.infrastructure.error.ApiErrorUtils;
-import com.mayak.iet.infrastructure.error.UiError;
 import com.mayak.iet.infrastructure.common.TextUtils;
 import com.mayak.iet.infrastructure.fx.VisibilityUtils;
 import com.mayak.iet.infrastructure.status.StatusColorMapper;
@@ -77,6 +77,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     private UserResponseDto loggedInUser;
     private RequestsParent parent;
     private boolean initialized = false;
+    private  RequestItemActions actions;
 
     private final RequestClient requestClient;
     private final WindowService windowService;
@@ -89,7 +90,6 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
 
     public void bindRequest(Long requestId) {
         if (Objects.equals(this.requestId, requestId)) return;
-
         this.requestId = requestId;
         this.dto = null;
         this.initialized = false;
@@ -150,38 +150,19 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         requestDateTime.setText(dto.issueDate().format(TextUtils.DATE_TIME_FORMATTER));
 
         ItemStyleUtils.applyDefaultTextColor(
-                customerReference,
-                customer,
-                dataStart,
-                dataEnd,
-                shipmentType,
-                transportType,
-                temperature,
-                weight,
-                loadingMeters,
-                rIDLabel,
-                tIdLabel,
-                customerPriceLabel,
-                requestTypeLabel,
-                authorFullName,
-                requestDateTime
+                customerReference, customer, dataStart,
+                dataEnd, shipmentType, transportType,
+                temperature, weight, loadingMeters,
+                rIDLabel, tIdLabel, customerPriceLabel,
+                requestTypeLabel, authorFullName, requestDateTime
         );
 
         status.setTextFill(StatusColorMapper.toColor(dto.status()));
 
         ItemVisibilityUtils.applyStandardRules(
-                customerReference,
-                customer,
-                dangerousCheck,
-                temperature,
-                weight,
-                loadingMeters,
-                rIDLabel,
-                rId,
-                tIdLabel,
-                tId,
-                requestTypeLabel,
-                customerPriceLabel
+                customerReference, customer, dangerousCheck,
+                temperature, weight, loadingMeters, rIDLabel,
+                rId, tIdLabel, tId, requestTypeLabel, customerPriceLabel
         );
     }
 
@@ -192,26 +173,19 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         status.setText(dto.status() != null ? dto.status().name() : "");
         updateJoinIcon();
 
-        boolean isAuthor =
-                dto.author() != null &&
-                        dto.author().id().equals(loggedInUser.id());
+        bidButton.setDisable(!RequestItemUiPolicy.canBid(dto));
+        bidButton.getStyleClass().setAll("button", RequestItemUiPolicy.canBid(dto) ? "bid-active" : "bid-inactive");
 
-        bidButton.setDisable(!dto.canBid());
-        bidButton.getStyleClass().setAll("button", dto.canBid() ? "bid-active" : "bid-inactive");
-
-        confirmedAndOfferedButton.setVisible(isAuthor && dto.status() == RequestStatusDto.BIDDING);
-        acceptButton.setVisible(isAuthor && dto.status() == RequestStatusDto.OFFERED);
-        refuseButton.setVisible(isAuthor && dto.status() == RequestStatusDto.OFFERED);
+        confirmedAndOfferedButton.setVisible(RequestItemUiPolicy.canConfirm(dto, loggedInUser));
+        acceptButton.setVisible(RequestItemUiPolicy.canAccept(dto, loggedInUser));
+        refuseButton.setVisible(RequestItemUiPolicy.canRefuse(dto, loggedInUser));
 
         if (dto.status() == RequestStatusDto.ACCEPTED || dto.status() == RequestStatusDto.REFUSED) {
             status.setTextFill(StatusColorMapper.toColor(dto.status()));
         }
 
-        renewButton.setDisable(!isAuthor);
-        renewButton.setVisible(isAuthor);
-
-        deleteButton.setDisable(!isAuthor);
-        deleteButton.setVisible(isAuthor);
+        renewButton.setVisible(RequestItemUiPolicy.canEdit(dto, loggedInUser));
+        deleteButton.setVisible(RequestItemUiPolicy.canDelete(dto, loggedInUser));
         refreshPriceButton();
 
         customerPriceLabel.setText(TextUtils.formatMoney(dto.price()));
@@ -229,26 +203,23 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         if (requestId == null || dto == null) return;
 
         if (dto.isJoined()) {
-            requestClient.leave(requestId);
+            actions.leave(requestId);
         } else {
             if (!dto.canJoin()) return;
-            requestClient.join(requestId);
+            actions.join(requestId);
         }
 
-        parent.invalidateRequest(requestId);
     }
 
     @FXML
     public void handleBid() {
         if (requestId == null || dto == null || !dto.canBid()) return;
-
         String fxmlPath = View.ADD_BID.getPath();
         windowService.openModalWindow(
                 fxmlPath,
                 AddBidController.class,
                 controller -> {
                     controller.init(requestId);
-
                     controller.setOnSubmit( bid -> parent.invalidateRequest(requestId));
                 },
                 "Bid",
@@ -260,20 +231,22 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     @FXML
     public void handleConfirm() {
         if (requestId == null || dto == null) return;
-
-        requestClient.offer(requestId);
-
-        parent.invalidateRequest(requestId);
+        actions.offer(requestId);
     }
 
     @FXML
     public void handleAccept() {
-        if (requestId == null || dto == null) return;
-
         if (dto.requestType() == RequestTypeDto.SPOT) {
-            acceptSpot();
-        } else if (dto.requestType() == RequestTypeDto.CONTRACT) {
-            acceptContract();
+            windowService.openModalWindow(
+                    View.FINAL_PRICE.getPath(),
+                    FinalPriceController.class,
+                    c -> c.setOnSubmit(price -> actions.acceptWithPrice(requestId, price)),
+                    "Final price",
+                    null,
+                    stage
+            );
+        } else {
+            actions.accept(requestId);
         }
     }
 
@@ -295,7 +268,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
                             dto.refuseReasons(),
                             RefuseReasonOptionDto::label,
                             reason -> {
-                                requestClient.refuse(requestId, reason.code());
+                                actions.refuse(requestId, reason.code());
                                 parent.invalidateRequest(requestId);
                             }
                     );
@@ -323,10 +296,10 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     public void handleToExchange() {
         if (requestId == null) return;
 
-        String exchangeText = requestClient.getExchangeString(requestId);
+        String exchangeText = actions.getExchangeString(requestId);
 
         if (exchangeText == null || exchangeText.isBlank()) {
-            AlertUtils.showWarning("Nothing to copy", stage);
+            AlertUtils.showWarning("Nothing to copy!", stage);
             return;
         }
 
@@ -334,7 +307,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         content.putString(exchangeText);
         Clipboard.getSystemClipboard().setContent(content);
 
-        AlertUtils.showInfo("Request details copied to clipboard", stage);
+        AlertUtils.showInfo("Request details copied to buffer!", stage);
     }
 
     @FXML
@@ -362,18 +335,13 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
 
         boolean confirmed = AlertUtils.showConfirmation(
                 null,
-                "Do you want to edit this request? Your old request will be deleted."
-        );
+                "Do you want to edit this request? Your old request will be deleted.");
         if (!confirmed) return;
-
         parent.fillFormWithRequest(dto);
 
         try {
-            requestClient.delete(requestId);
-
-            parent.getRequestItems()
-                    .removeIf(it -> it.id().equals(requestId));
-
+            actions.delete(requestId);
+            parent.getRequestItems().removeIf(it -> it.id().equals(requestId));
             requestId = null;
             dto = null;
 
@@ -391,15 +359,15 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
 
         boolean confirmed = AlertUtils.showConfirmation(
                 null,
-                "Are you sure you want to delete this request? This action cannot be undone."
-        );
+                "Are you sure you want to delete this request? This action cannot be undone.");
         if (!confirmed) return;
 
         try {
-            requestClient.delete(requestId);
+            actions.delete(requestId);
 
             if (parent != null) {
-                parent.getRequestItems().removeIf(it -> it != null && it.id() != null && it.id().equals(requestId));
+                parent.getRequestItems()
+                        .removeIf(it -> it != null && it.id() != null && it.id().equals(requestId));
             }
 
             requestId = null;
@@ -407,7 +375,6 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
 
         } catch (ApiException ex) {
             UiError error = ApiErrorUtils.resolve(ex, "Failed to delete request.");
-
             AlertUtils.show(error);
             log.warn("Delete request failed", ex);
         }
@@ -441,33 +408,11 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     public void setContext(UserResponseDto loggedInUser, RequestsParent parent) {
         this.loggedInUser = loggedInUser;
         this.parent = parent;
+        this.actions = new RequestItemActions(requestClient, () -> parent.invalidateRequest(requestId));
     }
 
     public boolean isBlank() {
         return dto == null;
-    }
-
-    // ==================== DOMAIN ACTIONS  ====================
-    private void acceptContract() {
-        if (requestId == null || dto == null) return;
-        requestClient.accept(requestId);
-        parent.invalidateRequest(requestId);
-    }
-
-    private void acceptSpot() {
-        if (requestId == null || dto == null) return;
-        String fxmlPath = View.FINAL_PRICE.getPath();
-        windowService.openModalWindow(
-                fxmlPath,
-                FinalPriceController.class,
-                controller -> controller.setOnSubmit(clientPrice -> {
-                    requestClient.accept(requestId, clientPrice);
-                    parent.invalidateRequest(requestId);
-                }),
-                "Final price",
-                null,
-                this.stage
-        );
     }
 
     // ==================== UI HELPERS ====================
@@ -495,38 +440,18 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     }
 
     private void updateJoinIcon() {
-        if (dto == null) {
-            joinButton.setVisible(false);
-            return;
-        }
+        boolean visible = RequestItemUiPolicy.canShowJoinButton(dto, loggedInUser);
+        joinButton.setVisible(visible);
+        if (!visible) return;
 
-        if (dto.isAuthor()) {
-            joinButton.setVisible(false);
-            return;
-        }
-
-        if (dto.status() == null ||
-                dto.status().ordinal() >= RequestStatusDto.ACCEPTED.ordinal()) {
-            joinButton.setVisible(false);
-            return;
-        }
-
-        if (!dto.canJoin() && !dto.isJoined()) {
-            joinButton.setVisible(false);
-            return;
-        }
-
-        boolean isJoined = dto.isJoined();
-        String iconPath = isJoined ? UNJOIN_ICON : JOIN_ICON;
-
+        boolean joined = dto.isJoined();
         joinImageView.setImage(
                 new Image(Objects.requireNonNull(
-                        getClass().getResourceAsStream(iconPath)))
+                        getClass().getResourceAsStream(
+                                joined ? UNJOIN_ICON : JOIN_ICON)))
         );
 
-        joinButton.setVisible(true);
-
-        if (isJoined) {
+        if (joined) {
             joinImageView.setOpacity(0.3);
             joinButton.setOnMouseEntered(e -> joinImageView.setOpacity(0.65));
             joinButton.setOnMouseExited(e -> joinImageView.setOpacity(0.3));
