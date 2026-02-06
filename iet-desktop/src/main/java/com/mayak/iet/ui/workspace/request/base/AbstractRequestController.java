@@ -1,5 +1,6 @@
 package com.mayak.iet.ui.workspace.request.base;
 
+import com.mayak.iet.integration.exception.ApiException;
 import com.mayak.iet.request.dto.enums.RequestStatusDto;
 import com.mayak.iet.request.dto.enums.RequestTypeDto;
 import com.mayak.iet.request.dto.event.RequestEventDto;
@@ -36,6 +37,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatusCode;
 
 import java.util.List;
 import java.util.Objects;
@@ -232,6 +234,14 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
                     c.attachDetails(dto);
                 }))
                 .exceptionally(ex -> {
+                    Throwable cause = ex.getCause();
+
+                    if (cause instanceof ApiException apiEx && apiEx.getStatus() != null && apiEx.getStatus().value() == 404) {
+                        log.debug("Request {} not found anymore, removing from visible", id);
+                        Platform.runLater(() -> visible.remove(id));
+                        return null;
+                    }
+
                     log.warn("Failed to refresh request {}", id, ex);
                     return null;
                 });
