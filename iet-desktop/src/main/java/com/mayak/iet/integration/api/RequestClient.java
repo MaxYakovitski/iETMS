@@ -29,5 +29,4 @@ public interface RequestClient {
 
     RequestDetailsDto create(BaseRequestDto dto);
     void delete(long requestId);
-    boolean hasShipment(long requestId);
 }
