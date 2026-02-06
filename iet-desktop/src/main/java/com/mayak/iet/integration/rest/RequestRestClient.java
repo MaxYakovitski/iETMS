@@ -219,19 +219,4 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
         });
     }
 
-    @Override
-    public boolean hasShipment(long requestId) {
-        return exchangeSafely(() -> {
-            RequestEntity<Void> request = RequestEntity
-                    .get(API + "/{id}/has-shipment", requestId)
-                    .build();
-
-            Boolean result = restTemplate.exchange(
-                    request,
-                    Boolean.class
-            ).getBody();
-
-            return Boolean.TRUE.equals(result);
-        });
-    }
 }

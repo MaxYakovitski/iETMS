@@ -3,7 +3,6 @@ package com.mayak.iet.ui.workspace.request.base;
 import com.mayak.iet.request.dto.filter.RequestFilterDto;
 import com.mayak.iet.request.dto.view.RequestDetailsDto;
 import com.mayak.iet.request.dto.view.RequestListItemDto;
-import com.mayak.iet.user.dto.UserResponseDto;
 import com.mayak.iet.ui.home.HomeController;
 import javafx.collections.ObservableList;
 
@@ -18,7 +17,7 @@ public interface RequestsParent {
     void setHomeController(HomeController homeController);
     HomeController getHomeController();
 
-    default void onShow (UserResponseDto user) {}
+    default void onShow () {}
     default void onHide () {}
 
     default void applyFilter(RequestFilterDto filter) {}
