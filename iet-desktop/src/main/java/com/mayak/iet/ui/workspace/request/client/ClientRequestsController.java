@@ -1,11 +1,9 @@
 package com.mayak.iet.ui.workspace.request.client;
 
-import com.mayak.iet.common.validation.ValidationError;
 import com.mayak.iet.domain.request.client.ClientRequestPolicy;
 import com.mayak.iet.company.dto.CompanyDto;
 import com.mayak.iet.extension.event.ExtensionDraftInvalidEvent;
 import com.mayak.iet.integration.websocket.ExtensionStompClient;
-import com.mayak.iet.lane.dto.LaneViewDto;
 import com.mayak.iet.request.dto.create.BaseRequestDto;
 import com.mayak.iet.request.dto.enums.ShipmentTypeDto;
 import com.mayak.iet.request.dto.enums.TransportTypeDto;
@@ -16,21 +14,17 @@ import com.mayak.iet.integration.api.RequestClient;
 import com.mayak.iet.integration.exception.ApiException;
 import com.mayak.iet.integration.exception.ApiValidationException;
 import com.mayak.iet.integration.websocket.RequestStompClient;
-import com.mayak.iet.ui.component.LaneSelectorController;
 import com.mayak.iet.ui.workspace.request.base.AbstractRequestController;
 import com.mayak.iet.ui.workspace.request.base.ParentType;
 import com.mayak.iet.ui.workspace.request.form.ClientRequestFormState;
 import com.mayak.iet.infrastructure.error.AlertUtils;
 import com.mayak.iet.infrastructure.error.ApiErrorUtils;
-import com.mayak.iet.infrastructure.assembler.ClientRequestAssembler;
 import com.mayak.iet.infrastructure.common.TextUtils;
 import com.mayak.iet.infrastructure.fx.AutoCompleteUtils;
 import com.mayak.iet.support.state.RequestFilterState;
-import com.mayak.iet.support.enums.View;
 import com.mayak.iet.infrastructure.time.DatePickerUtils;
 import com.mayak.iet.infrastructure.ui.ValidationUIHelper;
 import com.mayak.iet.infrastructure.window.WindowService;
-import com.mayak.iet.request.validator.RequestContractValidator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -70,6 +64,10 @@ public class ClientRequestsController extends AbstractRequestController {
 
     @Setter
     private Long renewedRequest;
+
+    private ClientCompanyLaneCoordinator laneCoordinator;
+    private ClientRequestExtensionHandler extensionHandler;
+    private ClientRequestSubmitService submitService;
 
     private boolean isRendering = false;
     private boolean allowLaneLookup = true;
@@ -140,6 +138,21 @@ public class ClientRequestsController extends AbstractRequestController {
         validationUI.bindResetOnChange();
         requestState.reset();
         render();
+
+        laneCoordinator = new ClientCompanyLaneCoordinator(
+                companyClient,
+                laneClient,
+                windowService,
+                requestPolicy,
+                requestState,
+                validationUI,
+                this::render,
+                () -> allowLaneLookup,
+                () -> companyField.getText()
+        );
+
+        extensionHandler = new ClientRequestExtensionHandler(requestPolicy, requestState);
+        submitService = new ClientRequestSubmitService();
     }
 
     @Override
@@ -200,7 +213,7 @@ public class ClientRequestsController extends AbstractRequestController {
             render();
         });
 
-        companyField.setOnAction(e -> onCompanyConfirmed());
+        companyField.setOnAction(e -> laneCoordinator.onCompanyConfirmed());
         companyField.textProperty().addListener((obs, oldVal, newVal) -> {
             if (!requestState.isContract()) {
                 return;
@@ -214,71 +227,6 @@ public class ClientRequestsController extends AbstractRequestController {
                 render();
             }
         });
-    }
-
-    private void onCompanyConfirmed() {
-        if (!allowLaneLookup) return;
-        if (!requestState.isContract()) return;
-
-        String value = TextUtils.safeTrim(companyField.getText());
-        if (value == null) return;
-        CompletableFuture.runAsync(() -> {
-            try {
-                Optional<CompanyDto> company = companyClient.findByName(value);
-                Platform.runLater(() -> {
-                    company.ifPresentOrElse(
-                            this::loadLanesAsync,
-                            () -> AlertUtils.showError("Company not found."));
-                        }
-                );
-
-            } catch (ApiException ex) {
-                log.warn("Company lookup failed", ex);
-                Platform.runLater(() -> {
-                    AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to find company."));
-                });
-            }
-        });
-    }
-
-    private void loadLanesAsync(CompanyDto company) {
-        CompletableFuture.runAsync(() -> {
-            try {
-                List<LaneViewDto> lanes = laneClient.findByCompany(company.id());
-                Platform.runLater(() -> {
-                    if (lanes.isEmpty()) {
-                        AlertUtils.showError("No available lanes for this customer.");
-                        return;
-                    }
-                    showLaneSelector(lanes);
-                });
-            } catch (ApiException ex) {
-                log.warn("Lane lookup failed", ex);
-                Platform.runLater(() ->
-                    AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to load lanes."))
-                );
-            }
-        });
-    }
-
-    private void showLaneSelector(List<LaneViewDto> lanes) {
-        LaneSelectorController ctrl = windowService.openModalAndWait(
-                View.LANES.getPath(),
-                LaneSelectorController.class,
-                controller -> {
-                    controller.setLanes(lanes);
-                    controller.onShown();
-                },
-                "Actual contract lanes",
-                null
-        );
-
-        LaneViewDto lane = ctrl.getSelectedLane();
-        if (lane == null) return;
-
-        requestPolicy.onLaneSelected(requestState, lane);
-        validationUI.clearError("lane");
-        render();
     }
 
     private void render() {
@@ -368,16 +316,14 @@ public class ClientRequestsController extends AbstractRequestController {
 
     // ==================== FORM SUBMIT ====================
     @FXML private void submitRequestForm() {
-        BaseRequestDto dto = ClientRequestAssembler.build(requestState);
+        SubmitResult result = submitService.prepare(requestState);
 
-        normalizeCompany(dto);
-        var validator = new RequestContractValidator();
-        var validationResult = validator.isValid(dto);
-
-        if (!validationResult.isValid()) {
-            validationUI.showClientErrors(validationResult.getErrors());
+        if (!result.isValid()) {
+            validationUI.showClientErrors(result.validation().getErrors());
             return;
         }
+
+        BaseRequestDto dto = result.dto();
 
         try {
             requestClient.create(dto);
@@ -504,27 +450,12 @@ public class ClientRequestsController extends AbstractRequestController {
     }
 
     private void handleExtensionEvent(ExtensionDraftInvalidEvent event) {
-        if (!extensionActive || event == null) return;
-
-        var resp = event.payload();
-        if (resp == null || resp.intent() == null) {
-            log.warn("Extension event without draft payload");
-            return;
-        }
-
-        requestPolicy.applyDraft(requestState, resp.intent());
-        render();
-
-        validationUI.showClientErrors(
-                resp.errors().entrySet().stream()
-                        .flatMap(e -> e.getValue().stream()
-                                .map(msg -> new ValidationError(e.getKey(), msg)))
-                        .toList()
-        );
+        if (!extensionActive) return;
+        extensionHandler.handle(event, this::render, validationUI::showClientErrors);
     }
 
     @FXML
     public void handleLaneSelect() {
-        onCompanyConfirmed();
+        laneCoordinator.onCompanyConfirmed();
     }
 }
