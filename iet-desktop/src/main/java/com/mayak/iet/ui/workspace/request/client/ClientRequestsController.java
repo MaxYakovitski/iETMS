@@ -378,19 +378,6 @@ public class ClientRequestsController extends AbstractRequestController {
     @Override
     protected boolean supportsFilterHotkey() { return true; }
 
-    private void normalizeCompany(BaseRequestDto dto) {
-        if (dto == null) return;
-
-        String name = TextUtils.safeTrim(dto.getCustomerName());
-
-        if (name == null) {
-            dto.setCustomerName(null);
-            return;
-        }
-
-        dto.setCustomerName(name);
-    }
-
     private void bindState() {
         fromTextArea.textProperty().addListener((obs, o, n) -> {
             if (isRendering) return;
