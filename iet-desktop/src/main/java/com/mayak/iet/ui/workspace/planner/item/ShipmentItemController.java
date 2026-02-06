@@ -3,6 +3,7 @@ package com.mayak.iet.ui.workspace.planner.item;
 import com.mayak.iet.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.iet.support.enums.View;
 import com.mayak.iet.ui.core.ViewLifecycle;
+import com.mayak.iet.ui.workspace.planner.item.event.ShipmentLastEvent;
 import com.mayak.iet.ui.workspace.planner.item.event.ShipmentLastEventResolver;
 import com.mayak.iet.ui.workspace.planner.item.presenter.ShipmentItemPresenter;
 import com.mayak.iet.ui.workspace.planner.item.presenter.ShipmentItemViewData;
@@ -142,11 +143,10 @@ public class ShipmentItemController implements ViewLifecycle {
             return;
         }
 
-        lastEventResolver.resolve(dto)
-                .ifPresentOrElse(this::showEvent, this::hideEvent);
+        lastEventResolver.resolve(dto).ifPresentOrElse(this::showEvent, this::showEmptyEvent);
     }
 
-    private void showEvent(com.mayak.iet.ui.workspace.planner.item.event.ShipmentLastEvent event) {
+    private void showEvent(ShipmentLastEvent event) {
         eventLabel.setText(event.label());
         eventLabel.setTextFill(event.color());
 
@@ -157,6 +157,16 @@ public class ShipmentItemController implements ViewLifecycle {
         eventLabel.setManaged(true);
         eventTime.setVisible(true);
         eventTime.setManaged(true);
+    }
+
+    private void showEmptyEvent() {
+        eventLabel.setText("—");
+        eventLabel.setTextFill(TextUtils.SYSTEM_TEXT_DEFAULT_COLOR);
+
+        eventLabel.setVisible(true);
+        eventLabel.setManaged(true);
+        eventTime.setVisible(false);
+        eventTime.setManaged(false);
     }
 
     private void hideEvent() {

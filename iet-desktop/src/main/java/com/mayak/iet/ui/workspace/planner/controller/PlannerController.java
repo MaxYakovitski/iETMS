@@ -380,6 +380,11 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     public void selectShipment(ShipmentListItemDto dto) {
         this.selectedShipment = dto;
 
+        if (!detailsPolicy.existsAsOfDate(dto)) {
+            hideDetailsCompletely();
+            return;
+        }
+
         detailsStack.setVisible(true);
         detailsStack.setManaged(true);
 
@@ -388,6 +393,11 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         } else if (activeTab == ActiveTab.MY_TRANSPORTS) {
             showMyTransportDetails(dto);
         }
+    }
+
+    private void hideDetailsCompletely() {
+        detailsStack.setVisible(false);
+        detailsStack.setManaged(false);
     }
 
     private void showMyShipmentDetails(ShipmentListItemDto dto) {
