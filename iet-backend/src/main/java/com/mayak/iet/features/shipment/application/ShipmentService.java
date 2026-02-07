@@ -64,7 +64,7 @@ public class ShipmentService {
                 .findMyShipmentsForDate(userId)
                 .stream()
                 .filter(s -> isVisibleForMyShipments(s, date))
-                .map(s -> assembler.assembleAsOfDate(s, date))
+                .map(s -> assembler.assembleForPlanner(s, date))
                 .toList();
     }
 
