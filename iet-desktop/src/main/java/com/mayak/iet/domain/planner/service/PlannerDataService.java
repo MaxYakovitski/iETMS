@@ -21,7 +21,7 @@ public class PlannerDataService {
         LocalDate d = date != null ? date : LocalDate.now();
 
         return shipmentClient.findMyShipments(d).stream()
-                .sorted(shipmentSortingService.byStatusThenTime(d))
+                .sorted(shipmentSortingService.byStatus())
                 .toList();
     }
 
@@ -33,13 +33,13 @@ public class PlannerDataService {
         List<ShipmentListItemDto> toLoad = events.stream()
                 .filter(e -> e.eventType() == TransportEventType.LOAD)
                 .map(MyTransportEventDto::shipment)
-                .sorted(shipmentSortingService.byStatusThenTime(d))
+                .sorted(shipmentSortingService.byStatus())
                 .toList();
 
         List<ShipmentListItemDto> toDrop = events.stream()
                 .filter(e -> e.eventType() == TransportEventType.DROP)
                 .map(MyTransportEventDto::shipment)
-                .sorted(shipmentSortingService.byStatusThenTime(d))
+                .sorted(shipmentSortingService.byStatus())
                 .toList();
 
         return new TransportBuckets(toLoad, toDrop);

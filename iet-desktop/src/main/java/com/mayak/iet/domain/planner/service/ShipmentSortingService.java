@@ -21,36 +21,9 @@ public class ShipmentSortingService {
                     ShipmentStatusDto.CANCELED, 3
             );
 
-    public Comparator<ShipmentListItemDto> byStatusThenTime(LocalDate date) {
-        return Comparator
-                .comparing(
-                        (ShipmentListItemDto dto) -> resolveStatusRank(dto, date)
-                )
-                .thenComparing(
-                        dto -> resolveLastTimestamp(dto, date),
-                        Comparator.reverseOrder()
-                );
-    }
-
-    private int resolveStatusRank(ShipmentListItemDto dto, LocalDate date) {
-        ShipmentTimestampDto last = resolveLastTimestampDto(dto, date);
-        return last == null
-                ? 99
-                : STATUS_ORDER.getOrDefault(last.status(), 99);
-    }
-
-    private LocalDateTime resolveLastTimestamp(ShipmentListItemDto dto, LocalDate date) {
-        ShipmentTimestampDto ts = resolveLastTimestampDto(dto, date);
-        return ts != null ? ts.at() : LocalDateTime.MIN;
-    }
-
-    private ShipmentTimestampDto resolveLastTimestampDto(
-            ShipmentListItemDto dto,
-            LocalDate date
-    ) {
-        return dto.timestamps().stream()
-                .filter(t -> !t.at().toLocalDate().isAfter(date))
-                .max(Comparator.comparing(ShipmentTimestampDto::at))
-                .orElse(null);
+    public Comparator<ShipmentListItemDto> byStatus() {
+        return Comparator.comparingInt(
+                dto -> STATUS_ORDER.getOrDefault(dto.status(), 99)
+        );
     }
 }
