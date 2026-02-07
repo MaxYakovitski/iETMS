@@ -596,17 +596,11 @@
 }
 
 .submit-outline {
-    -fx-background-color: white;
+    -fx-background-color: #306eed;
     -fx-background-radius: 5;
     -fx-background-insets: 0;
-    -fx-border-color: #2196f3;
     -fx-border-radius: 5;
-    -fx-text-fill: #2196f3;
-}
-
-.submit-outline:hover {
-    -fx-background-color: #2196f3;
-    -fx-text-fill: white;
+    -fx-text-fill: #ffffff;
 }
 
 .report-outline {

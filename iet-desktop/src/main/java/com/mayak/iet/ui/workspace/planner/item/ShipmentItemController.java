@@ -3,8 +3,9 @@ package com.mayak.iet.ui.workspace.planner.item;
 import com.mayak.iet.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.iet.support.enums.View;
 import com.mayak.iet.ui.core.ViewLifecycle;
-import com.mayak.iet.ui.workspace.planner.item.event.ShipmentLastEvent;
-import com.mayak.iet.ui.workspace.planner.item.event.ShipmentLastEventResolver;
+import com.mayak.iet.ui.workspace.planner.enums.ActiveTab;
+import com.mayak.iet.ui.workspace.planner.item.event.ShipmentStatusResolver;
+import com.mayak.iet.ui.workspace.planner.item.event.ShipmentStatusView;
 import com.mayak.iet.ui.workspace.planner.item.presenter.ShipmentItemPresenter;
 import com.mayak.iet.ui.workspace.planner.item.presenter.ShipmentItemViewData;
 import com.mayak.iet.ui.workspace.request.item.CommentController;
@@ -40,7 +41,7 @@ public class ShipmentItemController implements ViewLifecycle {
     @FXML public VBox fromISOContainer, toISOContainer, fromPointContainer, toPointContainer;
     @FXML public Label customerReference, customer, dataStart, dataEnd, shipmentType, transportType, dangerousCheck,
             temperature, weight, loadingMeters, rIDLabel, tIdLabel, requestTypeLabel, customerPriceLabel,
-            carrierLabel, carrierPriceLabel, authorName, authorSurname, eventLabel, eventTime;
+            carrierLabel, carrierPriceLabel, authorName, authorSurname, statusLabel;
     @FXML public Button commentsButton;
     @FXML public TextField rId, tId;
 
@@ -48,10 +49,13 @@ public class ShipmentItemController implements ViewLifecycle {
 
     private final WindowService windowService;
     private final ShipmentItemPresenter presenter;
-    private final ShipmentLastEventResolver lastEventResolver;
+    private final ShipmentStatusResolver statusResolver;
 
     @Setter
     private Stage stage;
+
+    @Setter
+    private ActiveTab activeTab;
 
     @Getter @Setter
     private Long shipmentId;
@@ -76,48 +80,46 @@ public class ShipmentItemController implements ViewLifecycle {
         this.shipmentId = dto != null ? dto.id() : null;
 
         if (dto == null) {
-            hideEvent();
             return;
         }
 
-        ShipmentItemViewData v = presenter.present(dto);
-
-        applyTexts(v);
+        ShipmentItemViewData view = presenter.present(dto);
+        applyTexts(view);
         applyVisibility();
-        applyLastEvent();
+        applyStatus();
         updateDynamicView();
     }
 
-    private void applyTexts(ShipmentItemViewData v) {
-        rId.setText(v.rId());
-        tId.setText(v.tId());
+    private void applyTexts(ShipmentItemViewData view) {
+        rId.setText(view.rId());
+        tId.setText(view.tId());
 
         LocationUIHelper.addLocationLabels(dto.fromLocations(), fromISOContainer, fromPointContainer);
         LocationUIHelper.addLocationLabels(dto.toLocations(), toISOContainer, toPointContainer);
 
-        customerReference.setText(v.customerReference());
-        customer.setText(v.customer());
+        customerReference.setText(view.customerReference());
+        customer.setText(view.customer());
 
-        dataStart.setText(v.dataStart());
-        dataEnd.setText(v.dataEnd());
+        dataStart.setText(view.dataStart());
+        dataEnd.setText(view.dataEnd());
 
-        shipmentType.setText(v.shipmentType());
-        transportType.setText(v.transportType());
-        requestTypeLabel.setText(v.requestType());
+        shipmentType.setText(view.shipmentType());
+        transportType.setText(view.transportType());
+        requestTypeLabel.setText(view.requestType());
 
-        dangerousCheck.setText(v.dangerous());
-        temperature.setText(v.temperature());
-        weight.setText(v.weight());
-        loadingMeters.setText(v.loadingMeters());
+        dangerousCheck.setText(view.dangerous());
+        temperature.setText(view.temperature());
+        weight.setText(view.weight());
+        loadingMeters.setText(view.loadingMeters());
 
-        customerPriceLabel.setText(v.customerPrice());
-        carrierPriceLabel.setText(v.carrierPrice());
+        customerPriceLabel.setText(view.customerPrice());
+        carrierPriceLabel.setText(view.carrierPrice());
 
-        authorName.setText(v.authorName());
-        authorSurname.setText(v.authorSurname());
-        carrierLabel.setText(v.carrier());
+        authorName.setText(view.authorName());
+        authorSurname.setText(view.authorSurname());
+        carrierLabel.setText(view.carrier());
 
-        commentsButton.setVisible(v.hasComments());
+        commentsButton.setVisible(view.hasComments());
     }
 
     private void applyStyles() {
@@ -142,46 +144,20 @@ public class ShipmentItemController implements ViewLifecycle {
         );
     }
 
-    private void applyLastEvent() {
-        if (dto == null) {
-            hideEvent();
+    private void applyStatus() {
+        if (dto == null || activeTab == ActiveTab.MY_SHIPMENTS) {
+            statusLabel.setVisible(false);
+            statusLabel.setManaged(false);
             return;
         }
 
-        lastEventResolver.resolve(dto).ifPresentOrElse(this::showEvent, this::showEmptyEvent);
-    }
+        ShipmentStatusView view = statusResolver.resolve(dto);
 
-    private void showEvent(ShipmentLastEvent event) {
-        eventLabel.setText(event.label());
-        eventLabel.setTextFill(event.color());
+        statusLabel.setText(view.label());
+        statusLabel.setTextFill(view.color());
 
-        eventTime.setText(event.at() != null ? event.at().format(TextUtils.DATE_TIME_FORMATTER) : "");
-        eventTime.setTextFill(event.color());
-
-        eventLabel.setVisible(true);
-        eventLabel.setManaged(true);
-        eventTime.setVisible(true);
-        eventTime.setManaged(true);
-    }
-
-    private void showEmptyEvent() {
-        eventLabel.setText("—");
-        eventLabel.setTextFill(TextUtils.SYSTEM_TEXT_DEFAULT_COLOR);
-
-        eventLabel.setVisible(true);
-        eventLabel.setManaged(true);
-        eventTime.setVisible(false);
-        eventTime.setManaged(false);
-    }
-
-    private void hideEvent() {
-        eventLabel.setText("");
-        eventTime.setText("");
-
-        eventLabel.setVisible(false);
-        eventLabel.setManaged(false);
-        eventTime.setVisible(false);
-        eventTime.setManaged(false);
+        statusLabel.setVisible(true);
+        statusLabel.setManaged(true);
     }
 
     private void updateDynamicView() {

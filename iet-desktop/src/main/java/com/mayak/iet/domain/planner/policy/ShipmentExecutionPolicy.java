@@ -13,23 +13,21 @@ public class ShipmentExecutionPolicy {
     }
 
     public boolean showTimeline(ShipmentListItemDto dto) {
-        return hasExecution(dto)
-                || hasStatus(dto, ShipmentStatusDto.CANCELED);
+        return dto.timestamps() != null && !dto.timestamps().isEmpty();
     }
 
     public boolean canCancel(ShipmentListItemDto dto) {
-        return hasStatus(dto, ShipmentStatusDto.PLANNED)
-                && !hasExecution(dto)
-                && !hasStatus(dto, ShipmentStatusDto.CANCELED);
+        if (!hasStatus(dto, ShipmentStatusDto.PLANNED)) return false;
+        if (hasExecution(dto)) return false;
+
+        if (dto.status() == ShipmentStatusDto.CANCELED) return false;
+
+        return true;
     }
 
     private boolean hasStatus(ShipmentListItemDto dto, ShipmentStatusDto status) {
         return dto.timestamps()
                 .stream()
                 .anyMatch(t -> t.status() == status);
-    }
-
-    public boolean existsAsOfDate(ShipmentListItemDto dto) {
-        return hasStatus(dto, ShipmentStatusDto.PLANNED);
     }
 }

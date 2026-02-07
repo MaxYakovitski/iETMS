@@ -1,6 +1,7 @@
 package com.mayak.iet.ui.workspace.planner.item;
 
 import com.mayak.iet.infrastructure.common.TextUtils;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -11,43 +12,48 @@ import javafx.scene.shape.Circle;
 
 import java.time.LocalDateTime;
 
-public class TimelineItem extends HBox {
+public class TimelineItem extends VBox {
 
-    private final Circle dot = new Circle(5);
-    private final Region line = new Region();
     private final Label statusLabel = new Label();
     private final Label dateLabel = new Label();
+    private final Circle topDot = new Circle(5);
+    private final Circle bottomDot = new Circle(5);
+    private final Region line = new Region();
 
-    public TimelineItem(String status, LocalDateTime dateTime, Color color, boolean isLast) {
+    public TimelineItem(String status, LocalDateTime dateTime, Color color, boolean showTopDot, boolean showBottomDot, boolean showLine) {
 
-        setSpacing(10);
         setAlignment(Pos.CENTER);
 
-        dot.setFill(color);
+        statusLabel.setText(status.toUpperCase());
+        statusLabel.getStyleClass().add("timeline-status");
+        dateLabel.setText(dateTime != null ? TextUtils.DATE_TIME_FORMATTER.format(dateTime) : "");
+        dateLabel.getStyleClass().add("timeline-date");
+
+        VBox textBox = new VBox(statusLabel, dateLabel);
+        textBox.setSpacing(0);
+        textBox.setAlignment(Pos.CENTER);
+
+        VBox.setMargin(textBox, new Insets(0, 0, 5, 0));
+
+        topDot.setFill(color);
+        topDot.setVisible(showTopDot);
+        topDot.setManaged(showTopDot);
+
+        bottomDot.setFill(color);
+        bottomDot.setVisible(showBottomDot);
+        bottomDot.setManaged(showBottomDot);
 
         line.setMaxWidth(2);
         line.setPrefHeight(40);
         line.getStyleClass().add("timeline-line");
 
-        if (isLast) {
-            line.setVisible(false);
-            line.setManaged(false);
-        }
+        line.setVisible(showLine);
+        line.setManaged(showLine);
 
-        statusLabel.setText(status.toUpperCase());
-        statusLabel.getStyleClass().add("timeline-status");
+        if (showTopDot) getChildren().add(topDot);
+        getChildren().add(textBox);
+        if (showBottomDot) getChildren().add(bottomDot);
+        if (showLine) getChildren().add(line);
 
-        dateLabel.setText(dateTime != null ? TextUtils.DATE_TIME_FORMATTER.format(dateTime) : "");
-        dateLabel.getStyleClass().add("timeline-date");
-
-        VBox left = new VBox(dot, line);
-        left.setAlignment(Pos.TOP_CENTER);
-
-        VBox right = new VBox(statusLabel, dateLabel);
-        right.setSpacing(2);
-        right.setMinWidth(140);
-        right.setAlignment(Pos.CENTER_LEFT);
-
-        getChildren().addAll(left, right);
     }
 }
