@@ -212,7 +212,11 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     private void setupList(ListView<ShipmentListItemDto> list, ListView<ShipmentListItemDto> otherList) {
-        list.setCellFactory(lv -> new ShipmentCell(windowService));
+        list.setCellFactory(lv -> {
+            ShipmentCell cell = new ShipmentCell(windowService);
+            cell.setActiveTab(ActiveTab.MY_TRANSPORTS);
+            return cell;
+        });
 
         list.getSelectionModel()
                 .selectedItemProperty()
@@ -232,7 +236,11 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     private void setupSingleList(ListView<ShipmentListItemDto> list) {
-        list.setCellFactory(lv -> new ShipmentCell(windowService));
+        list.setCellFactory(lv -> {
+            ShipmentCell cell = new ShipmentCell(windowService);
+            cell.setActiveTab(ActiveTab.MY_SHIPMENTS);
+            return cell;
+        });
 
         list.getSelectionModel()
                 .selectedItemProperty()
@@ -394,11 +402,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     /* ================= Core Flow ================= */
     public void selectShipment(ShipmentListItemDto dto) {
         state.setSelectedShipment(dto);
-
-        if (!selectionService.shouldShowDetails(dto)) {
-            hideDetailsCompletely();
-            return;
-        }
 
         detailsStack.setVisible(true);
         detailsStack.setManaged(true);

@@ -18,16 +18,18 @@ public class TimelinePresenter {
 
         for (int i = 0; i < entries.size(); i++) {
             TimelineEntry e = entries.get(i);
-            boolean isLast = i == entries.size() - 1;
+
+            boolean isFirst = i == 0;
+            boolean isLast  = i == entries.size() - 1;
+            boolean single  = entries.size() == 1;
+
+            boolean showTopDot    = !single && isLast;
+            boolean showBottomDot = isFirst;
+            boolean showLine      = !isLast;
+
 
             container.getChildren().add(
-                    new TimelineItem(
-                            e.label(),
-                            e.time(),
-                            mapColor(e.color()),
-                            isLast
-                    )
-            );
+                    new TimelineItem(e.label(), e.time(), mapColor(e.color()), showTopDot, showBottomDot, showLine));
         }
     }
 

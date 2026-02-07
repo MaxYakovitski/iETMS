@@ -20,9 +20,8 @@ public class ShipmentTimelineService {
             );
 
     private static final Comparator<ShipmentTimestampDto> COMPARATOR =
-            Comparator.comparing(
-                    (ShipmentTimestampDto t) -> STATUS_ORDER.getOrDefault(t.status(), 99)
-            ).thenComparing(ShipmentTimestampDto::at);
+            Comparator.comparing((ShipmentTimestampDto t) -> STATUS_ORDER.getOrDefault(t.status(), 99))
+                    .thenComparing(ShipmentTimestampDto::at);
 
     public List<TimelineEntry> build(List<ShipmentTimestampDto> timestamps) {
         return timestamps.stream()

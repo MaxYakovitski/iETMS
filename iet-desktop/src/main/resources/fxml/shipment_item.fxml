@@ -119,20 +119,17 @@
             <Label fx:id="customerPriceLabel" style="-fx-font-weight: bold" textAlignment="CENTER"/>
         </VBox>
 
-        <VBox prefWidth="150" minHeight="60" spacing="5" alignment="CENTER">
-            <Label fx:id="carrierLabel" textAlignment="CENTER"/>
-            <Label fx:id="carrierPriceLabel" style="-fx-font-weight: bold" textAlignment="CENTER"/>
-        </VBox>
-
         <VBox prefWidth="100" minHeight="60" spacing="5" alignment="CENTER">
             <Label fx:id="authorName"/>
             <Label fx:id="authorSurname"/>
         </VBox>
 
-        <VBox minHeight="60" minWidth="120" spacing="5" alignment="CENTER">
-            <Label fx:id="eventLabel"/>
-            <Label fx:id="eventTime"/>
+        <VBox prefWidth="150" minHeight="60" spacing="5" alignment="CENTER">
+            <Label fx:id="carrierLabel" textAlignment="CENTER"/>
+            <Label fx:id="carrierPriceLabel" style="-fx-font-weight: bold" textAlignment="CENTER"/>
         </VBox>
+
+        <Label fx:id="statusLabel"/>
 
     </HBox>
 </AnchorPane>
