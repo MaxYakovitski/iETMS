@@ -40,13 +40,13 @@ public class PlannerDetailsPresenter {
         cancelButton.setManaged(false);
     }
 
-    public void showShipmentDetails( ShipmentListItemDto dto,
-                                      Label shipmentNumber,
-                                      Label dispatcher,
-                                      VBox shipmentDetails,
-                                      VBox transportDetails,
-                                      VBox timelineContainer,
-                                      Button cancelButton) {
+    public void showShipmentDetails(ShipmentListItemDto dto,
+                                    Label shipmentNumber,
+                                    Label dispatcher,
+                                    VBox shipmentDetails,
+                                    VBox transportDetails,
+                                    VBox timelineContainer,
+                                    Button cancelButton) {
 
         transportDetails.setVisible(false);
         transportDetails.setManaged(false);
