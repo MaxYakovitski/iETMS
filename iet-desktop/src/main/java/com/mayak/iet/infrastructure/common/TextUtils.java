@@ -31,10 +31,14 @@ public class TextUtils {
     public static final String PRICE_PATTEN = "\\d*([.,]\\d*)?";
 
     public static void allowOnlyLatin(boolean greedy, TextInputControl... controls) {
-        String regex = greedy ? "[ -~]*" : "[\\s\\S]*";
+        String regex = greedy ? "[ -~]+" : "\\p{ASCII}+";
         UnaryOperator<TextFormatter.Change> latinFilter = change -> {
-            String newText = change.getControlNewText();
-            return newText.matches(regex) ? change : null;
+            String inserted = change.getText();
+            if (inserted == null || inserted.isEmpty()) {
+                return change;
+            }
+
+            return inserted.matches(regex) ? change : null;
         };
         for (TextInputControl control : controls) {
             control.setTextFormatter(new TextFormatter<>(latinFilter));
