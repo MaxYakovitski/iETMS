@@ -69,11 +69,6 @@ public class ShipmentService {
     }
 
     private boolean isVisibleForMyShipments(Shipment s, LocalDate date) {
-
-        if (s.getStatus() == ShipmentStatus.CANCELED) {
-            return date.equals(s.getPlannedLoadDate());
-        }
-
         return !date.isBefore(s.getPlannedLoadDate()) && !date.isAfter(s.getPlannedDropDate());
     }
 
