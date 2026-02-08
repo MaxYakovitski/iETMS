@@ -28,7 +28,6 @@ public class UpdateService {
     private static final String MANIFEST_URL =
             "https://maxyakovitski.github.io/iETMS-updates/windows/manifest.json";
 
-
     private final RestTemplate restTemplate;
     private final AppVersionProvider versionProvider;
     private final UpdateInstaller installer;

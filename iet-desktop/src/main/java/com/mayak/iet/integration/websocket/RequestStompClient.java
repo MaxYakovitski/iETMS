@@ -40,7 +40,7 @@ public class RequestStompClient extends AbstractStompClient{
 
     public RequestStompClient(AuthState authState, BackendProperties backendProperties) {
         this.authState = authState;
-        this.wsUrl = backendProperties.wsUrl();
+        this.wsUrl = backendProperties.getWsUrl();
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient());
         this.stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());

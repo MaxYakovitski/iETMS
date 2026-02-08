@@ -22,7 +22,7 @@ public class RestClientConfig {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(client);
 
         RestTemplate restTemplate = new RestTemplate(factory);
-        restTemplate.setUriTemplateHandler(new DefaultUriBuilderFactory(backendProperties.baseUrl()));
+        restTemplate.setUriTemplateHandler(new DefaultUriBuilderFactory(backendProperties.getBaseUrl()));
 
         restTemplate.getInterceptors().add((request, body, execution) -> {
             if (authState.getToken() != null) {

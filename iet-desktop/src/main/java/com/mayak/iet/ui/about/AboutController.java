@@ -22,6 +22,6 @@ public class AboutController {
 
     public void init(Stage stage) {
         this.stage = stage;
-        versionLabel.setText("Version: " + versionProvider.getAppVersion());
+        versionLabel.setText("version: " + versionProvider.getAppVersion());
     }
 }

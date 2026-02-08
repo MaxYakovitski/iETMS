@@ -24,8 +24,7 @@
             </padding>
         </Separator>
 
-    <Label fx:id="versionLabel" text="Version:"/>
+    <Label fx:id="versionLabel"/>
     <Label text="© 2026 by Maxim Yakovitski"/>
-
 
 </VBox>
