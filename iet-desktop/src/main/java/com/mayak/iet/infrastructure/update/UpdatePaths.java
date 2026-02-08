@@ -1,20 +1,17 @@
 package com.mayak.iet.infrastructure.update;
 
+import lombok.NoArgsConstructor;
+
 import java.nio.file.Path;
 
+@NoArgsConstructor
 public final class UpdatePaths {
 
     private static final String APP_NAME = "iETMS";
 
-    private UpdatePaths() {
-    }
-
     /** C:\Program Files\iETMS */
     public static Path installDir() {
-        return Path.of(
-                System.getenv("PROGRAMFILES"),
-                APP_NAME
-        );
+        return Path.of(System.getenv("PROGRAMFILES"), APP_NAME);
     }
 
     public static Path appDir() {

@@ -1,8 +1,0 @@
-spring:
-  config:
-    activate:
-      on-profile: dev
-
-backend:
-  base-url: http://localhost:8080
-  ws-url: ws://localhost:8080/ws

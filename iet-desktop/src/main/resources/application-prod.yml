@@ -1,8 +1,0 @@
-spring:
-  config:
-    activate:
-      on-profile: prod
-
-backend:
-  base-url: http://165.22.92.183:8080
-  ws-url: ws://165.22.92.183:8080/ws
