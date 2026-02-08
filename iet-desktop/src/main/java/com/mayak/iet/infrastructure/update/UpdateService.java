@@ -1,6 +1,7 @@
 package com.mayak.iet.infrastructure.update;
 
 import com.mayak.iet.infrastructure.update.installer.UpdateInstaller;
+import com.mayak.iet.infrastructure.util.OsUtils;
 import com.mayak.iet.infrastructure.version.AppVersionProvider;
 import javafx.application.Platform;
 import lombok.Getter;
@@ -18,6 +19,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -47,6 +49,12 @@ public class UpdateService {
     }
 
     public UpdateCheckResult checkVersion() {
+
+        if (!OsUtils.isWindows()) {
+            log.info("[UPDATE] disabled on non-Windows OS");
+            return UpdateCheckResult.noUpdate(versionProvider.getAppVersion());
+        }
+
         setState(UpdateState.CHECKING);
 
         try {
@@ -60,7 +68,7 @@ public class UpdateService {
             String current = getCurrentVersion();
             String latest = manifest.latestVersion();
 
-            boolean updateRequired = !current.equals(latest);
+            boolean updateRequired = !Objects.equals(current, latest);
             boolean forced = manifest.mandatory();
 
             log.info("[UPDATE] current={}, latest={}, mandatory={}", current, latest, forced);
@@ -82,6 +90,12 @@ public class UpdateService {
     }
 
     public void startMandatoryUpdate(UpdateCheckResult result) {
+
+        if (!OsUtils.isWindows()) {
+            log.info("[UPDATE] mandatory update skipped (non-Windows)");
+            return;
+        }
+
         setState(UpdateState.DOWNLOADING);
 
         Path targetFile = UpdatePaths.msiFile(result.latestVersion());
