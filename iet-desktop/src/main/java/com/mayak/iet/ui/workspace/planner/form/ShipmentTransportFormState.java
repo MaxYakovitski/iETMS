@@ -26,13 +26,7 @@ public class ShipmentTransportFormState {
         this.current = this.original;
     }
 
-    public void updateCurrent(
-            String carrier,
-            String comments,
-            String licensePlate,
-            String transportOrder,
-            ShipmentStatusDto status
-    ) {
+    public void updateCurrent(String carrier, String comments, String licensePlate, String transportOrder, ShipmentStatusDto status) {
         this.current = new Snapshot(
                 TextUtils.safeTrim(carrier),
                 TextUtils.safeTrim(comments),
