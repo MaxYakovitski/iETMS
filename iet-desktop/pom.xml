@@ -56,15 +56,18 @@
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
+            <classifier>win</classifier>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
+            <classifier>win</classifier>
         </dependency>
 
         <dependency>
@@ -215,6 +218,12 @@
                                     <outputDirectory>
                                         ${project.build.directory}/jpackage-input/app/lib
                                     </outputDirectory>
+                                    <excludeArtifactIds>
+                                        lombok,
+                                        javafx-media,
+                                        javafx-web,
+                                        javafx-swing
+                                    </excludeArtifactIds>
                                 </configuration>
                             </execution>
 
