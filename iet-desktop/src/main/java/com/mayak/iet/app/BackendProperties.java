@@ -1,9 +1,21 @@
 package com.mayak.iet.app;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-@ConfigurationProperties(prefix = "backend")
-public record BackendProperties (
-        String baseUrl,
-        String wsUrl) {
+@Getter
+@Component
+public class BackendProperties {
+
+    private final String baseUrl;
+    private final String wsUrl;
+
+    public BackendProperties(
+            @Value("${backend.base-url}") String baseUrl,
+            @Value("${backend.ws-url}") String wsUrl) {
+        this.baseUrl = baseUrl;
+        this.wsUrl = wsUrl;
+    }
+
 }

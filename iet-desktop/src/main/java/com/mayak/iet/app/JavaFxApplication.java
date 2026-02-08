@@ -1,6 +1,6 @@
 package com.mayak.iet.app;
 
-import com.mayak.iet.DesktopSpringBootApplication;
+import com.mayak.iet.DesktopApplication;
 import com.mayak.iet.infrastructure.error.AlertUtils;
 import com.mayak.iet.infrastructure.window.WindowService;
 import javafx.application.Application;
@@ -8,8 +8,8 @@ import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -21,7 +21,7 @@ public class JavaFxApplication extends Application {
 
     @Override
     public void init() {
-        springContext = new SpringApplicationBuilder(DesktopSpringBootApplication.class).headless(false).run();
+        springContext = new AnnotationConfigApplicationContext(DesktopApplication.class);
         Locale.setDefault(Locale.UK);
     }
 
