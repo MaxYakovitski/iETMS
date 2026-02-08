@@ -97,6 +97,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     private final ShipmentTransportFormState formState = new ShipmentTransportFormState();
     private ValidationUIHelper validationUI;
     private UserPermissions permissions;
+    private boolean initializingForm = false;
 
     @Getter
     private UserResponseDto loggedInUser;
@@ -263,6 +264,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     /* ================= Form State ================= */
     private void markDirtyIfChanged() {
+        if (initializingForm) return;
         if (state.getSelectedShipment() == null) return;
 
         formState.updateCurrent(
@@ -529,8 +531,9 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     private void showMyTransportDetails(ShipmentListItemDto dto) {
-        formState.bindTo(dto);
-        updateSubmitState();
+        initializingForm = true;
+        formState.reset();
+        submitButton.setDisable(true);
 
         ShipmentContext ctx = selectionService.buildContext(dto, state.getSelectedDate());
 
@@ -548,6 +551,10 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                 dateAndTime,
                 timeSpinner
         );
+
+        formState.bindTo(dto);
+        initializingForm = false;
+        updateSubmitState();
     }
 
     private void hideDetailsCompletely() {
