@@ -49,11 +49,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Controller
@@ -143,8 +145,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     private void handleShipmentEvent() {
-        loadMyShipments();
-        loadMyTransports();
+        reloadForDate(state.getSelectedDate());
     }
 
     private void handleShipmentUserEvent(ShipmentEvent<ShipmentEventDto> event) {
@@ -175,19 +176,8 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
         updateHeader(calendarView.getMonth());
 
-        calendarView.selectedDateProperty().addListener((obs, oldD, newD) -> {
-            state.setSelectedDate(newD);
-            loadMyShipments();
-            loadMyTransports();
-
-            if (state.isHasMyShipments()) {
-                switchTab(ActiveTab.MY_SHIPMENTS);
-            } else if (state.isHasMyTransports()) {
-                switchTab(ActiveTab.MY_TRANSPORTS);
-            } else {
-                showEmptyState();
-            }
-        });
+        calendarView.selectedDateProperty().addListener((obs, oldD, newD) ->
+                reloadForDate(newD));
 
         statusEditPolicy.configure(shipmentStatusComboBox);
 
@@ -399,41 +389,19 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         );
     }
 
-    /* ================= Core Flow ================= */
-    public void selectShipment(ShipmentListItemDto dto) {
-        state.setSelectedShipment(dto);
-
-        detailsStack.setVisible(true);
-        detailsStack.setManaged(true);
-
-        if (selectionService.isShipmentTab(state)) {
-            showMyShipmentDetails(dto);
-        } else if (selectionService.isTransportTab(state)) {
-            showMyTransportDetails(dto);
-        }
-    }
-
-    private void switchTab(ActiveTab tab) {
-        state.setActiveTab(tab);
-
+    /* ================= Core Orchestration ================= */
+    private void reloadForDate(LocalDate date) {
+        state.setSelectedDate(date);
         clearSelection();
 
-        switch (tab) {
-            case MY_SHIPMENTS -> {
-                setActive(myShipments, myTransports);
-                myShipmentsContainer.setVisible(true);
-                myShipmentsContainer.setManaged(true);
-                myTransportsContainer.setVisible(false);
-                myTransportsContainer.setManaged(false);
-            }
-            case MY_TRANSPORTS -> {
-                setActive(myTransports, myShipments);
-                myTransportsContainer.setVisible(true);
-                myTransportsContainer.setManaged(true);
-                myShipmentsContainer.setVisible(false);
-                myShipmentsContainer.setManaged(false);
-            }
-        }
+        CompletableFuture
+                .supplyAsync(() -> dataService.loadMyShipments(date))
+                .thenCombine(CompletableFuture.supplyAsync(() -> dataService.loadMyTransports(date)), Map::entry)
+                .thenAccept(result ->
+                        Platform.runLater(() -> {
+                            applyDayData(result.getKey(), result.getValue());
+                        })
+                );
     }
 
     private void reloadAfterMutation(ActiveTab preferredTab) {
@@ -459,10 +427,68 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         }
     }
 
+    /* ================= Async Data Apply ================= */
+    private void applyDayData(
+            List<ShipmentListItemDto> shipments,
+            PlannerDataService.TransportBuckets buckets) {
+        // shipments
+        shipmentsItems.setAll(shipments);
+        state.setHasMyShipments(!shipments.isEmpty());
+
+        // transports
+        toLoadItems.setAll(buckets.toLoad());
+        toDropItems.setAll(buckets.toDrop());
+        state.setHasMyTransports(!buckets.toLoad().isEmpty() || !buckets.toDrop().isEmpty());
+
+        applyTabsVisibilityRules();
+        updateTransportVisibility();
+
+        if (state.isHasMyShipments()) {
+            switchTab(ActiveTab.MY_SHIPMENTS);
+        } else if (state.isHasMyTransports()) {
+            switchTab(ActiveTab.MY_TRANSPORTS);
+        } else {
+            showEmptyState();
+        }
+    }
+
+    /* ================= Selection & Tabs ================= */
+    public void selectShipment(ShipmentListItemDto dto) {
+        state.setSelectedShipment(dto);
+
+        detailsStack.setVisible(true);
+        detailsStack.setManaged(true);
+
+        if (selectionService.isShipmentTab(state)) {
+            showMyShipmentDetails(dto);
+        } else if (selectionService.isTransportTab(state)) {
+            showMyTransportDetails(dto);
+        }
+    }
+
+    private void switchTab(ActiveTab tab) {
+        state.setActiveTab(tab);
+
+        switch (tab) {
+            case MY_SHIPMENTS -> {
+                setActive(myShipments, myTransports);
+                myShipmentsContainer.setVisible(true);
+                myShipmentsContainer.setManaged(true);
+                myTransportsContainer.setVisible(false);
+                myTransportsContainer.setManaged(false);
+            }
+            case MY_TRANSPORTS -> {
+                setActive(myTransports, myShipments);
+                myTransportsContainer.setVisible(true);
+                myTransportsContainer.setManaged(true);
+                myShipmentsContainer.setVisible(false);
+                myShipmentsContainer.setManaged(false);
+            }
+        }
+    }
+
     /* ================= Data Loading ================= */
     private void loadMyTransports() {
-        clearSelection();
-
         toLoadItems.clear();
         toDropItems.clear();
 
@@ -478,7 +504,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     private void loadMyShipments() {
-        clearSelection();
         shipmentsItems.clear();
 
         var items = dataService.loadMyShipments(state.getSelectedDate());
