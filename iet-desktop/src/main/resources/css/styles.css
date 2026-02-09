@@ -431,13 +431,19 @@
 
 #loadingOverlay Label {
     -fx-text-fill: #c8c8c8;
-    -fx-font-size: 14px;
+    -fx-font-size: 13px;
 }
 
 #loadingOverlay ProgressIndicator {
     -fx-progress-color: #c8c8c8;
     -fx-pref-width: 60px;
     -fx-pref-height: 60px;
+    -fx-background-color: transparent;
+}
+
+#loadingOverlay ProgressIndicator .spinner {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
 #requestsListView {
@@ -749,4 +755,13 @@
     -fx-background-color: #81c784;
     -fx-background-radius: 5;
     -fx-padding: 0;
+}
+
+.login-progress {
+    -fx-progress-color: #c8c8c8;
+}
+
+.login-progress .spinner {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }

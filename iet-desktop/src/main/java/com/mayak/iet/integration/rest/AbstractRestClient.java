@@ -37,8 +37,6 @@ public class AbstractRestClient {
             return ApiValidationException.fromResponse(ex);
         }
 
-        if (status == 401 || status == 403) return new ApiException(ex.getStatusCode(), "Access denied");
-        if (status == 404) return new ApiException(ex.getStatusCode(), "Resource not found");
         return new ApiException(ex.getStatusCode(), body);
     }
 

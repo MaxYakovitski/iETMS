@@ -8,11 +8,6 @@ public class ApiException extends RuntimeException {
 
     private final HttpStatusCode status;
 
-    public ApiException(String message) {
-        super(message);
-        this.status = null;
-    }
-
     public ApiException(String message, Throwable cause) {
         super(message, cause);
         this.status = null;
