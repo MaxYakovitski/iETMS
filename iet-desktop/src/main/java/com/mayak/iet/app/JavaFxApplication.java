@@ -13,6 +13,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class JavaFxApplication extends Application {
@@ -22,38 +23,52 @@ public class JavaFxApplication extends Application {
     @Override
     public void init() {
         DesktopLauncher.log("JavaFxApplication.init()");
-
-        DesktopLauncher.log("Spring context init START");
-        springContext = new AnnotationConfigApplicationContext(DesktopApplication.class);
-        DesktopLauncher.log("Spring context init END");
-
         Locale.setDefault(Locale.UK);
-
-        DesktopLauncher.log("JavaFxApplication.init() EXIT");
     }
 
     @Override
     public void start(Stage primaryStage) {
         DesktopLauncher.log("JavaFxApplication.start() ENTER");
 
-        DesktopLauncher.log("Resolve WindowService");
-        WindowService windowService = springContext.getBean(WindowService.class);
-        windowService.setPrimaryStage(primaryStage);
+        setupStage(primaryStage);
+
+        CompletableFuture
+                .supplyAsync(this::initSpring)
+                .thenAccept(ctx ->
+                        Platform.runLater(() -> onSpringReady(ctx, primaryStage)));
+
+        DesktopLauncher.log("JavaFxApplication.start() ENTER");
+    }
+
+    private ConfigurableApplicationContext initSpring() {
+        DesktopLauncher.log("Spring context init START");
+        ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(DesktopApplication.class);
+        DesktopLauncher.log("Spring context init END");
+        return ctx;
+    }
+
+    private void onSpringReady(ConfigurableApplicationContext ctx, Stage stage) {
+        DesktopLauncher.log("Spring ready – wiring UI");
+
+        this.springContext = ctx;
+
+        WindowService windowService = ctx.getBean(WindowService.class);
+        windowService.setPrimaryStage(stage);
         AlertUtils.setWindowService(windowService);
 
-        DesktopLauncher.log("Stage setup START");
-        Image icon = new Image(
-                Objects.requireNonNull(getClass().getResource("/icons/icon.png")).toString()
-        );
-        primaryStage.getIcons().add(icon);
-        primaryStage.setTitle("iETMS");
-        DesktopLauncher.log("Stage setup END");
-
         DesktopLauncher.log("DesktopBootstrap.start() START");
-        springContext.getBean(DesktopBootstrap.class).start(primaryStage);
+        ctx.getBean(DesktopBootstrap.class).start(stage);
         DesktopLauncher.log("DesktopBootstrap.start() END");
+    }
 
-        DesktopLauncher.log("JavaFxApplication.start() EXIT");
+    private void setupStage(Stage stage) {
+        DesktopLauncher.log("Stage setup START");
+
+        Image icon = new Image(Objects.requireNonNull(getClass().getResource("/icons/icon.png")).toString());
+        stage.getIcons().add(icon);
+        stage.setTitle("iETMS");
+
+        DesktopLauncher.log("Stage setup END");
     }
 
     @Override
