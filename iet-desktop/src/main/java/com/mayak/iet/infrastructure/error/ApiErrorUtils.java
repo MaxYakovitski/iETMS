@@ -23,7 +23,7 @@ public class ApiErrorUtils {
 
         return switch (status) {
             case 400 -> UiError.error(backendMessage != null ? backendMessage : "Invalid request data.");
-            case 401 -> UiError.error("You are not authorized to perform this action.");
+            case 401 -> UiError.error(backendMessage != null ? backendMessage : "You are not authorized to perform this action.");
             case 403 -> UiError.error("You do not have permission to perform this action.");
             case 404 -> UiError.warning(defaultMessage != null ? defaultMessage : "Requested resource was not found.");
             case 409 -> UiError.warning(defaultMessage != null ? defaultMessage : "Operation is not allowed due to existing dependencies.");

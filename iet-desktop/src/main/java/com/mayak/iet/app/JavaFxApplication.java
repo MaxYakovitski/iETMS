@@ -2,17 +2,26 @@ package com.mayak.iet.app;
 
 import com.mayak.iet.DesktopApplication;
 import com.mayak.iet.infrastructure.error.AlertUtils;
+import com.mayak.iet.infrastructure.error.ApiErrorUtils;
+import com.mayak.iet.infrastructure.window.FxmlLoader;
+import com.mayak.iet.infrastructure.window.StageFactory;
 import com.mayak.iet.infrastructure.window.WindowService;
+import com.mayak.iet.integration.auth.AuthClient;
+import com.mayak.iet.integration.auth.AuthState;
+import com.mayak.iet.integration.exception.ApiException;
+import com.mayak.iet.support.enums.View;
+import com.mayak.iet.ui.auth.LoginController;
+import com.mayak.iet.ui.auth.LoginRequest;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.scene.image.Image;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -22,59 +31,93 @@ public class JavaFxApplication extends Application {
 
     @Override
     public void init() {
-        DesktopLauncher.log("JavaFxApplication.init()");
         Locale.setDefault(Locale.UK);
     }
 
     @Override
     public void start(Stage primaryStage) {
-        DesktopLauncher.log("JavaFxApplication.start() ENTER");
-
-        setupStage(primaryStage);
-
-        CompletableFuture
-                .supplyAsync(this::initSpring)
-                .thenAccept(ctx ->
-                        Platform.runLater(() -> onSpringReady(ctx, primaryStage)));
-
-        DesktopLauncher.log("JavaFxApplication.start() ENTER");
+        showLogin();
     }
 
-    private ConfigurableApplicationContext initSpring() {
-        DesktopLauncher.log("Spring context init START");
+    private void showLogin() {
+        LoginController controller = new LoginController();
+        Parent root = FxmlLoader.load(View.LOGIN.getPath(), controller);
+        Scene scene = new Scene(root);
+
+        StageFactory stageFactory = new StageFactory();
+        Stage loginStage = stageFactory.createLoginStage(scene);
+
+        controller.setOnLogin(req ->
+                CompletableFuture
+                        .supplyAsync(() -> initSpringAndLogin(req))
+                        .thenAccept(ctx ->
+                                Platform.runLater(() -> {
+                                    loginStage.close();
+                                    showMainStage(ctx);
+                                })
+                        )
+                        .exceptionally(ex -> {
+                            Platform.runLater(() -> handleLoginError(controller, ex));
+                            return null;
+                        })
+        );
+
+        loginStage.show();
+
+    }
+
+    private ConfigurableApplicationContext initSpringAndLogin(LoginRequest req) {
         ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(DesktopApplication.class);
-        DesktopLauncher.log("Spring context init END");
-        return ctx;
+
+        var authClient = ctx.getBean(AuthClient.class);
+        var authState  = ctx.getBean(AuthState.class);
+
+        try {
+            var response = authClient.login(req.email(), req.password());
+            authState.setToken(response.token());
+            return ctx;
+        } catch (ApiException ex) {
+            ctx.close();
+            throw ex;
+        }
     }
 
-    private void onSpringReady(ConfigurableApplicationContext ctx, Stage stage) {
-        DesktopLauncher.log("Spring ready – wiring UI");
-
+    private void showMainStage(ConfigurableApplicationContext ctx) {
         this.springContext = ctx;
 
         WindowService windowService = ctx.getBean(WindowService.class);
-        windowService.setPrimaryStage(stage);
         AlertUtils.setWindowService(windowService);
 
-        DesktopLauncher.log("DesktopBootstrap.start() START");
-        ctx.getBean(DesktopBootstrap.class).start(stage);
-        DesktopLauncher.log("DesktopBootstrap.start() END");
+        Parent root = ctx.getBean(WindowService.class)
+                .loadControllerWithNode(View.HOME.getPath()).node();
+
+        Scene scene = new Scene(root);
+
+        StageFactory stageFactory = ctx.getBean(StageFactory.class);
+        Stage mainStage = stageFactory.createMainStage(scene);
+
+        windowService.setPrimaryStage(mainStage);
+        ctx.getBean(DesktopBootstrap.class).start(mainStage);
     }
 
-    private void setupStage(Stage stage) {
-        DesktopLauncher.log("Stage setup START");
+    private void handleLoginError(LoginController controller, Throwable ex) {
+        controller.setLoading(false);
 
-        Image icon = new Image(Objects.requireNonNull(getClass().getResource("/icons/icon.png")).toString());
-        stage.getIcons().add(icon);
-        stage.setTitle("iETMS");
+        Throwable t = ex;
+        while (t.getCause() != null) t = t.getCause();
 
-        DesktopLauncher.log("Stage setup END");
+        if (t instanceof ApiException apiEx) {
+            AlertUtils.show(ApiErrorUtils.resolve(apiEx, "Invalid email or password."));
+        } else {
+            AlertUtils.showError("Login failed. Please try again.");
+        }
     }
 
     @Override
     public void stop() {
-        DesktopLauncher.log("JavaFxApplication.stop()");
-        springContext.close();
+        if (springContext != null) {
+            springContext.close();
+        }
         Platform.exit();
     }
 }

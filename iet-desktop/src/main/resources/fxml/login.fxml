@@ -7,19 +7,19 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.layout.StackPane?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/21.0.7"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.mayak.iet.ui.auth.LoginController"
-            prefWidth="480" prefHeight="240"
+            minWidth="480" prefWidth="480" maxWidth="480"
+            minHeight="240" prefHeight="240" maxHeight="240"
             styleClass="anchor-pane"
             stylesheets="@../css/styles.css">
 
-        <VBox spacing="15" alignment="CENTER"
-              AnchorPane.topAnchor="0"
-              AnchorPane.bottomAnchor="0"
-              AnchorPane.leftAnchor="100"
-              AnchorPane.rightAnchor="100">
+    <StackPane AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+               AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+        <VBox spacing="15" maxWidth="280" alignment="CENTER">
 
             <HBox alignment="CENTER">
                 <Label text="login:"/>
@@ -34,5 +34,8 @@
                            styleClass="price-field"/>
             </HBox>
         </VBox>
+
+    <ProgressIndicator fx:id="progress" visible="false" prefWidth="48" prefHeight="48" styleClass="login-progress"/>
+    </StackPane>
 
 </AnchorPane>
