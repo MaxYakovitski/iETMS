@@ -5,14 +5,14 @@
 <?import javafx.scene.image.Image?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/21.0.7"
-            style="-fx-background-color: #ffffff;">
+            stylesheets="@/css/styles.css">
 
     <StackPane AnchorPane.topAnchor="0.0"
                AnchorPane.leftAnchor="0.0"
                AnchorPane.rightAnchor="0.0"
                AnchorPane.bottomAnchor="0.0">
 
-        <ImageView fitHeight="512" opacity="0.10" preserveRatio="true">
+        <ImageView opacity="0.10" preserveRatio="true">
             <Image url="@../icons/europe.png"/>
         </ImageView>
 

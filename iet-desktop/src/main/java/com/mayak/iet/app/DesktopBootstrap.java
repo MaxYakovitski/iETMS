@@ -4,7 +4,7 @@ import com.mayak.iet.infrastructure.update.UpdateCheckResult;
 import com.mayak.iet.infrastructure.update.UpdateService;
 import com.mayak.iet.infrastructure.window.WindowService;
 import com.mayak.iet.support.enums.View;
-import com.mayak.iet.ui.auth.LoginController;
+import com.mayak.iet.ui.home.HomeController;
 import com.mayak.iet.ui.update.UpdateController;
 import javafx.event.Event;
 import javafx.scene.Scene;
@@ -26,19 +26,22 @@ public class DesktopBootstrap {
         if (result.updateRequired()) {
             showUpdate(stage, result);
         } else {
-            showLogin(stage);
+            showHome(stage);
         }
     }
 
-    private void showLogin(Stage stage) {
-        WindowService.Loaded<LoginController> loaded =
-                windowService.loadControllerWithNode(
-                        View.LOGIN.getPath(),
-                        LoginController.class);
+    private void showHome(Stage stage) {
+        WindowService.Loaded<HomeController> loaded =
+                windowService.loadControllerWithNode(View.HOME.getPath(), HomeController.class);
 
-        stage.setScene(new Scene(loaded.node()));
-        stage.setResizable(false);
-        stage.centerOnScreen();
+        HomeController controller = loaded.controller();
+        Scene scene = new Scene(loaded.node());
+        stage.setScene(scene);
+
+        windowService.injectStageIfSupported(controller, stage);
+        windowService.setPrimaryStage(stage);
+
+        stage.setMaximized(true);
         stage.show();
     }
 

@@ -1,22 +1,27 @@
 package com.mayak.iet.integration.auth;
 
+import com.mayak.iet.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.iet.integration.auth.dto.LoginRequestDto;
 import com.mayak.iet.integration.auth.dto.LoginResponseDto;
-import lombok.RequiredArgsConstructor;
+import com.mayak.iet.integration.rest.AbstractRestClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-@RequiredArgsConstructor
-public class AuthRestClient implements AuthClient {
+public class AuthRestClient extends AbstractRestClient implements AuthClient {
 
-    private final RestTemplate restTemplate;
+    private static final String API = "/api/auth/login";
 
+    public AuthRestClient(RestTemplate restTemplate, BackendConnectionMonitor monitor) {
+        super(restTemplate, monitor);
+    }
+
+    @Override
     public LoginResponseDto login(String email, String password) {
-        return restTemplate.postForObject(
-                "/api/auth/login",
+        return exchangeSafely(() -> restTemplate.postForObject(
+                API,
                 new LoginRequestDto(email, password),
                 LoginResponseDto.class
-        );
+        ));
     }
 }
