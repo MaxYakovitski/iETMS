@@ -2,11 +2,13 @@ package com.mayak.iet.app;
 
 import com.mayak.iet.infrastructure.update.UpdateCheckResult;
 import com.mayak.iet.infrastructure.update.UpdateService;
+import com.mayak.iet.infrastructure.window.FxmlLoader;
 import com.mayak.iet.infrastructure.window.WindowService;
 import com.mayak.iet.support.enums.View;
 import com.mayak.iet.ui.home.HomeController;
 import com.mayak.iet.ui.update.UpdateController;
 import javafx.event.Event;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
@@ -47,19 +49,20 @@ public class DesktopBootstrap {
 
     private void showUpdate(Stage stage, UpdateCheckResult result) {
 
-        WindowService.Loaded<UpdateController> loaded =
-                windowService.loadControllerWithNode(View.UPDATE.getPath(), UpdateController.class);
+        UpdateController controller = new UpdateController();
+        controller.setUpdateService(updateService);
 
-        UpdateController controller = loaded.controller();
+        Parent root = FxmlLoader.load(View.UPDATE.getPath(), controller);
 
-        stage.setScene(new Scene(loaded.node()));
+        stage.setScene(new Scene(root));
         stage.setResizable(false);
         stage.centerOnScreen();
-        stage.show();
 
         if (result.forced()) {
             stage.setOnCloseRequest(Event::consume);
         }
+
+        stage.show();
 
         controller.start(result);
     }

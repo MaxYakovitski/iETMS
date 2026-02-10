@@ -1,5 +1,6 @@
 package com.mayak.iet.infrastructure.update;
 
+import com.mayak.iet.infrastructure.util.OsUtils;
 import lombok.NoArgsConstructor;
 
 import java.nio.file.Path;
@@ -9,7 +10,6 @@ public final class UpdatePaths {
 
     private static final String APP_NAME = "iETMS";
 
-    /** C:\Program Files\iETMS */
     public static Path installDir() {
         return Path.of(System.getenv("PROGRAMFILES"), APP_NAME);
     }
@@ -25,11 +25,11 @@ public final class UpdatePaths {
     }
 
     public static Path updatesDir() {
-        return Path.of(
-                System.getenv("LOCALAPPDATA"),
-                APP_NAME,
-                "updates"
-        );
+        if (OsUtils.isWindows()) {
+            return Path.of(System.getenv("LOCALAPPDATA"), APP_NAME, "updates");
+        }
+
+        return Path.of(System.getProperty("java.io.tmpdir"), APP_NAME, "updates");
     }
 
     public static Path msiFile(String version) {

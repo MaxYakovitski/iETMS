@@ -4,7 +4,7 @@ import com.mayak.iet.integration.exception.ApiException;
 import com.mayak.iet.request.dto.enums.RequestStatusDto;
 import com.mayak.iet.request.dto.enums.RequestTypeDto;
 import com.mayak.iet.request.dto.event.RequestEventDto;
-import com.mayak.iet.infrastructure.tost.ToastService;
+import com.mayak.iet.infrastructure.toast.ToastService;
 import com.mayak.iet.integration.api.RequestClient;
 import com.mayak.iet.request.dto.filter.RequestFilterDto;
 import com.mayak.iet.request.dto.view.RequestDetailsDto;
@@ -37,7 +37,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatusCode;
 
 import java.util.List;
 import java.util.Objects;

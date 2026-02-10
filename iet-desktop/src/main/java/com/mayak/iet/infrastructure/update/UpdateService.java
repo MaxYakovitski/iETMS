@@ -7,15 +7,14 @@ import javafx.application.Platform;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -25,8 +24,7 @@ import java.util.Objects;
 @Slf4j
 public class UpdateService {
 
-    private static final String MANIFEST_URL =
-            "https://maxyakovitski.github.io/iETMS-updates/windows/manifest.json";
+    private static final String MANIFEST_URL = "http://165.22.92.183/updates/windows/manifest.json";
 
     private final RestTemplate restTemplate;
     private final AppVersionProvider versionProvider;
@@ -48,7 +46,6 @@ public class UpdateService {
     }
 
     public UpdateCheckResult checkVersion() {
-
         if (!OsUtils.isWindows()) {
             log.info("[UPDATE] disabled on non-Windows OS");
             return UpdateCheckResult.noUpdate(versionProvider.getAppVersion());
@@ -89,96 +86,90 @@ public class UpdateService {
     }
 
     public void startMandatoryUpdate(UpdateCheckResult result) {
-
-        if (!OsUtils.isWindows()) {
-            log.info("[UPDATE] mandatory update skipped (non-Windows)");
-            return;
-        }
-
         setState(UpdateState.DOWNLOADING);
 
         Path targetFile = UpdatePaths.msiFile(result.latestVersion());
-        log.info("[UPDATE] mandatory update started");
-        log.info("[UPDATE] currentVersion={}", result.currentVersion());
-        log.info("[UPDATE] targetVersion={}", result.latestVersion());
-        log.info("[UPDATE] downloadUrl={}", result.downloadUrl());
-        log.info("[UPDATE] targetFile={}", targetFile.toAbsolutePath());
-        log.info("[UPDATE] expectedSize={}", result.downloadSize());
-        log.info("[UPDATE] expectedSha256={}", result.expectedSha256());
 
-        log.info("[UPDATE] starting update-worker thread");
         new Thread(() -> {
-            log.info("[UPDATE] update-worker thread started");
+            if (listener != null) {
+                listener.onStart(result.currentVersion(), result.latestVersion());
+            }
+
             try {
-
-                long totalBytes = result.downloadSize();
-                long downloaded = 0;
-
-                log.info("[UPDATE] starting HTTP download");
-                ResponseEntity<Resource> response =
-                        restTemplate.exchange(result.downloadUrl(), HttpMethod.GET, HttpEntity.EMPTY, Resource.class);
-
-                log.info("[UPDATE] HTTP status={}", response.getStatusCode());
-
-                if (!response.getStatusCode().is2xxSuccessful()) {
-                    throw new IllegalStateException(
-                            "Update download failed, status=" + response.getStatusCode()
-                    );
-                }
-
-                Resource resource = response.getBody();
-                if (resource == null) {
-                    log.error("[UPDATE] download response body is NULL");
-                    throw new IllegalStateException("Empty update download response");
-                }
-
-                log.info("[UPDATE] resource class={}", resource.getClass().getName());
-                log.info("[UPDATE] ensuring target directory exists: {}",
-                        targetFile.getParent().toAbsolutePath());
-
                 Files.createDirectories(targetFile.getParent());
 
-                try (
-                        InputStream in = resource.getInputStream();
-                        OutputStream out = Files.newOutputStream(
-                                targetFile,
-                                StandardOpenOption.CREATE,
-                                StandardOpenOption.TRUNCATE_EXISTING
-                        )
-                ) {
-                    byte[] buffer = new byte[8192];
-                    int read;
+                HttpClient client = HttpClient.newBuilder()
+                        .followRedirects(HttpClient.Redirect.ALWAYS)
+                        .build();
 
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(result.downloadUrl()))
+                        .GET()
+                        .build();
+
+                HttpResponse<InputStream> response =
+                        client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+
+                if (response.statusCode() != 200) {
+                    throw new IllegalStateException("Download failed, HTTP status=" + response.statusCode());
+                }
+
+                long total = result.downloadSize();
+                long downloaded = 0;
+
+                byte[] buffer = new byte[8192];
+
+                try (InputStream in = response.body();
+                     OutputStream out = Files.newOutputStream(
+                             targetFile,
+                             StandardOpenOption.CREATE,
+                             StandardOpenOption.TRUNCATE_EXISTING
+                     )) {
+
+                    int read;
                     while ((read = in.read(buffer)) != -1) {
                         out.write(buffer, 0, read);
                         downloaded += read;
 
-                        double progress =
-                                totalBytes > 0 ? (double) downloaded / totalBytes : 0.0;
+                        if (listener != null && total > 0) {
+                            double progress = (double) downloaded / total;
 
-                        listener.onProgress(progress);
-                        listener.onMessage("downloading update… " + (int) (progress * 100) + "%");
+                            double downloadedMb = downloaded / 1024d / 1024d;
+                            double totalMb = total / 1024d / 1024d;
+
+                            listener.onProgress(progress);
+                            listener.onMessage(
+                                    String.format(
+                                            "Downloading update… %.2f / %.2f MB (%d%%)",
+                                            downloadedMb,
+                                            totalMb,
+                                            (int) (progress * 100)
+                                    )
+                            );
+                        }
                     }
                 }
 
-                log.info("[UPDATE] download completed, bytesDownloaded={}", downloaded);
-                log.info("[UPDATE] file size on disk={}", Files.size(targetFile));
+                log.info("[UPDATE] download completed, size={}", Files.size(targetFile));
 
                 setState(UpdateState.VERIFYING);
 
                 if (result.expectedSha256() != null && !result.expectedSha256().isBlank()) {
-                    String actualSha256 = ChecksumUtils.sha256(targetFile);
-                    log.info("[UPDATE] actualSha256={}", actualSha256);
-                    if (!actualSha256.equalsIgnoreCase(result.expectedSha256())) {
+                    String actual = ChecksumUtils.sha256(targetFile);
+                    if (!actual.equalsIgnoreCase(result.expectedSha256())) {
                         throw new IllegalStateException(
                                 "Checksum mismatch: expected=" + result.expectedSha256()
-                                        + ", actual=" + actualSha256
+                                        + ", actual=" + actual
                         );
                     }
                 }
 
+                if (!OsUtils.isWindows()) {
+                    log.warn("[UPDATE] DEV mode: installer skipped (non-Windows)");
+                    return;
+                }
+
                 setState(UpdateState.INSTALLING);
-                log.info("[UPDATE] launching MSI installer: {}", targetFile.toAbsolutePath());
                 installer.install(targetFile);
 
                 Platform.exit();
@@ -187,7 +178,7 @@ public class UpdateService {
             } catch (Exception e) {
                 log.error("[UPDATE] mandatory update failed", e);
                 setState(UpdateState.FAILED);
-                listener.onError(e);
+                if (listener != null) listener.onError(e);
             }
         }, "update-worker").start();
     }
