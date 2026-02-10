@@ -1,4 +1,4 @@
-package com.mayak.iet.infrastructure.tost;
+package com.mayak.iet.infrastructure.toast;
 
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;

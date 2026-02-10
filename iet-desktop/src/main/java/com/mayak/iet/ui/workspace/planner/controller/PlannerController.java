@@ -5,7 +5,7 @@ import com.mayak.iet.domain.planner.service.PlannerSelectionService;
 import com.mayak.iet.request.dto.event.ShipmentEventDto;
 import com.mayak.iet.shipment.event.ShipmentEvent;
 import com.mayak.iet.infrastructure.error.ApiErrorUtils;
-import com.mayak.iet.infrastructure.tost.ToastService;
+import com.mayak.iet.infrastructure.toast.ToastService;
 import com.mayak.iet.integration.api.CompanyClient;
 import com.mayak.iet.integration.api.ShipmentClient;
 import com.mayak.iet.integration.exception.ApiException;

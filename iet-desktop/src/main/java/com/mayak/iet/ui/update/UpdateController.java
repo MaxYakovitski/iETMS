@@ -8,19 +8,17 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
-@RequiredArgsConstructor
 public class UpdateController {
 
     @FXML private Label messageLabel;
     @FXML private ProgressBar progressBar;
 
-    private final UpdateService updateService;
+    @Setter
+    private UpdateService updateService;
 
     @FXML
     private void initialize() {
