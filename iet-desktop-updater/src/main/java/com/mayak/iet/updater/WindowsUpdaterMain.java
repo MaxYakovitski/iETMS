@@ -16,13 +16,15 @@ public class WindowsUpdaterMain {
 
         waitForProcessToExit("iETMS.exe", Duration.ofSeconds(30));
 
-        Process install = new ProcessBuilder("msiexec", "/i", msi.toString(), "/qn", "/norestart")
+        Process install = new ProcessBuilder("msiexec", "/i", msi.toString(), "/qb", "/norestart")
                 .inheritIO().start();
 
         int code = install.waitFor();
         if (code != 0) System.exit(code);
 
-        new ProcessBuilder("cmd", "/c", "start", "\"\"", "\"C:\\Program Files\\iETMS\\iETMS.exe\"").start();
+        new ProcessBuilder("cmd", "/c", "start", "", "iETMS").start();
+
+        System.exit(0);
     }
 
     private static void waitForProcessToExit(String processName, Duration timeout) throws Exception {
