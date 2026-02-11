@@ -1,11 +1,21 @@
 package com.mayak.iet.updater;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
+import java.time.LocalDateTime;
 
 public class WindowsUpdaterMain {
+    private static PrintWriter log;
 
     public static void main(String[] args) throws Exception {
+        initLogger();
+
+        log("Updater started");
+
 
         if (args.length == 0) {
             System.err.println("MSI path is required");
@@ -13,16 +23,41 @@ public class WindowsUpdaterMain {
         }
 
         Path msi = Path.of(args[0]).toAbsolutePath();
+        log("MSI path: " + msi);
+
+        if (!Files.exists(msi)) {
+            log("MSI not found!");
+            System.err.println("MSI not found: " + msi);
+            System.exit(1);
+        }
 
         waitForProcessToExit("iETMS.exe", Duration.ofSeconds(30));
+        log("Starting MSI installation...");
 
         Process install = new ProcessBuilder("msiexec", "/i", msi.toString(), "/qb", "/norestart")
                 .inheritIO().start();
 
         int code = install.waitFor();
-        if (code != 0) System.exit(code);
+        log("MSI finished with code: " + code);
+        if (code != 0) {
+            System.err.println("MSI failed with code: " + code);
+            System.exit(code);
+        }
 
-        new ProcessBuilder("cmd", "/c", "start", "", "iETMS").start();
+        Thread.sleep(3000);
+        Path exe = Path.of("C:\\Program Files\\iETMS\\iETMS.exe");
+        log("Trying to start exe: " + exe);
+
+        if (!Files.exists(exe)) {
+            log("Installed exe not found!");
+            System.err.println("Installed exe not found: " + exe);
+            System.exit(1);
+        }
+
+        new ProcessBuilder(exe.toString())
+                .directory(exe.getParent().toFile())
+                .start();
+        log("Exe started successfully");
 
         System.exit(0);
     }
@@ -34,11 +69,37 @@ public class WindowsUpdaterMain {
             Process p = new ProcessBuilder("tasklist", "/FI", "IMAGENAME eq " + processName).start();
 
             String output = new String(p.getInputStream().readAllBytes());
-            if (!output.contains(processName)) return;
+            if (!output.contains(processName)) {
+                log("Process stopped");
+                return;
+            }
 
             Thread.sleep(500);
         }
 
+        log("Timeout waiting for process");
         throw new IllegalStateException("Desktop still running after timeout");
+    }
+
+    private static void initLogger() throws IOException {
+        Path logDir = Path.of(System.getenv("LOCALAPPDATA"), "iETMS");
+        Files.createDirectories(logDir);
+
+        Path logFile = logDir.resolve("updater.log");
+
+        log = new PrintWriter(
+                Files.newBufferedWriter(
+                        logFile,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND
+                ),
+                true
+        );
+    }
+
+    private static void log(String message) {
+        String line = "[" + LocalDateTime.now() + "] " + message;
+        System.out.println(line);
+        if (log != null) log.println(line);
     }
 }
