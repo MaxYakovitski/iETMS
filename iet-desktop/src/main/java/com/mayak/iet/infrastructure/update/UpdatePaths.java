@@ -11,17 +11,17 @@ public final class UpdatePaths {
     private static final String APP_NAME = "iETMS";
 
     public static Path installDir() {
-        return Path.of(System.getenv("PROGRAMFILES"), APP_NAME);
+        String programFiles = System.getenv("ProgramFiles");
+        if (programFiles == null || programFiles.isBlank()) {
+            throw new IllegalStateException("ProgramFiles env not found");
+        }
+        return Path.of(programFiles, APP_NAME);
     }
 
-    public static Path appDir() {
-        return installDir().resolve("app");
-    }
-
-    public static Path updaterJar() {
-        return appDir()
+    public static Path updaterExe() {
+        return installDir()
                 .resolve("updater")
-                .resolve("iet-desktop-updater.jar");
+                .resolve("iETMS-Updater.exe");
     }
 
     public static Path updatesDir() {
