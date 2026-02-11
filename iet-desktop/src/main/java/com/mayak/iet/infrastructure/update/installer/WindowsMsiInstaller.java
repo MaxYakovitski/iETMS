@@ -4,9 +4,9 @@ import com.mayak.iet.infrastructure.update.UpdatePaths;
 import com.mayak.iet.infrastructure.util.OsUtils;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 @Service
 public class WindowsMsiInstaller implements UpdateInstaller {
@@ -15,43 +15,33 @@ public class WindowsMsiInstaller implements UpdateInstaller {
     public void install(Path msiFile) throws Exception {
         if (!OsUtils.isWindows()) return;
 
-        Path javaExe = UpdatePaths.installDir()
-                .resolve("runtime")
-                .resolve("bin")
-                .resolve("java.exe");
+        if (!Files.exists(msiFile)) {
+            throw new IllegalArgumentException("MSI file not found: " + msiFile);
+        }
 
-        Path updaterJar = UpdatePaths.updaterJar();
+        Path updaterExe = UpdatePaths.updaterExe();
+        if (!Files.exists(updaterExe)) {
+            throw new IllegalStateException("Updater EXE not found: " + updaterExe);
+        }
 
         Path logFile = UpdatePaths.logsDir().resolve("installer-launch.log");
         Files.createDirectories(logFile.getParent());
 
-        try {
-            Files.writeString(logFile,
-                    "JAVA: " + javaExe + "\n" +
-                            "UPDATER: " + updaterJar + "\n" +
-                            "MSI: " + msiFile + "\n",
-                    java.nio.file.StandardOpenOption.CREATE,
-                    java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
-            );
+        String now = java.time.LocalDateTime.now().toString();
 
-            ProcessBuilder pb = new ProcessBuilder(
-                    javaExe.toString(),
-                    "-jar",
-                    updaterJar.toString(),
-                    msiFile.toString()
-            );
+        Files.writeString(
+                logFile,
+                "[" + now + "] Launching updater EXE: " + updaterExe + System.lineSeparator()
+                        + "[" + now + "] MSI: " + msiFile + System.lineSeparator(),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
 
-            pb.redirectOutput(logFile.toFile());
-            pb.redirectErrorStream(true);
+        ProcessBuilder pb = new ProcessBuilder(updaterExe.toString(), msiFile.toAbsolutePath().toString());
 
-            pb.start();
-
-        } catch (IOException e) {
-            Files.writeString(logFile,
-                    "\nERROR: " + e.getMessage(),
-                    java.nio.file.StandardOpenOption.APPEND);
-            throw e;
-        }
+        pb.directory(updaterExe.getParent().toFile());
+        pb.redirectErrorStream(true);
+        pb.start();
 
         System.exit(0);
     }
