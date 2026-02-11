@@ -20,11 +20,6 @@ public class UpdateController {
     @Setter
     private UpdateService updateService;
 
-    @FXML
-    private void initialize() {
-        progressBar.setProgress(0);
-    }
-
     public void start(UpdateCheckResult result) {
         showChecking();
 

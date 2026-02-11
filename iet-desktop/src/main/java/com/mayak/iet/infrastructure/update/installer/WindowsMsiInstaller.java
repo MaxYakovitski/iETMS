@@ -1,7 +1,7 @@
 package com.mayak.iet.infrastructure.update.installer;
 
 import com.mayak.iet.infrastructure.update.UpdatePaths;
-import org.springframework.context.annotation.Profile;
+import com.mayak.iet.infrastructure.util.OsUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -9,11 +9,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Service
-@Profile("windows")
 public class WindowsMsiInstaller implements UpdateInstaller {
 
     @Override
     public void install(Path msiFile) throws Exception {
+        if (!OsUtils.isWindows()) return;
 
         Path javaExe = UpdatePaths.installDir()
                 .resolve("runtime")
