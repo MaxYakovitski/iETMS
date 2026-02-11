@@ -32,7 +32,24 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # 3. Extract version from tag (desktop-vX.Y.Z → X.Y.Z)
+      # 3. Build updater EXE (production-grade)
+      - name: Build Updater EXE
+        shell: bash
+        run: |
+          mvn -pl iet-desktop-updater \
+              -Pwindows-updater-image \
+              clean package \
+              -DskipTests
+
+      # 3.1 Copy updater app-image into desktop jpackage input
+      - name: Copy Updater into Desktop Image
+        shell: bash
+        run: |
+          mkdir -p iet-desktop/target/jpackage-input/app/updater
+          cp -r iet-desktop-updater/target/updater-image/iETMS-Updater/* \
+                iet-desktop/target/jpackage-input/app/updater/
+
+      # 4. Extract version from tag (desktop-vX.Y.Z → X.Y.Z)
       - name: Extract app version
         id: version
         shell: bash
@@ -42,11 +59,11 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building Desktop version: $VERSION"
 
-      # 4. Build MSI via Maven + jpackage
+      # 5. Build MSI via Maven + jpackage
       - name: Build Desktop MSI
         shell: bash
         run: |
-          mvn clean package \
+          mvn package \
             -Pwindows-installer \
             -DskipTests \
             -Dapp.version=${{ steps.version.outputs.version }} \
@@ -54,7 +71,7 @@ jobs:
             -Dbackend.base-url=${{ env.BACKEND_URL }} \
             -Dbackend.ws-url=${{ env.BACKEND_WS_URL }}
 
-      # 5. Locate MSI (ВАЖНА: installer/)
+      # 6. Locate MSI (ВАЖНА: installer/)
       - name: Locate MSI
         id: msi
         shell: bash
@@ -63,7 +80,7 @@ jobs:
           echo "file=$MSI" >> $GITHUB_OUTPUT
           echo "MSI found: $MSI"
 
-      # 6. Calculate checksum & size
+      # 7. Calculate checksum & size
       - name: Calculate checksum & size
         id: meta
         shell: bash
@@ -74,14 +91,14 @@ jobs:
           echo "sha256=$SHA" >> $GITHUB_OUTPUT
           echo "size=$SIZE" >> $GITHUB_OUTPUT
 
-      # 7. Upload MSI as workflow artifact
+      # 8. Upload MSI as workflow artifact
       - name: Upload MSI artifact
         uses: actions/upload-artifact@v4
         with:
           name: iETMS-msi
           path: iet-desktop/target/installer/*.msi
 
-      # 8. Create GitHub Release
+      # 9. Create GitHub Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -90,7 +107,7 @@ jobs:
           files: |
             ${{ steps.msi.outputs.file }}
 
-      # 9. Checkout updates repository
+      # 10. Checkout updates repository
       - name: Checkout updates repository
         uses: actions/checkout@v4
         with:
@@ -98,7 +115,7 @@ jobs:
           path: updates
           token: ${{ secrets.UPDATES_REPO_TOKEN }}
 
-      # 10. Update Windows manifest.json
+      # 11. Update Windows manifest.json
       - name: Update manifest.json
         shell: bash
         run: |
