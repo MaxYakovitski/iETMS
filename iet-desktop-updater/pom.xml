@@ -101,8 +101,7 @@
                                         <argument>--main-class</argument>
                                         <argument>com.mayak.iet.updater.WindowsUpdaterMain</argument>
 
-                                        <argument>--java-options</argument>
-                                        <argument>-Dfile.encoding=UTF-8</argument>
+                                        <argument>--win-console</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
