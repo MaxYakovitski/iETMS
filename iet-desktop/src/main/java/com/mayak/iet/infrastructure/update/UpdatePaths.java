@@ -28,8 +28,14 @@ public final class UpdatePaths {
         if (OsUtils.isWindows()) {
             return Path.of(System.getenv("LOCALAPPDATA"), APP_NAME, "updates");
         }
-
         return Path.of(System.getProperty("java.io.tmpdir"), APP_NAME, "updates");
+    }
+
+    public static Path logsDir() {
+        if (OsUtils.isWindows()) {
+            return Path.of(System.getenv("LOCALAPPDATA"), APP_NAME, "logs");
+        }
+        return Path.of(System.getProperty("user.home"), "." + APP_NAME.toLowerCase(), "logs");
     }
 
     public static Path msiFile(String version) {

@@ -1,7 +1,6 @@
 package com.mayak.iet.infrastructure.update.installer;
 
 import com.mayak.iet.infrastructure.update.UpdatePaths;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -9,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Service
-@Profile("windows")
 public class WindowsMsiInstaller implements UpdateInstaller {
 
     @Override
@@ -22,7 +20,7 @@ public class WindowsMsiInstaller implements UpdateInstaller {
 
         Path updaterJar = UpdatePaths.updaterJar();
 
-        Path logFile = UpdatePaths.updatesDir().resolve("installer-launch.log");
+        Path logFile = UpdatePaths.logsDir().resolve("installer-launch.log");
         Files.createDirectories(logFile.getParent());
 
         try {
