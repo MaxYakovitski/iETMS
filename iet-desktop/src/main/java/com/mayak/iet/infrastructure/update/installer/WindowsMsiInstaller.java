@@ -13,14 +13,19 @@ public class WindowsMsiInstaller implements UpdateInstaller {
     @Override
     public void install(Path msiFile) throws Exception {
 
+        Path javaExe = UpdatePaths.installDir()
+                .resolve("runtime")
+                .resolve("bin")
+                .resolve("java.exe");
+
         Path updaterJar = UpdatePaths.updaterJar();
 
         new ProcessBuilder(
-                "java",
+                javaExe.toString(),
                 "-jar",
-                updaterJar.toAbsolutePath().toString(),
-                msiFile.toAbsolutePath().toString())
-                .inheritIO().start();
+                updaterJar.toString(),
+                msiFile.toString()
+        ).start();
 
         System.exit(0);
     }
