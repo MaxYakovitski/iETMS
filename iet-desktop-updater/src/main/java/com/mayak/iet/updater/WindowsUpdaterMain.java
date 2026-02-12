@@ -34,29 +34,36 @@ public class WindowsUpdaterMain {
         waitForProcessToExit("iETMS.exe", Duration.ofSeconds(30));
         log("Starting MSI installation...");
 
-        Process install = new ProcessBuilder("msiexec", "/i", msi.toString(), "/qb", "/norestart")
+        Process install = new ProcessBuilder("msiexec", "/i", msi.toString(), "/passive", "/norestart")
                 .inheritIO().start();
 
         int code = install.waitFor();
         log("MSI finished with code: " + code);
-        if (code != 0) {
-            System.err.println("MSI failed with code: " + code);
+
+        if (code != 0 && code != 3010 && code != 1641) {
+            log("MSI failed");
             System.exit(code);
         }
 
-        Thread.sleep(3000);
-        Path exe = Path.of("C:\\Program Files\\iETMS\\iETMS.exe");
+        if (code == 3010 || code == 1641) {
+            log("Reboot required. Restarting...");
+            new ProcessBuilder("shutdown", "/r", "/t", "5")
+                    .inheritIO()
+                    .start();
+            System.exit(0);
+        }
+
+        Path exe = resolveInstalledExe();
+        waitForFile(exe, Duration.ofSeconds(20));
+
         log("Trying to start exe: " + exe);
 
         if (!Files.exists(exe)) {
             log("Installed exe not found!");
-            System.err.println("Installed exe not found: " + exe);
             System.exit(1);
         }
 
-        new ProcessBuilder(exe.toString())
-                .directory(exe.getParent().toFile())
-                .start();
+        new ProcessBuilder(exe.toString()).directory(exe.getParent().toFile()).start();
         log("Exe started successfully");
 
         System.exit(0);
@@ -79,6 +86,40 @@ public class WindowsUpdaterMain {
 
         log("Timeout waiting for process");
         throw new IllegalStateException("Desktop still running after timeout");
+    }
+
+    private static void waitForFile(Path file, Duration timeout) throws Exception {
+        long deadline = System.currentTimeMillis() + timeout.toMillis();
+        while (System.currentTimeMillis() < deadline) {
+            if (Files.exists(file)) return;
+            Thread.sleep(300);
+        }
+        throw new IllegalStateException("File not found after timeout: " + file);
+    }
+
+    private static Path resolveInstalledExe() {
+        String pf = System.getenv("ProgramFiles");
+        if (pf != null) {
+            Path exe = Path.of(pf, "iETMS", "iETMS.exe");
+            if (Files.exists(exe)) {
+                return exe;
+            }
+        }
+
+        String pf86 = System.getenv("ProgramFiles(x86)");
+        if (pf86 != null) {
+            Path exe = Path.of(pf86, "iETMS", "iETMS.exe");
+            if (Files.exists(exe)) {
+                return exe;
+            }
+        }
+
+        Path fallback = Path.of("C:\\Program Files\\iETMS\\iETMS.exe");
+        if (Files.exists(fallback)) {
+            return fallback;
+        }
+
+        throw new IllegalStateException("Installed iETMS.exe not found in Program Files locations");
     }
 
     private static void initLogger() throws IOException {
