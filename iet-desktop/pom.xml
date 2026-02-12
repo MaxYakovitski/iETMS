@@ -160,7 +160,36 @@
             <build>
                 <plugins>
 
-                    <!-- 1. Капіруем desktop jar -->
+                    <!-- 1. Капіруем desktop-updater -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>copy-updater</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>
+                                        ${project.build.directory}/jpackage-input/app/updater
+                                    </outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>
+                                                ${project.parent.basedir}/iet-desktop-updater/target/updater-image/iETMS-Updater
+                                            </directory>
+                                            <filtering>false</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- 2. Капіруем desktop -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-dependency-plugin</artifactId>
@@ -186,7 +215,6 @@
                                 </configuration>
                             </execution>
 
-                            <!-- 2. Lib -->
                             <execution>
                                 <id>copy-lib</id>
                                 <phase>package</phase>
