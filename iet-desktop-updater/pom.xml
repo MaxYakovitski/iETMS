@@ -88,8 +88,6 @@
                                         <argument>--type</argument>
                                         <argument>app-image</argument>
 
-                                        <argument>--overwrite</argument>
-
                                         <argument>--name</argument>
                                         <argument>iETMS-Updater</argument>
 
