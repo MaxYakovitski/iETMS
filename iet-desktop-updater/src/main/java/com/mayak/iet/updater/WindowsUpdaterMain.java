@@ -16,7 +16,6 @@ public class WindowsUpdaterMain {
 
         log("Updater started");
 
-
         if (args.length == 0) {
             System.err.println("MSI path is required");
             System.exit(1);
@@ -34,12 +33,21 @@ public class WindowsUpdaterMain {
         waitForProcessToExit("iETMS.exe", Duration.ofSeconds(30));
         log("Starting MSI installation...");
 
-        Process install = new ProcessBuilder("msiexec", "/i", msi.toString(), "/quiet", "/forcerestart")
-                .inheritIO().start();
+        Process install = new ProcessBuilder("msiexec", "/i", msi.toString(), "/passive", "/norestart").start();
 
-        log("new app version installed");
-        install.waitFor();
-        log("after waiting for app version installed");
+        int code = install.waitFor();
+        log("MSI finished with code: " + code);
+
+        if (code != 0) System.exit(code);
+
+        waitForProcessToExit("msiexec.exe", Duration.ofSeconds(30));
+        Thread.sleep(3000);
+
+        Path exe = resolveInstalledExe();
+
+        new ProcessBuilder(exe.toString()).directory(exe.getParent().toFile()).start();
+
+        log("Desktop started successfully");
 
         System.exit(0);
     }
@@ -61,6 +69,23 @@ public class WindowsUpdaterMain {
 
         log("Timeout waiting for process");
         throw new IllegalStateException("Desktop still running after timeout");
+    }
+
+    private static Path resolveInstalledExe() {
+
+        String pf = System.getenv("ProgramFiles");
+        if (pf != null) {
+            Path exe = Path.of(pf, "iETMS", "iETMS.exe");
+            if (Files.exists(exe)) return exe;
+        }
+
+        String pf86 = System.getenv("ProgramFiles(x86)");
+        if (pf86 != null) {
+            Path exe = Path.of(pf86, "iETMS", "iETMS.exe");
+            if (Files.exists(exe)) return exe;
+        }
+
+        throw new IllegalStateException("Installed iETMS.exe not found");
     }
 
     private static void initLogger() throws IOException {
