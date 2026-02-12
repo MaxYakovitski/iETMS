@@ -40,7 +40,7 @@ jobs:
           mvn -pl iet-desktop-updater \
               -Pwindows-updater-image \
               clean package \
-              -DskipTests
+              -DskipTests \
               -e -X
 
       # 3.1 Copy updater app-image into desktop jpackage input
