@@ -55,13 +55,7 @@ public class WindowsUpdaterMain {
 
         Path exe = resolveInstalledExe();
         waitForFile(exe, Duration.ofSeconds(20));
-
         log("Trying to start exe: " + exe);
-
-        if (!Files.exists(exe)) {
-            log("Installed exe not found!");
-            System.exit(1);
-        }
 
         new ProcessBuilder(exe.toString()).directory(exe.getParent().toFile()).start();
         log("Exe started successfully");
