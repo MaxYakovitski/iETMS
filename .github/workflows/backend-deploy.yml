@@ -6,6 +6,7 @@ on:
       - master
     paths-ignore:
       - 'iet-desktop/**'
+      - 'iet-desktop-updater/**'
       - '.github/workflows/desktop-*.yml'
       - '.github/workflows/desktop-ci.yml'
       - '.github/workflows/desktop*.yml'
