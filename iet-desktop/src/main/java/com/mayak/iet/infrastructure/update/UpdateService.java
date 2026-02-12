@@ -3,6 +3,7 @@ package com.mayak.iet.infrastructure.update;
 import com.mayak.iet.infrastructure.update.installer.UpdateInstaller;
 import com.mayak.iet.infrastructure.util.OsUtils;
 import com.mayak.iet.infrastructure.version.AppVersionProvider;
+import com.mayak.iet.infrastructure.version.VersionComparator;
 import javafx.application.Platform;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,7 +65,8 @@ public class UpdateService {
             String current = getCurrentVersion();
             String latest = manifest.latestVersion();
 
-            boolean updateRequired = !Objects.equals(current, latest);
+            int cmp = VersionComparator.compare(current, latest);
+            boolean updateRequired = cmp < 0;
             boolean forced = manifest.mandatory();
 
             log.info("[UPDATE] current={}, latest={}, mandatory={}", current, latest, forced);
