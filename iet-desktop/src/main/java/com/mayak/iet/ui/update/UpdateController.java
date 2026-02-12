@@ -39,7 +39,7 @@ public class UpdateController {
 
             @Override
             public void onStart(String current, String target) {
-                showDownloading();
+                updateStatusMessage("preparing download…");
             }
 
             @Override
@@ -61,7 +61,6 @@ public class UpdateController {
         });
 
         if (result.forced()) {
-            showChecking();
             updateService.startMandatoryUpdate(result);
         }
     }
@@ -70,13 +69,6 @@ public class UpdateController {
         runFx(() -> {
             messageLabel.setText("checking for updates…");
             progressBar.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
-        });
-    }
-
-    public void showDownloading() {
-        runFx(() -> {
-            messageLabel.setText("downloading update…");
-            progressBar.setProgress(0);
         });
     }
 

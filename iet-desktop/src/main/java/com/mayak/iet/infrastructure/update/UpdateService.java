@@ -19,7 +19,6 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Objects;
 
 @Service
 @Slf4j
@@ -142,7 +141,7 @@ public class UpdateService {
                             listener.onProgress(progress);
                             listener.onMessage(
                                     String.format(
-                                            "Downloading update… %.2f / %.2f MB (%d%%)",
+                                            "downloading update… %.2f / %.2f MB (%d%%)",
                                             downloadedMb,
                                             totalMb,
                                             (int) (progress * 100)
