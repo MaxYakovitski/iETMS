@@ -57,31 +57,18 @@ public class WindowsUpdaterMain {
         waitForFile(exe, Duration.ofSeconds(20));
         log("Trying to start exe: " + exe);
 
-        boolean started = false;
-        int attempts = 0;
+        Process desktop = new ProcessBuilder(exe.toString())
+                .directory(exe.getParent().toFile())
+                .start();
 
-        while (attempts < 3) {
-            Process desktop = new ProcessBuilder(exe.toString())
-                    .directory(exe.getParent().toFile())
-                    .start();
+        Thread.sleep(5000);
 
-            Thread.sleep(2000);
-
-            if (desktop.isAlive()) {
-                log("Exe started successfully");
-                started = true;
-                break;
-            }
-
-            attempts++;
-            log("Retry starting desktop, attempt " + attempts);
-            Thread.sleep(3000);
-        }
-
-        if (!started) {
-            log("Failed to start desktop after retries");
+        if (!desktop.isAlive()) {
+            log("Desktop process exited immediately");
             System.exit(1);
         }
+
+        log("Desktop started successfully");
 
         System.exit(0);
     }
