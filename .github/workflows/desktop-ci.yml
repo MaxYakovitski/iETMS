@@ -32,24 +32,18 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # 3. Build updater EXE (production-grade)
-      - name: Build Updater EXE
+      # 3. Build full desktop + updater + MSI
+      - name: Build Desktop MSI
         shell: bash
         run: |
-          rm -rf iet-desktop-updater/target/updater-image
-          mvn -pl iet-desktop-updater \
-              -Pwindows-updater-image \
-              clean package \
-              -DskipTests \
-              -e -X
-
-      # 3.1 Copy updater app-image into desktop jpackage input
-      - name: Copy Updater into Desktop Image
-        shell: bash
-        run: |
-          mkdir -p iet-desktop/target/jpackage-input/app/updater
-          cp -r iet-desktop-updater/target/updater-image/iETMS-Updater/* \
-                iet-desktop/target/jpackage-input/app/updater/
+          mvn clean package \
+            -Pwindows-installer \
+            -Pwindows-updater-image \
+            -DskipTests \
+            -Dapp.version=${{ steps.version.outputs.version }} \
+            -Dspring.profiles.active=prod \
+            -Dbackend.base-url=${{ env.BACKEND_URL }} \
+            -Dbackend.ws-url=${{ env.BACKEND_WS_URL }}
 
       # 4. Extract version from tag (desktop-vX.Y.Z → X.Y.Z)
       - name: Extract app version
