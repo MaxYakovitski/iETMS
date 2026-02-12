@@ -34,25 +34,8 @@ public class WindowsUpdaterMain {
         waitForProcessToExit("iETMS.exe", Duration.ofSeconds(30));
 
         log("Starting MSI installation...");
-        Process install = new ProcessBuilder("msiexec", "/i", msi.toString(), "/quiet", "/norestart").start();
-        while (install.isAlive()) {
-            log("MSI still running...");
-            Thread.sleep(2000);
-        }
-        int code = install.exitValue();
-        log("MSI finished with code: " + code);
-
-        if (code != 0) {
-            System.exit(code);
-        }
-
-        JOptionPane.showMessageDialog(
-                null,
-                "Update installed successfully.\nPlease restart the application.",
-                "iETMS updater",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-
+        new ProcessBuilder("msiexec", "/i", msi.toString(), "/passive", "/norestart").start();
+        log("MSI launched, updater exiting");
         System.exit(0);
     }
 
