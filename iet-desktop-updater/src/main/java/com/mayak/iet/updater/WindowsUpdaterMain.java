@@ -31,23 +31,18 @@ public class WindowsUpdaterMain {
         }
 
         waitForProcessToExit("iETMS.exe", Duration.ofSeconds(30));
+
         log("Starting MSI installation...");
-
         Process install = new ProcessBuilder("msiexec", "/i", msi.toString(), "/passive", "/norestart").start();
-
         int code = install.waitFor();
         log("MSI finished with code: " + code);
 
-        if (code != 0) System.exit(code);
-
-        waitForProcessToExit("msiexec.exe", Duration.ofSeconds(30));
-        Thread.sleep(3000);
+        Thread.sleep(3000); // даём Windows скончыць фіналізацыю
 
         Path exe = resolveInstalledExe();
+        new ProcessBuilder("cmd", "/c", "start", "", "\"" + exe + "\"").start();
 
-        new ProcessBuilder(exe.toString()).directory(exe.getParent().toFile()).start();
-
-        log("Desktop started successfully");
+        log("Desktop restarted");
 
         System.exit(0);
     }
