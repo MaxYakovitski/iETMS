@@ -41,6 +41,7 @@ jobs:
               -Pwindows-updater-image \
               clean package \
               -DskipTests
+              -e -X
 
       # 3.1 Copy updater app-image into desktop jpackage input
       - name: Copy Updater into Desktop Image
