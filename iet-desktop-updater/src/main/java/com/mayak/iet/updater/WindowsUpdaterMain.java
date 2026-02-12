@@ -40,7 +40,7 @@ public class WindowsUpdaterMain {
         Thread.sleep(3000); // даём Windows скончыць фіналізацыю
 
         Path exe = resolveInstalledExe();
-        new ProcessBuilder("cmd", "/c", "start", "", "\"" + exe + "\"").start();
+        new ProcessBuilder("cmd", "/c", "start", "", exe.toAbsolutePath().toString()).start();
 
         log("Desktop restarted");
 
