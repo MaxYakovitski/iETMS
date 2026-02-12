@@ -20,6 +20,7 @@ public final class UpdatePaths {
 
     public static Path updaterExe() {
         return installDir()
+                .resolve("app")
                 .resolve("updater")
                 .resolve("iETMS-Updater.exe");
     }
