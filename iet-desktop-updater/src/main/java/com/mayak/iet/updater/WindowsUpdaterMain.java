@@ -1,5 +1,6 @@
 package com.mayak.iet.updater;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -33,17 +34,15 @@ public class WindowsUpdaterMain {
         waitForProcessToExit("iETMS.exe", Duration.ofSeconds(30));
 
         log("Starting MSI installation...");
-        Process install = new ProcessBuilder("msiexec", "/i", msi.toString(), "/passive", "/norestart").start();
-        int code = install.waitFor();
-        log("MSI finished with code: " + code);
+        new ProcessBuilder("msiexec", "/i", msi.toString(), "/quiet", "/norestart").start();
+        JOptionPane.showMessageDialog(
+                null,
+                "Update installed successfully.\nPlease restart the application.",
+                "iETMS updater",
+                JOptionPane.INFORMATION_MESSAGE
+        );
 
-        Thread.sleep(3000); // даём Windows скончыць фіналізацыю
-
-        Path exe = resolveInstalledExe();
-        new ProcessBuilder("cmd", "/c", "start", "", exe.toAbsolutePath().toString()).start();
-
-        log("Desktop restarted");
-
+        log("Updater finished...");
         System.exit(0);
     }
 
