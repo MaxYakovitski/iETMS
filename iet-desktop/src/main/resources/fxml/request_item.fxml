@@ -12,7 +12,9 @@
             fx:controller="com.mayak.iet.ui.workspace.request.item.RequestItemController"
             stylesheets="@../css/styles.css">
 
-    <HBox fx:id="requestPane" styleClass="request-pane" minHeight="60" spacing="5" alignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+    <HBox fx:id="requestPane" styleClass="request-pane" minHeight="60" spacing="5" alignment="CENTER"
+          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+
         <HBox prefWidth="5" minHeight="60"/>
 
         <VBox fx:id="fromISOContainer" prefWidth="18" minHeight="60" spacing="5" alignment="CENTER"/>
@@ -70,7 +72,7 @@
             </HBox>
         </VBox>
 
-        <VBox prefWidth="100" minHeight="60" spacing="5" alignment="CENTER">
+        <VBox prefWidth="75" minHeight="60" spacing="5" alignment="CENTER">
             <Label fx:id="shipmentType" textAlignment="CENTER"/>
             <Label fx:id="transportType" textAlignment="CENTER"/>
         </VBox>

@@ -9,13 +9,11 @@
       fx:controller="com.mayak.iet.ui.workspace.request.item.CommentController"
       prefWidth="480" prefHeight="240"
       stylesheets="@../css/styles.css"
-      style="-fx-background-color: #f9f9f9">
+      styleClass="app-root">
 
     <padding>
         <Insets left="10" right="10" bottom="10" top="10"/>
     </padding>
 
-    <TextArea fx:id="commentsTextArea"
-              editable="false"
-              wrapText="true" styleClass="comments-textarea"/>
+    <TextArea fx:id="commentsTextArea" editable="false" wrapText="true" styleClass="comments-textarea"/>
 </VBox>

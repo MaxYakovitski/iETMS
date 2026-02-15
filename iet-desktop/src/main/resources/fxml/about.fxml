@@ -10,7 +10,7 @@
             fx:controller="com.mayak.iet.ui.about.AboutController"
             prefWidth="360" alignment="CENTER"
             stylesheets="@../css/styles.css"
-            styleClass="anchor-pane">
+            styleClass="app-root">
 
     <padding>
         <Insets top="20" bottom="20" left="20" right="20"/>

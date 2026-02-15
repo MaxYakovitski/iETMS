@@ -11,7 +11,7 @@
       fx:controller="com.mayak.iet.ui.workspace.request.item.RequestMoreController"
       prefWidth="480.0"
       stylesheets="@../css/styles.css"
-      style="-fx-background-color: #f9f9f9;">
+      styleClass="app-root">
 
     <padding>
         <Insets top="10" bottom="10"/>

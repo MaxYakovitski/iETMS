@@ -8,6 +8,7 @@
 <ScrollPane xmlns="http://javafx.com/javafx/21.0.7"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.mayak.iet.ui.analytics.controller.UserStatisticsController"
+            styleClass="scroll-minimal"
             fitToWidth="true"
             hbarPolicy="NEVER">
 

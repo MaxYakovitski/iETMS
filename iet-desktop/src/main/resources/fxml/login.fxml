@@ -14,8 +14,8 @@
             xmlns:fx="http://javafx.com/fxml/1"
             minWidth="480" prefWidth="480" maxWidth="480"
             minHeight="240" prefHeight="240" maxHeight="240"
-            styleClass="anchor-pane"
-            stylesheets="@../css/styles.css">
+            stylesheets="@../css/styles.css"
+            styleClass="app-root">
 
     <StackPane AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
                AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
