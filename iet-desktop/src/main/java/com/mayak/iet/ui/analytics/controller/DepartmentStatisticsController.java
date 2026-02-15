@@ -41,7 +41,7 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
     @FXML public Label departmentFullNameLabel;
     @FXML public DatePicker startDatePicker, endDatePicker;
     @FXML public PieChart pieChartAll, pieChartSpotBided, pieChartSpotEfficiency, pieChartContractEfficiency;
-    @FXML public BarChart<String, Number> barChartSpotRefusedReason, barChartContractRefusedReason;
+    @FXML public BarChart<Number, String> barChartSpotRefusedReason, barChartContractRefusedReason;
     @FXML public StackPane allContainer, spotBidedContainer, spotEfficiencyContainer, contractEfficiencyContainer;
     @FXML public LineChart <String, Number>lineChartCompression;
     @FXML public ComboBox<DepartmentDto> departmentComboBox;
