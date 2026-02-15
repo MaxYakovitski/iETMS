@@ -20,7 +20,7 @@
             </BorderPane.margin>
 
             <padding>
-                <Insets top="10" right="25"/>
+                <Insets top="10" bottom="10" right="25"/>
             </padding>
 
             <GridPane hgap="10" vgap="15" VBox.vgrow="ALWAYS">
