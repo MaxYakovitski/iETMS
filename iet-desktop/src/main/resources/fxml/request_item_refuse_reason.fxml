@@ -8,8 +8,8 @@
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.mayak.iet.ui.workspace.request.item.RefuseReasonController"
       spacing="20" alignment="CENTER"
-      style="-fx-background-color: #f9f9f9"
-      stylesheets="@../css/styles.css">
+      stylesheets="@../css/styles.css"
+      styleClass="app-root">
 
     <padding>
         <Insets top="20" bottom="20" left="20" right="20"/>

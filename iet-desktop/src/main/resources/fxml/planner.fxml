@@ -11,15 +11,16 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ComboBox?>
-
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Spinner?>
+<?import java.lang.String?>
+
 <HBox xmlns="http://javafx.com/javafx/21.0.7"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.mayak.iet.ui.workspace.planner.controller.PlannerController"
       spacing="15"
       stylesheets="@../css/styles.css"
-      style="-fx-background-color: #ffffff;">
+      styleClass="app-root">
 
     <padding>
         <Insets top="25" bottom="25" left="25" right="25"/>
@@ -30,7 +31,7 @@
           maxWidth="400"
           spacing="10">
 
-        <Label fx:id="yearLabel" style="-fx-text-fill: #2196f3; -fx-font-size: 20"/>
+        <Label fx:id="yearLabel" style="-fx-text-fill: #306eed; -fx-font-size: 20"/>
 
         <HBox alignment="CENTER" spacing="10">
             <Button fx:id="leftButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" opacity="0.65"
@@ -99,7 +100,12 @@
                     <DatePicker fx:id="dateAndTime" prefWidth="125" disable="true"/>
                     <Spinner fx:id="timeSpinner" prefWidth="100" disable="true"/>
                 </HBox>
-                <TextArea fx:id="commentsTextArea" promptText="add comments..." styleClass="price-field" />
+                <TextArea fx:id="commentsTextArea" wrapText="true" promptText="add comments...">
+                    <styleClass>
+                        <String fx:value="price-field"/>
+                        <String fx:value="scroll-minimal"/>
+                    </styleClass>
+                </TextArea>
                 <HBox>
                     <Region HBox.hgrow="ALWAYS"/>
                     <Button fx:id="submitButton" text="submit" prefWidth="100"  styleClass="submit-outline" onAction="#submitShipmentUpdate"/>
@@ -120,7 +126,12 @@
             <VBox fx:id="myShipmentsContainer" alignment="TOP_CENTER" VBox.vgrow="ALWAYS" StackPane.alignment="CENTER"
                   style="-fx-background-color: #f9f9f9; -fx-background-radius: 5" >
                 <padding><Insets top="20"/></padding>
-                <ListView fx:id="shipmentsListView"  VBox.vgrow="ALWAYS" styleClass="app-list-view"/>
+                <ListView fx:id="shipmentsListView"  VBox.vgrow="ALWAYS">
+                    <styleClass>
+                        <String fx:value="app-list-view"/>
+                        <String fx:value="scroll-minimal"/>
+                    </styleClass>
+                </ListView>
             </VBox>
 
             <VBox fx:id="myTransportsContainer" alignment="TOP_CENTER" spacing="20" StackPane.alignment="CENTER">
@@ -128,8 +139,13 @@
                 <VBox fx:id="toLoadContainer" alignment="TOP_CENTER" spacing="10" VBox.vgrow="ALWAYS"
                       style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
                     <padding><Insets top="10"/></padding>
-                    <Label text="to load:" style="-fx-text-fill: #2196f3; -fx-font-size: 16;"/>
-                    <ListView fx:id="toLoadListView"  VBox.vgrow="ALWAYS" styleClass="app-list-view"/>
+                    <Label text="to load:" style="-fx-text-fill: #306eed; -fx-font-size: 16;"/>
+                    <ListView fx:id="toLoadListView"  VBox.vgrow="ALWAYS">
+                        <styleClass>
+                            <String fx:value="app-list-view"/>
+                            <String fx:value="scroll-minimal"/>
+                        </styleClass>
+                    </ListView>
             <!-- controls -->
                 </VBox>
 
@@ -137,8 +153,13 @@
                 <VBox fx:id="toDropContainer" alignment="TOP_CENTER" spacing="10" VBox.vgrow="ALWAYS"
                       style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
                     <padding><Insets top="10"/></padding>
-                    <Label text="to drop:" style="-fx-text-fill: #2196f3; -fx-font-size: 16;"/>
-                    <ListView fx:id="toDropListView"  VBox.vgrow="ALWAYS" styleClass="app-list-view"/>
+                    <Label text="to drop:" style="-fx-text-fill: #306eed; -fx-font-size: 16;"/>
+                    <ListView fx:id="toDropListView"  VBox.vgrow="ALWAYS">
+                        <styleClass>
+                            <String fx:value="app-list-view"/>
+                            <String fx:value="scroll-minimal"/>
+                        </styleClass>
+                </ListView>
             <!-- controls -->
                 </VBox>
             </VBox>

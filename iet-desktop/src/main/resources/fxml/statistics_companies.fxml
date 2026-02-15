@@ -3,11 +3,12 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.controlsfx.control.CheckComboBox?>
-
 <?import javafx.geometry.Insets?>
+
 <ScrollPane xmlns="http://javafx.com/javafx/21.0.7"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.mayak.iet.ui.analytics.controller.CompanyStatisticsController"
+            styleClass="scroll-minimal"
             fitToWidth="true"
             hbarPolicy="NEVER">
 

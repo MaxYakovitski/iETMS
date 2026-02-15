@@ -1,9 +1,57 @@
-.anchor-pane {
-    -fx-background-color: #f9f9f9;
+.app-root {
+    -fx-background-color: #ffffff;
 }
 
-.stack-pane {
-    -fx-background-color: #f9f9f9;
+.scroll-hidden {
+    -fx-background-color: transparent;
+}
+
+.scroll-hidden .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-hidden .scroll-bar:vertical,
+.scroll-hidden .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-max-width: 0;
+    -fx-max-height: 0;
+}
+
+.scroll-minimal {
+    -fx-background-color: transparent;
+}
+
+.scroll-minimal .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-minimal .scroll-bar:vertical {
+    -fx-pref-width: 8;
+    -fx-background-color: transparent;
+}
+
+.scroll-minimal .scroll-bar:horizontal {
+    -fx-pref-height: 8;
+    -fx-background-color: transparent;
+}
+
+.scroll-minimal .scroll-bar .thumb {
+    -fx-background-color: #7a7a7a;
+    -fx-background-radius: 5;
+}
+
+.scroll-minimal .scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-minimal .scroll-bar {
+    -fx-opacity: 0;
+}
+
+.scroll-minimal:hover .scroll-bar {
+    -fx-opacity: 1;
 }
 
 .text-field {
@@ -19,16 +67,6 @@
     -fx-padding: 0;
     -fx-border-color: #c8c8c8;
     -fx-border-radius: 5;
-}
-
-.text-area .scroll-pane {
-    -fx-background-color: transparent;
-    -fx-background-radius: 5;
-}
-
-.text-area .scroll-pane .viewport {
-    -fx-background-color: white;
-    -fx-background-radius: 5;
 }
 
 .text-field-error {
@@ -61,7 +99,7 @@
 }
 
 .date-picker:focused {
-    -fx-border-color: #2196f3;
+    -fx-border-color: #306eed;
 }
 
 .date-picker.date-picker-error {
@@ -89,7 +127,7 @@
 }
 
 .spinner:focused {
-    -fx-border-color: #2196f3;
+    -fx-border-color: #306eed;
 }
 
 .spinner.spinner-error {
@@ -126,17 +164,11 @@
 }
 
 .label {
-    -fx-text-overrun: ellipsis; /* калі тэкст не ўмяшчаецца, дадаецца трохкроп’е.*/
+    -fx-text-overrun: ellipsis;
 }
 
 .text-area .content {
-    -fx-background-color: white; /* фон для ўнутранага view port */
-}
-
-.text-area .scroll-bar {
-    -fx-opacity: 0;
-    -fx-pref-width: 0;
-    -fx-max-width: 0;
+    -fx-background-color: white;
 }
 
 .bid-active {
@@ -159,7 +191,7 @@
 }
 
 .price-field:focused {
-    -fx-border-color: #2196f3;
+    -fx-border-color: #306eed;
 }
 
 .price-field.price-field-error {
@@ -190,7 +222,7 @@
 }
 
 .more-field.editing {
-    -fx-border-color: #2196f3;
+    -fx-border-color: #306eed;
 }
 
 .request-textfield {
@@ -206,57 +238,13 @@
     -fx-background-color: #f9f9f9;
 }
 
-.scroll-pane {
-    -fx-background-color: #ffffff;
-}
-
-.scroll-pane .viewport {
-    -fx-background-color: #ffffff;
-}
-
-#scrollPane {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-#scrollPane .viewport {
-    -fx-background-color: transparent;
-    -fx-padding: 0;
-}
-
-#scrollPane .scroll-bar:vertical {
-    -fx-background-color: transparent;
-    -fx-pref-width: 8;
-}
-
-
-#scrollPane .scroll-bar:vertical .thumb {
-    -fx-background-color: #7a7a7a;
-    -fx-background-radius: 5;
-}
-
-
 .app-list-view {
     -fx-background-color: transparent;
     -fx-padding: 0;
 }
 
-.app-list-view .scroll-bar:vertical,
-.app-list-view .scroll-bar:horizontal {
+.app-list-view .corner {
     -fx-background-color: transparent;
-}
-
-.app-list-view .scroll-bar:vertical {
-    -fx-pref-width: 8;
-}
-
-.app-list-view .scroll-bar:horizontal {
-    -fx-pref-height: 8;
-}
-
-.app-list-view .scroll-bar .thumb {
-    -fx-background-color: #7a7a7a;
-    -fx-background-radius: 5;
 }
 
 .button:pressed {
@@ -297,6 +285,14 @@
     -fx-selection-bar-non-focused: #eff5fb;
 }
 
+.table-view > .column-header-background > .filler {
+    -fx-background-color: #f9f9f9;
+}
+
+.table-view > .corner {
+    -fx-background-color: #f9f9f9;
+}
+
 .table-view .table-cell {
     -fx-border-color: transparent #cacaca transparent transparent;
 }
@@ -316,22 +312,22 @@
 }
 
 .table-view .column-header-background {
-    -fx-background-color: transparent;
+    -fx-background-color: #f9f9f9;
+    -fx-border-color: transparent transparent #cacaca transparent;
 }
 
 .table-view .column-header.first-column {
     -fx-background-color: #f9f9f9;
-    -fx-border-color: transparent #cacaca #cacaca transparent;
+    -fx-border-color: transparent #cacaca transparent transparent;
 }
 
 .table-view .column-header.middle-column {
     -fx-background-color: #f9f9f9;
-    -fx-border-color: transparent #cacaca #cacaca transparent;
+    -fx-border-color: transparent #cacaca transparent transparent;
 }
 
 .table-view .column-header.last-column {
     -fx-background-color: #f9f9f9;
-    -fx-border-color: transparent transparent #cacaca transparent;
 }
 
 .table-view .column-header .label {
@@ -371,7 +367,7 @@
 }
 
 .combo-box-base:focused {
-    -fx-border-color: #2196f3;
+    -fx-border-color: #306eed;
     -fx-faint-focus-color: transparent;
 }
 
@@ -397,7 +393,7 @@
 }
 
 .check-box:selected .box {
-    -fx-border-color: #2196f3;
+    -fx-border-color: #306eed;
 }
 
 .combo-box-popup .list-cell:focused {
@@ -410,7 +406,7 @@
 }
 
 .combo-box-popup .list-cell:hover {
-    -fx-background-color: #2196f3;
+    -fx-background-color: #306eed;
     -fx-text-fill: white;
 }
 
@@ -422,7 +418,7 @@
 }
 
 .radio-button:selected .radio {
-    -fx-border-color: #2196f3;
+    -fx-border-color: #306eed;
 }
 
 #loadingOverlay {
@@ -485,12 +481,12 @@
 }
 
 .autocomplete-list .list-cell:hover {
-    -fx-background-color: #2196f3;
+    -fx-background-color: #306eed;
     -fx-text-fill: #ffffff;
 }
 
 .autocomplete-list .list-cell:selected {
-    -fx-background-color: #2196f3;
+    -fx-background-color: #306eed;
     -fx-text-fill: #313131;
 }
 
@@ -515,7 +511,7 @@
 }
 
 .pie-stat .default-color0.chart-pie {
-    -fx-pie-color: #2196f3;  /* Accepted */
+    -fx-pie-color: #306eed;  /* Accepted */
 }
 
 .pie-stat .default-color1.chart-pie {
@@ -535,7 +531,7 @@
 }
 
 .pie-stat .chart-legend-item-symbol.default-color0 {
-    -fx-background-color: #2196f3;
+    -fx-background-color: #306eed;
 }
 
 .pie-stat .chart-legend-item-symbol.default-color1 {
@@ -627,7 +623,7 @@
 .calendar-week {
     -fx-alignment: center;
     -fx-font-size: 20;
-    -fx-text-fill: #2196f3;
+    -fx-text-fill: #306eed;
 }
 
 .calendar-header {
@@ -644,20 +640,20 @@
 .calendar-day--today {
     -fx-background-color: #ffffff;
     -fx-background-radius: 5;
-    -fx-border-color: #2196f3;
+    -fx-border-color: #306eed;
     -fx-border-radius: 5;
-    -fx-text-fill: #2196f3;
+    -fx-text-fill: #306eed;
 }
 
 .calendar-day--selected {
-    -fx-background-color: #2196f3;
+    -fx-background-color: #306eed;
     -fx-background-radius: 5;
     -fx-border-width: 0;
     -fx-text-fill: #ffffff;
 }
 
 .calendar-day:hover {
-    -fx-border-color: #2196f3;
+    -fx-border-color: #306eed;
     -fx-border-radius: 5;
     -fx-border-width: 1;
 }
@@ -733,7 +729,7 @@
 }
 
 #laneButton:focused {
-    -fx-border-color: #2196f3;
+    -fx-border-color: #306eed;
 }
 
 #laneButton.text-field-error {

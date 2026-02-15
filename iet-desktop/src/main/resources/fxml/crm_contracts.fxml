@@ -16,7 +16,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.mayak.iet.ui.crm.ContractsController"
             stylesheets="@../css/styles.css"
-            styleClass="anchor-pane">
+            styleClass="app-root">
 
         <VBox spacing="10" alignment="CENTER"
               AnchorPane.topAnchor="50"
@@ -25,14 +25,17 @@
               AnchorPane.bottomAnchor="50">
 
             <HBox alignment="CENTER" VBox.vgrow="ALWAYS">
-        <TableView fx:id="companiesTable" style="-fx-background-radius: 5 0 0 5;
-                       -fx-border-color: #c8c8c8; -fx-border-radius: 5 0 0 5; -fx-border-width: 1 0 1 1;">
+        <TableView fx:id="companiesTable"
+                   styleClass="scroll-minimal"
+                   style="-fx-background-radius: 5 0 0 5;-fx-border-color: #c8c8c8; -fx-border-radius: 5 0 0 5; -fx-border-width: 1 0 1 1;">
             <columns>
                 <TableColumn fx:id="companiesColumn" text="Company" styleClass="last-column"/>
             </columns>
         </TableView>
-            <TableView fx:id="lanesTable" style="-fx-background-radius: 0 5 5 0;
-                       -fx-border-color: #c8c8c8; -fx-border-radius: 0 5 5 0;" VBox.vgrow="ALWAYS">
+            <TableView fx:id="lanesTable"
+                       styleClass="scroll-minimal"
+                       style="-fx-background-radius: 0 5 5 0; -fx-border-color: #c8c8c8; -fx-border-radius: 0 5 5 0;"
+                       VBox.vgrow="ALWAYS">
                 <columns>
                     <TableColumn fx:id="laneIdColumn" text="id" prefWidth="75" styleClass="first-column"/>
                     <TableColumn fx:id="fromColumn" text="from" prefWidth="175" styleClass="middle-column"/>

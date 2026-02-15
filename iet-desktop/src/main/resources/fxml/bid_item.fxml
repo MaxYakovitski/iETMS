@@ -29,8 +29,5 @@
         <Label fx:id="commentLabel" wrapText="true"/>
     </VBox>
 
-    <Button fx:id="deleteButton"
-            text="delete"
-            onAction="#handleDelete"
-            focusTraversable="false"/>
+    <Button fx:id="deleteButton" text="delete" minWidth="60" onAction="#handleDelete" focusTraversable="false"/>
 </HBox>

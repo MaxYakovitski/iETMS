@@ -11,7 +11,7 @@
             fx:controller="com.mayak.iet.ui.workspace.request.item.bid.BidHistoryController"
             prefWidth="480"
             stylesheets="@../css/styles.css"
-            style="-fx-background-color: #f9f9f9">
+            styleClass="app-root">
 
     <!-- ================= CONTENT ================= -->
     <VBox VBox.vgrow="ALWAYS" alignment="CENTER">
@@ -33,6 +33,7 @@
 
         <!-- Scroll container -->
         <ScrollPane fx:id="scrollPane"
+                    styleClass="scroll-minimal"
                     VBox.vgrow="ALWAYS"
                     visible="false"
                     managed="false"

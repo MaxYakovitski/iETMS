@@ -8,14 +8,15 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
-
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.geometry.Insets?>
+<?import java.lang.String?>
+
 <StackPane xmlns="http://javafx.com/javafx/21.0.7"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="com.mayak.iet.ui.crm.CompanyController"
            stylesheets="@../css/styles.css"
-           style="-fx-background-color: #f9f9f9">
+           styleClass="app-root">
 
     <VBox spacing="10" maxWidth="350" alignment="CENTER">
         <padding><Insets top="50" bottom="50" /></padding>
@@ -47,6 +48,9 @@
         </HBox>
 
         <TableView fx:id="companiesTable" VBox.vgrow="ALWAYS">
+            <styleClass>
+                <String fx:value="scroll-minimal"/>
+            </styleClass>
             <columns>
                 <TableColumn fx:id="companyNameColumn" text="Company" styleClass="last-column"/>
             </columns>

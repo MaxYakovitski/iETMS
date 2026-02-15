@@ -3,6 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
+<?import java.lang.String?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21.0.7"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -34,15 +35,25 @@
 
                 <!-- ROW 1 -->
                 <Label text="from" GridPane.rowIndex="1"/>
-                <TextArea fx:id="fromTextArea" styleClass="price-field"
+                <TextArea fx:id="fromTextArea" wrapText="true"
                           GridPane.rowIndex="1" GridPane.columnIndex="1"
-                          prefRowCount="2"/>
+                          prefHeight="50">
+                    <styleClass>
+                        <String fx:value="price-field"/>
+                        <String fx:value="scroll-minimal"/>
+                    </styleClass>
+                </TextArea>
 
                 <!-- ROW 2 -->
                 <Label text="to" GridPane.rowIndex="2"/>
-                <TextArea fx:id="toTextArea" styleClass="price-field"
+                <TextArea fx:id="toTextArea" wrapText="true"
                           GridPane.rowIndex="2" GridPane.columnIndex="1"
-                          prefRowCount="2"/>
+                          prefHeight="50">
+                    <styleClass>
+                        <String fx:value="price-field"/>
+                        <String fx:value="scroll-minimal"/>
+                    </styleClass>
+                </TextArea>
 
                 <!-- ROW 3 -->
                 <Label text="ID" GridPane.rowIndex="3"/>
@@ -111,9 +122,14 @@
 
                 <!-- ROW 13 -->
                 <Label text="comments" GridPane.rowIndex="13"/>
-                <TextArea fx:id="commentsTextArea" styleClass="price-field"
+                <TextArea fx:id="commentsTextArea" wrapText="true"
                           GridPane.rowIndex="13" GridPane.columnIndex="1"
-                          prefRowCount="3"/>
+                          prefRowCount="5">
+                    <styleClass>
+                        <String fx:value="price-field"/>
+                        <String fx:value="scroll-minimal"/>
+                    </styleClass>
+                </TextArea>
 
                 <!-- ROW 14 -->
                 <Button text="submit"
@@ -130,8 +146,12 @@
     <center>
         <StackPane style="-fx-background-color: #ffffff">
 
-            <ListView fx:id="requestsListView"
-                      styleClass="app-list-view"/>
+            <ListView fx:id="requestsListView">
+                <styleClass>
+                    <String fx:value="app-list-view"/>
+                    <String fx:value="scroll-minimal"/>
+                </styleClass>
+            </ListView>
 
             <Label fx:id="emptyMessageLabel"
                    text="Oops! No requests found..."

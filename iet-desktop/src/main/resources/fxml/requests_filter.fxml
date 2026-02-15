@@ -13,13 +13,13 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.StackPane?>
-
 <?import javafx.geometry.Insets?>
+
 <StackPane xmlns="http://javafx.com/javafx/21.0.7"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="com.mayak.iet.ui.workspace.request.filter.RequestFilterController"
            stylesheets="@../css/styles.css"
-           style="-fx-background-color: #f9f9f9;">
+           styleClass="app-root">
 
     <VBox spacing="15" alignment="CENTER">
         <padding><Insets top="20" left="30" right="30" bottom="20"/></padding>

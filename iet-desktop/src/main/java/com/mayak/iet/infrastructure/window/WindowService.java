@@ -204,12 +204,10 @@ public class WindowService {
         if (initializer != null) initializer.accept(controller);
 
         if (iconPath != null) {
-            try {
-                Image icon = new Image(Objects.requireNonNull(getClass().getResource(iconPath)).toString());
-                stage.getIcons().add(icon);
-            } catch (Exception ignored) {}
-        } else {
-            stage.getIcons().clear();
+            Image icon = new Image(Objects.requireNonNull(getClass().getResource(iconPath)).toString());
+            stage.getIcons().setAll(icon);
+        } else if (owner != null && !owner.getIcons().isEmpty()) {
+            stage.getIcons().setAll(owner.getIcons());
         }
 
         stage.setOnShown(event -> {

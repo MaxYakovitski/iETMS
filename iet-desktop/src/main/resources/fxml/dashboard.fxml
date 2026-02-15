@@ -5,7 +5,8 @@
 <?import javafx.scene.image.Image?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/21.0.7"
-            stylesheets="@/css/styles.css">
+            stylesheets="@/css/styles.css"
+            styleClass="app-root">
 
     <StackPane AnchorPane.topAnchor="0.0"
                AnchorPane.leftAnchor="0.0"

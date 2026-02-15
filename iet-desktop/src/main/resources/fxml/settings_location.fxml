@@ -14,7 +14,8 @@
 <StackPane xmlns="http://javafx.com/javafx/21.0.7"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="com.mayak.iet.ui.administration.LocationSettingsController"
-           stylesheets="@../css/styles.css" style="-fx-background-color: #f9f9f9">
+           stylesheets="@../css/styles.css"
+           styleClass="app-root">
 
     <VBox spacing="12" maxWidth="450">
         <padding>
