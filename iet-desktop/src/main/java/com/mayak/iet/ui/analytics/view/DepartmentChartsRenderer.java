@@ -52,13 +52,13 @@ public class DepartmentChartsRenderer {
 
     public void renderBar(
             Map<String, Integer> data,
-            BarChart<String, Number> chart
+            BarChart<Number, String> chart
     ) {
         chart.getData().clear();
 
-        CategoryAxis xAxis = (CategoryAxis) chart.getXAxis();
-        xAxis.setAutoRanging(false);
-        xAxis.setCategories(FXCollections.observableArrayList(data.keySet()));
+        CategoryAxis yAxis = (CategoryAxis) chart.getYAxis();
+        yAxis.setAutoRanging(false);
+        yAxis.setCategories(FXCollections.observableArrayList(data.keySet()));
 
         String[] colors = {
                 "#e96c3f",
@@ -69,12 +69,12 @@ public class DepartmentChartsRenderer {
                 "#5ab05a"
         };
 
-        BarChart.Series<String, Number> series = new BarChart.Series<>();
+        BarChart.Series<Number, String> series = new BarChart.Series<>();
 
         int index = 0;
         for (var entry : data.entrySet()) {
-            BarChart.Data<String, Number> d =
-                    new BarChart.Data<>(entry.getKey(), entry.getValue());
+            BarChart.Data<Number, String> d =
+                    new BarChart.Data<>(entry.getValue(), entry.getKey());
 
             final int colorIndex = index;
             d.nodeProperty().addListener((node, oldNode, newNode) -> {
@@ -92,7 +92,7 @@ public class DepartmentChartsRenderer {
         Platform.runLater(() -> {
             chart.applyCss();
             chart.layout();
-            xAxis.setAutoRanging(false);
+            yAxis.setAutoRanging(false);
         });
     }
 

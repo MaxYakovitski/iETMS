@@ -59,8 +59,8 @@
             </StackPane>
             <BarChart fx:id="barChartSpotRefusedReason" prefWidth="350" prefHeight="350"
                       styleClass="bar-spot-contract" title="Refused reasons">
-                <xAxis><CategoryAxis/></xAxis>
-                <yAxis><NumberAxis/></yAxis>
+                <xAxis><NumberAxis/></xAxis>
+                <yAxis><CategoryAxis/></yAxis>
             </BarChart>
         </HBox>
 
@@ -73,8 +73,8 @@
             </StackPane>
             <BarChart fx:id="barChartContractRefusedReason" prefWidth="350" prefHeight="350"
                       styleClass="bar-spot-contract" title="Refused reasons">
-                <xAxis><CategoryAxis/></xAxis>
-                <yAxis><NumberAxis/></yAxis>
+                <xAxis><NumberAxis/></xAxis>
+                <yAxis><CategoryAxis/></yAxis>
             </BarChart>
         </HBox>
 
