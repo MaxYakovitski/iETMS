@@ -158,7 +158,7 @@
 }
 
 .request-pane {
-    -fx-border-color: transparent transparent #cfcfcf transparent;;
+    -fx-border-color: transparent transparent #c8c8c8 transparent;;
     -fx-border-width: 0 0 1 0;
     -fx-border-insets: 0;
 }
