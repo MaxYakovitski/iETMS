@@ -469,6 +469,10 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     private void switchTab(ActiveTab tab) {
+        if (state.getActiveTab() != tab) {
+            clearSelection();
+        }
+
         state.setActiveTab(tab);
 
         switch (tab) {
