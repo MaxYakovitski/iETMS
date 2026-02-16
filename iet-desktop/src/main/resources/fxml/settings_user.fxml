@@ -74,7 +74,7 @@
             </HBox>
 
         <!-- TABLE -->
-        <TableView fx:id="usersTable" VBox.vgrow="ALWAYS">
+        <TableView fx:id="usersTable" styleClass="scroll-minimal" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="userNameColumn" text="Name" prefWidth="120" styleClass="first-column"/>
                 <TableColumn fx:id="userSurnameColumn" text="Surname" prefWidth="140" styleClass="middle-column"/>
