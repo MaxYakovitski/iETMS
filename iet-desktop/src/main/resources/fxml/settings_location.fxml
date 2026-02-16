@@ -63,7 +63,7 @@
         </HBox>
 
         <!-- TABLE -->
-        <TableView fx:id="locationsTable" VBox.vgrow="ALWAYS">
+        <TableView fx:id="locationsTable" styleClass="scroll-minimal" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="locIsoCodeColumn" text="Country" minWidth="75" maxWidth="75" styleClass="first-column"/>
                 <TableColumn fx:id="locZipCodeColumn" text="ZIP" minWidth="100" maxWidth="100" styleClass="middle-column"/>

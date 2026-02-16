@@ -61,7 +61,7 @@
 
         </HBox>
 
-        <TableView fx:id="departmentsTable" VBox.vgrow="ALWAYS">
+        <TableView fx:id="departmentsTable" styleClass="scroll-minimal" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="deptCodeColumn" text="Code" minWidth="75" maxWidth="75" styleClass="first-column"/>
                 <TableColumn fx:id="deptNameColumn" text="Name" styleClass="last-column"/>
