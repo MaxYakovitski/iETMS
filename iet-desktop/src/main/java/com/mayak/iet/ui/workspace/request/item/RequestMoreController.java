@@ -6,7 +6,7 @@ import com.mayak.iet.integration.api.RequestClient;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +22,7 @@ import java.util.stream.Collectors;
 public class RequestMoreController {
 
     @FXML public Label participantsLabel, participantsGroup, dispatchedToLabel, dispatcherFullName, tIdLabel;
-
-    @FXML public HBox tidContainer;
+    @FXML public VBox tidContainer;
     @FXML public TextField tId;
 
     private final RequestClient requestClient;
@@ -33,32 +32,24 @@ public class RequestMoreController {
     @Setter
     private Runnable onTidUpdated;
 
-    @FXML
-    public void initialize() {
-        tId.setOnMouseClicked(event -> {
-            if (!tId.isEditable() && details != null && details.isAuthor()) {
-                enableTidEditing();
-            }
-        });
-
-        tId.setOnAction(event -> {
-            if (tId.isEditable()) {
-                saveTId();
-            }
-        });
-
-        tId.focusedProperty().addListener((foc, oldFoc, newFoc) -> {
-            if (!newFoc && tId.isEditable()) {
-                saveTId();
-            }
-        });
-    }
-
     public void setRequest(RequestDetailsDto details) {
         if (details == null) return;
 
         this.details = details;
 
+        renderParticipants();
+        renderDispatcher();
+        renderTid();
+        setupTidAccess();
+    }
+
+    @FXML
+    public void handleSave() {
+        saveTId();
+        tidContainer.requestFocus();
+    }
+
+    private void renderParticipants() {
         participantsGroup.setText(
                 details.competitors() != null && !details.competitors().isEmpty()
                         ? details.competitors().stream()
@@ -66,13 +57,18 @@ public class RequestMoreController {
                         .collect(Collectors.joining(", "))
                         : "nobody joined yet"
         );
-        dispatcherFullName.setText(
-                details.dispatchedUser() != null ? details.dispatchedUser().fullName() : "not identified yet");
-        tId.setText(details.tid() != null ? details.tid() : "");
-        tId.setEditable(false);
-        tId.getStyleClass().remove("editing");
+    }
 
-        setupTidAccess();
+    private void renderDispatcher() {
+        dispatcherFullName.setText(
+                details.dispatchedUser() != null
+                        ? details.dispatchedUser().fullName()
+                        : "not identified yet"
+        );
+    }
+
+    private void renderTid() {
+        tId.setText(details.tid() != null ? details.tid() : "");
     }
 
     private void setupTidAccess() {
@@ -81,16 +77,6 @@ public class RequestMoreController {
         tidContainer.setVisible(canEditTid);
         tidContainer.setManaged(canEditTid);
 
-        tId.setFocusTraversable(false);
-    }
-
-    private void enableTidEditing() {
-        tId.setEditable(true);
-        tId.requestFocus();
-
-        if (!tId.getStyleClass().contains("editing")) {
-            tId.getStyleClass().add("editing");
-        }
     }
 
     private void saveTId() {
@@ -100,9 +86,6 @@ public class RequestMoreController {
         if (value == null || value.isBlank()) return;
 
         requestClient.updateTid(details.id(), tId.getText());
-
-        tId.setEditable(false);
-        tId.getStyleClass().remove("editing");
 
         details = requestClient.getDetails(details.id());
 
