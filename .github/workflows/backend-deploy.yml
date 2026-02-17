@@ -32,7 +32,7 @@ jobs:
 
       - name: Prepare backend jar
         run: |
-          mv iet-backend/target/iet-backend-*.jar iet-backend/target/iet-backend.jar
+          mv ietms-backend/target/ietms-backend-*.jar ietms-backend/target/ietms-backend.jar
 
       - name: Upload jar to server
         uses: appleboy/scp-action@v0.1.7
