@@ -6,7 +6,7 @@
 
 
     <parent>
-        <groupId>com.mayak.iet</groupId>
+        <groupId>com.mayak.ietms</groupId>
         <artifactId>ietms-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
@@ -63,7 +63,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.mayak.iet</groupId>
+            <groupId>com.mayak.ietms</groupId>
             <artifactId>ietms-contract</artifactId>
         </dependency>
 
