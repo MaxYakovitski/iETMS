@@ -11,8 +11,8 @@
       stylesheets="@/css/styles.css"
       styleClass="app-root">
 
-    <ToolBar prefHeight="40.0"
-             style="-fx-background-color: #ffffff; -fx-border-color: #c8c8c8; -fx-border-width: 1 0 1 0;">
+    <ToolBar minHeight="35" maxHeight="35.0"
+             style="-fx-background-color: #ffffff; -fx-border-color: #c8c8c8; -fx-border-width: 0 0 1 0;">
 
         <Button text="Home" mnemonicParsing="false" prefHeight="30.0"
                 style="-fx-background-color: transparent; -fx-border-color: transparent;" onAction="#handleHome"/>
@@ -49,8 +49,7 @@
                 </graphic>
             </Button>
 
-            <TextField fx:id="searchField" promptText="search"
-                       prefHeight="30.0" prefWidth="250.0"
+            <TextField fx:id="searchField" promptText="search" prefWidth="250.0"
                        visible="false" managed="false"
                        styleClass="price-field">
             </TextField>

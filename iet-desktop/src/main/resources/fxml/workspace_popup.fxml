@@ -2,35 +2,47 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
+<?import javafx.geometry.Insets?>
+
 <VBox xmlns="http://javafx.com/javafx/21.0.7"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.mayak.iet.ui.workspace.WorkspacePopupController"
       styleClass="popup-content"
       stylesheets="@/css/styles.css">
 
-    <Button onAction="#handleRequests"
-            styleClass="popup-button">
-        <graphic>
-            <HBox alignment="CENTER_LEFT" spacing="8">
-                <Label text="Requests"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <ImageView fx:id="arrowIcon"
-                           fitWidth="10" fitHeight="10"
-                           preserveRatio="true"
-                           visible="false"
-                           managed="false">
-                    <Image url="@../icons/arrow_right.png"/>
-                </ImageView>
-            </HBox>
-        </graphic>
-    </Button>
+    <HBox fx:id="requestsRow"
+          prefHeight="25"
+          alignment="CENTER_LEFT"
+          styleClass="popup-button">
 
-    <Button fx:id="plannerButton"
-            text="Planner"
-            onAction="#handlePlanner"
-            styleClass="popup-button"/>
+        <padding>
+            <Insets left="10" right="10"/>
+        </padding>
 
+        <Label text="Requests"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <ImageView fx:id="arrowIcon"
+                   fitWidth="10" fitHeight="10"
+                   preserveRatio="true"
+                   visible="false"
+                   managed="false">
+            <Image url="@../icons/arrow_right.png"/>
+            </ImageView>
+    </HBox>
+
+    <HBox fx:id="plannerRow"
+          prefHeight="25"
+          alignment="CENTER_LEFT"
+          styleClass="popup-button"
+          onMouseClicked="#handlePlanner">
+
+        <padding>
+            <Insets left="10" right="10"/>
+        </padding>
+
+        <Label text="Planner"/>
+
+    </HBox>
 </VBox>

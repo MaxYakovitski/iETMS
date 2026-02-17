@@ -10,6 +10,7 @@ import com.mayak.iet.lane.dto.LaneViewDto;
 import com.mayak.iet.lane.dto.LaneTypeDto;
 import com.mayak.iet.request.dto.enums.ShipmentTypeDto;
 import com.mayak.iet.request.dto.enums.TransportTypeDto;
+import com.mayak.iet.ui.core.UserPermissions;
 import com.mayak.iet.user.dto.UserResponseDto;
 import com.mayak.iet.ui.core.SecuredView;
 import com.mayak.iet.ui.core.ViewLifecycle;
@@ -72,9 +73,13 @@ public class ContractsController implements SecuredView,ViewLifecycle {
     @Getter
     private UserResponseDto loggedInUser;
 
+    private UserPermissions permissions;
+
     @Override
     public void setLoggedInUser(UserResponseDto user) {
         this.loggedInUser = user;
+        this.permissions = new UserPermissions(user);
+        applyPermissions();
     }
 
     private final ContractFormState formState = new ContractFormState();
@@ -409,5 +414,13 @@ public class ContractsController implements SecuredView,ViewLifecycle {
     private void switchToEditMode(LaneViewDto lane) {
         formPolicy.onEditRequested(formState, lane);
         fillFormFromLane(lane);
+    }
+
+    private void applyPermissions() {
+        boolean canEdit = permissions != null && permissions.canViewCrm();
+
+        addButton.setDisable(!canEdit);
+        editButton.setDisable(!canEdit);
+        removeButton.setDisable(!canEdit);
     }
 }

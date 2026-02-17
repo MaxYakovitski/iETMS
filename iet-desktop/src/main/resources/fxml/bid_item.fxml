@@ -4,13 +4,13 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-
 <?import javafx.geometry.Insets?>
+
 <HBox xmlns="http://javafx.com/javafx/21.0.7"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:id="root"
       fx:controller="com.mayak.iet.ui.workspace.request.item.bid.BidItemController"
-      style="-fx-background-color: #f9f9f9"
+      styleClass="app-root"
       spacing="10" alignment="CENTER">
 
     <padding>

@@ -43,6 +43,7 @@ public abstract class AbstractSettingsController <V, U, C> implements SecuredVie
 
     protected abstract void fillForm(V view);
     protected abstract void resetFields();
+    protected abstract boolean canEdit();
 
     protected void initValidation() {
         this.validationUI = new ValidationUIHelper(getFieldMap());
@@ -62,7 +63,7 @@ public abstract class AbstractSettingsController <V, U, C> implements SecuredVie
     }
 
     protected void applyPermissions() {
-        boolean canEdit = permissions != null && permissions.canViewAdministration();
+        boolean canEdit = canEdit();
 
         getAddButton().setDisable(!canEdit);
         getEditButton().setDisable(!canEdit);

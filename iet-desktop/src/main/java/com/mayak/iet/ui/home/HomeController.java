@@ -1,5 +1,6 @@
 package com.mayak.iet.ui.home;
 
+import com.mayak.iet.infrastructure.window.PopupMenuUtils;
 import com.mayak.iet.integration.api.UserClient;
 import com.mayak.iet.ui.about.AboutController;
 import com.mayak.iet.user.dto.UserResponseDto;
@@ -101,7 +102,7 @@ public class HomeController {
     @FXML
     public void handleWorkspace(ActionEvent actionEvent) {
         workspacePopup = createPopupIfAbsent(workspacePopup, View.WORKSPACE_POPUP, WorkspacePopupController.class);
-        togglePopup(workspacePopup, (Node) actionEvent.getSource());
+        PopupMenuUtils.togglePopup(workspacePopup, (Node) actionEvent.getSource());
     }
 
     @FXML
@@ -116,7 +117,7 @@ public class HomeController {
                 View.CRM_POPUP,
                 CrmPopupController.class
         );
-        togglePopup(crmPopup, (Node) actionEvent.getSource());
+        PopupMenuUtils.togglePopup(crmPopup, (Node) actionEvent.getSource());
     }
 
     @FXML
@@ -131,7 +132,7 @@ public class HomeController {
                 View.ANALYTICS_POPUP,
                 AnalyticsPopupController.class
         );
-        togglePopup(analyticsPopup, (Node) actionEvent.getSource());
+        PopupMenuUtils.togglePopup(analyticsPopup, (Node) actionEvent.getSource());
     }
 
     @FXML
@@ -146,7 +147,7 @@ public class HomeController {
                 View.ADMINISTRATION_POPUP,
                 AdministrationPopupController.class
         );
-        togglePopup(administrationPopup, (Node) actionEvent.getSource());
+        PopupMenuUtils.togglePopup(administrationPopup, (Node) actionEvent.getSource());
     }
 
     @FXML
@@ -297,23 +298,6 @@ public class HomeController {
         popup.setAutoHide(true);
 
         return popup;
-    }
-
-    private void togglePopup(Popup popup, Node owner) {
-        if (popup.isShowing()) {
-            popup.hide();
-        } else {
-
-            popup.getContent().stream()
-                    .map(Node::getUserData)
-                    .filter(ViewLifecycle.class::isInstance)
-                    .map(ViewLifecycle.class::cast)
-                    .forEach(ViewLifecycle::onShow);
-
-            double x = owner.localToScreen(0, 0).getX();
-            double y = owner.localToScreen(0, owner.getBoundsInParent().getHeight()).getY();
-            popup.show(owner, x, y);
-        }
     }
 
     public void updateFilterState(boolean active) {

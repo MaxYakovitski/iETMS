@@ -132,4 +132,9 @@ public class CompanyController extends AbstractSettingsController<CompanyDto, Co
     protected TableView<CompanyDto> getTable() {
         return companiesTable;
     }
+
+    @Override
+    protected boolean canEdit() {
+        return permissions != null && permissions.canViewCrm();
+    }
 }
