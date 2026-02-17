@@ -50,7 +50,7 @@ public class Shipment {
     private ShipmentCancelReason cancelReason;
 
     @Setter
-    @Column(length = 1000)
+    @Column(columnDefinition = "text")
     private String comments;
 
     @ManyToOne(fetch = FetchType.LAZY)

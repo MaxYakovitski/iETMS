@@ -40,7 +40,7 @@ public class Bid {
     @Column(nullable = false, updatable = false)
     private LocalDateTime time;
 
-    @Column
+    @Column(columnDefinition = "text")
     private String comment;
 
     @Column(nullable = false)
