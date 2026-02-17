@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.geometry.Insets?>
+<?import java.lang.String?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21.0.7"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.mayak.ietms.ui.workspace.request.transport.TransportRequestController"
+            stylesheets="@/css/styles.css"
+            styleClass="app-root">
+
+    <StackPane style="-fx-background-color: #ffffff"
+               AnchorPane.topAnchor="0"
+               AnchorPane.leftAnchor="0"
+               AnchorPane.rightAnchor="0"
+               AnchorPane.bottomAnchor="0">
+
+        <ListView fx:id="requestsListView">
+            <styleClass>
+                <String fx:value="app-list-view"/>
+                <String fx:value="scroll-minimal"/>
+            </styleClass>
+        </ListView>
+
+        <Label fx:id="emptyMessageLabel"
+               text="Oops! No requests found..."
+               style=" -fx-opacity: 0.5;"
+               visible="false"
+               managed="false"
+               StackPane.alignment="CENTER"/>
+
+        <StackPane fx:id="loadingOverlay" visible="false" StackPane.alignment="CENTER">
+            <VBox alignment="CENTER" spacing="10">
+                <ProgressIndicator fx:id="loadingIndicator"/>
+                <Label text="loading..."/>
+            </VBox>
+        </StackPane>
+        <Button fx:id="filterActiveButton"
+                StackPane.alignment="TOP_RIGHT"
+                visible="false" managed="false"
+                style="-fx-background-radius: 25; -fx-background-color: rgba(33, 148, 243, 0.5); -fx-padding: 5;">
+
+            <StackPane.margin>
+                <Insets top="15" right="10"/>
+            </StackPane.margin>
+
+            <graphic>
+                <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                    <Image url="@/icons/filter-red.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+    </StackPane>
+</AnchorPane>

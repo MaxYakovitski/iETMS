@@ -11,7 +11,7 @@ on:
     branches:
       - master
     paths-ignore:
-      - 'iet-desktop/**'
+      - 'ietms-desktop/**'
       - '.github/workflows/desktop-*.yml'
       - '.github/workflows/desktop-ci.yml'
       - '.github/workflows/desktop*.yml'

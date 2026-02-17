@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.ietms.ui.crm.CrmPopupController"
+      styleClass="popup-content"
+      stylesheets="@/css/styles.css">
+
+    <HBox prefHeight="25"
+          alignment="CENTER_LEFT"
+          styleClass="popup-button"
+          onMouseClicked="#handleCompanies">
+
+        <padding>
+            <Insets left="10" right="10"/>
+        </padding>
+
+        <Label text="Companies"/>
+    </HBox>
+
+    <HBox prefHeight="25"
+          alignment="CENTER_LEFT"
+          styleClass="popup-button"
+          onMouseClicked="#handleContracts">
+
+        <padding>
+            <Insets left="10" right="10"/>
+        </padding>
+
+        <Label text="Contracts"/>
+    </HBox>
+</VBox>

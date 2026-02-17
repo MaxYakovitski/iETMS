@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns="http://javafx.com/javafx/21.0.7"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.mayak.ietms.ui.administration.DepartmentSettingsController"
+           stylesheets="@../css/styles.css"
+           styleClass="app-root">
+
+        <VBox spacing="10" maxWidth="450">
+            <padding><Insets top="120" bottom="120"/></padding>
+            <HBox spacing="10" alignment="CENTER">
+
+            <TextField fx:id="deptCodeField" promptText="code" minWidth="75" maxWidth="75" styleClass="price-field"/>
+            <TextField fx:id="deptNameField" promptText="department" styleClass="price-field"/>
+
+            <HBox alignment="CENTER">
+            <Button fx:id="addButton" contentDisplay="GRAPHIC_ONLY" opacity="0.65" mnemonicParsing="false"
+                    prefHeight="20.0" prefWidth="20.0"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;"
+                    onAction="#handleAddOrSave">
+                <graphic>
+                    <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                        <Image url="@/icons/add.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+
+            <Button fx:id="removeButton" contentDisplay="GRAPHIC_ONLY" opacity="0.65" mnemonicParsing="false"
+                    prefHeight="20.0" prefWidth="20.0"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;"
+                    onAction="#handleRemove">
+                <graphic>
+                    <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                        <Image url="@/icons/remove.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+
+            <Button fx:id="editButton" contentDisplay="GRAPHIC_ONLY" opacity="0.65" mnemonicParsing="false"
+                    prefHeight="20.0" prefWidth="20.0"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;"
+                    onAction="#handleEdit">
+                <graphic>
+                    <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                        <Image url="@/icons/edit.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+            </HBox>
+
+        </HBox>
+
+        <TableView fx:id="departmentsTable" styleClass="scroll-minimal" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="deptCodeColumn" text="Code" minWidth="75" maxWidth="75" styleClass="first-column"/>
+                <TableColumn fx:id="deptNameColumn" text="Name" styleClass="last-column"/>
+            </columns>
+        </TableView>
+
+</VBox>
+    </StackPane>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns="http://javafx.com/javafx/21.0.7"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.mayak.ietms.ui.administration.LocationSettingsController"
+           stylesheets="@../css/styles.css"
+           styleClass="app-root">
+
+    <VBox spacing="12" maxWidth="450">
+        <padding>
+            <Insets top="120" bottom="120"/>
+        </padding>
+
+        <!-- FORM -->
+        <HBox spacing="10" alignment="CENTER">
+            <TextField fx:id="countryCodeField" promptText="code" maxWidth="75" styleClass="price-field"/>
+            <TextField fx:id="zipCodeField" promptText="zip" maxWidth="100" styleClass="price-field"/>
+            <TextField fx:id="placeNameField" promptText="place" styleClass="price-field"/>
+
+            <HBox alignment="CENTER">
+                <Button fx:id="addButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" opacity="0.65"
+                        onAction="#handleAddOrSave"
+                        style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;">
+                    <graphic>
+                        <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                            <Image url="@/icons/add.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+
+                <Button fx:id="removeButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" opacity="0.65"
+                        onAction="#handleRemove"
+                        style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;">
+                    <graphic>
+                        <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                            <Image url="@/icons/remove.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+
+                <Button fx:id="editButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" opacity="0.65"
+                        onAction="#handleEdit"
+                        style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;">
+                    <graphic>
+                        <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                            <Image url="@/icons/edit.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+
+            </HBox>
+        </HBox>
+
+        <!-- TABLE -->
+        <TableView fx:id="locationsTable" styleClass="scroll-minimal" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="locIsoCodeColumn" text="Country" minWidth="75" maxWidth="75" styleClass="first-column"/>
+                <TableColumn fx:id="locZipCodeColumn" text="ZIP" minWidth="100" maxWidth="100" styleClass="middle-column"/>
+                <TableColumn fx:id="locNameColumn" text="Place" styleClass="last-column"/>
+            </columns>
+        </TableView>
+
+    </VBox>
+
+</StackPane>

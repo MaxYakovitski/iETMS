@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.controlsfx.control.CheckComboBox?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21.0.7"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.mayak.ietms.ui.analytics.controller.CompanyStatisticsController"
+            styleClass="scroll-minimal"
+            fitToWidth="true"
+            hbarPolicy="NEVER">
+
+    <VBox spacing="10"
+          alignment="TOP_CENTER"
+          style="-fx-padding: 20">
+
+        <HBox spacing="10" alignment="CENTER" style="-fx-background-color: #eff5fb; -fx-background-radius: 5">
+            <padding><Insets top="10" bottom="10"/></padding>
+
+            <VBox spacing="10" alignment="CENTER">
+            <Label fx:id="departmentFullNameLabel"  style="-fx-font-weight: bold;"/>
+            <ComboBox fx:id="departmentComboBox" promptText="select department"
+                      visible="false" managed="false"
+                      prefWidth="150"/>
+            <DatePicker fx:id="startDatePicker" maxWidth="150" styleClass="date-picker"
+                        promptText="dd.mm.yyyy"/>
+            <DatePicker fx:id="endDatePicker" maxWidth="150" styleClass="date-picker"
+                        promptText="dd.mm.yyyy"/>
+            <CheckComboBox fx:id="companiesCheckComboBox" prefWidth="150"/>
+            <Button text="report" maxHeight="Infinity" onAction="#handleFormReport"
+                    prefWidth="150" styleClass="report-outline"/>
+            </VBox>
+        </HBox>
+
+        <Separator HBox.hgrow="ALWAYS"/>
+
+        <Label fx:id="emptyMessageLabel"
+               text="Oops! Nothing to show..."
+               visible="false"
+               managed="false"
+               style="-fx-opacity: 0.5;"/>
+
+            <VBox fx:id="reportContainer"/>
+
+    </VBox>
+</ScrollPane>

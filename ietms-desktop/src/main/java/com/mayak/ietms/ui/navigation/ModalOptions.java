@@ -1,0 +1,10 @@
+package com.mayak.ietms.ui.navigation;
+
+public record ModalOptions(
+        String title,
+        String iconPath) {
+
+    public static ModalOptions empty() {
+        return new ModalOptions(null, null);
+    }
+}

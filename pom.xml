@@ -6,15 +6,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.mayak.iet</groupId>
-    <artifactId>iet-parent</artifactId>
+    <artifactId>ietms-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>iet-contract</module>
-        <module>iet-backend</module>
-        <module>iet-desktop-updater</module>
-        <module>iet-desktop</module>
+        <module>ietms-contract</module>
+        <module>ietms-backend</module>
+        <module>ietms-desktop-updater</module>
+        <module>ietms-desktop</module>
     </modules>
 
     <properties>
@@ -104,7 +104,7 @@
 
             <dependency>
                 <groupId>com.mayak.iet</groupId>
-                <artifactId>iet-contract</artifactId>
+                <artifactId>ietms-contract</artifactId>
                 <version>0.1.0</version>
             </dependency>
 

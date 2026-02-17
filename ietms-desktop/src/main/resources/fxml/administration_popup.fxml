@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.ietms.ui.administration.AdministrationPopupController"
+      styleClass="popup-content"
+      stylesheets="@/css/styles.css">
+
+    <HBox fx:id="structureRow"
+          prefHeight="25"
+          alignment="CENTER_LEFT"
+          styleClass="popup-button"
+          onMouseEntered="#handleStructure">
+
+        <padding>
+            <Insets left="10" right="10"/>
+        </padding>
+
+        <Label text="Structure"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <ImageView fitWidth="10" preserveRatio="true">
+            <Image url="@/icons/arrow_right.png"/>
+        </ImageView>
+    </HBox>
+
+    <HBox fx:id="dictionariesRow"
+          prefHeight="25"
+          alignment="CENTER_LEFT"
+          styleClass="popup-button"
+          onMouseEntered="#handleDictionaries">
+
+        <padding>
+            <Insets left="10" right="10"/>
+        </padding>
+
+        <Label text="Dictionaries"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <ImageView fitWidth="10" preserveRatio="true">
+            <Image url="@/icons/arrow_right.png"/>
+        </ImageView>
+            </HBox>
+</VBox>
