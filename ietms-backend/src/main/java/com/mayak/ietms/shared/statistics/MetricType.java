@@ -2,14 +2,14 @@ package com.mayak.ietms.shared.statistics;
 
 import com.mayak.ietms.features.request.infra.persistence.RequestRepository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public enum MetricType {
 
     PLACED {
         @Override
         public int count(RequestRepository repo, Long userId,
-                         LocalDateTime from, LocalDateTime to) {
+                         Instant from, Instant to) {
             return repo.countByAuthorId(userId, from, to);
         }
     },
@@ -17,7 +17,7 @@ public enum MetricType {
     JOINED {
         @Override
         public int count(RequestRepository repo, Long userId,
-                         LocalDateTime from, LocalDateTime to) {
+                         Instant from, Instant to) {
             return repo.countByCompetitorsContains(userId, from, to);
         }
     },
@@ -25,7 +25,7 @@ public enum MetricType {
     BIDED {
         @Override
         public int count(RequestRepository repo, Long userId,
-                         LocalDateTime from, LocalDateTime to) {
+                         Instant from, Instant to) {
             return repo.countDistinctByBidsUser(userId, from, to);
         }
     },
@@ -33,7 +33,7 @@ public enum MetricType {
     DISPATCHED {
         @Override
         public int count(RequestRepository repo, Long userId,
-                         LocalDateTime from, LocalDateTime to) {
+                         Instant from, Instant to) {
             return repo.countByDispatchedUser(userId, from, to);
         }
     };
@@ -41,7 +41,7 @@ public enum MetricType {
     public abstract int count(
             RequestRepository repo,
             Long userId,
-            LocalDateTime from,
-            LocalDateTime to
+            Instant from,
+            Instant to
     );
 }

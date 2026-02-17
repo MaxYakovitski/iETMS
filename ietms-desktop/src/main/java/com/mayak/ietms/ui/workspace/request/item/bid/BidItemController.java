@@ -18,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import java.time.ZoneId;
+
 @Controller
 @Scope("prototype")
 @RequiredArgsConstructor
@@ -57,7 +59,8 @@ public class BidItemController implements ViewLifecycle, SecuredView {
         authorLabel.setText(bid.user() != null ? bid.user().fullName() : "");
 
         if (bid.time() != null) {
-            timeLabel.setText(bid.time().format(TextUtils.DATE_TIME_FORMATTER));
+            var localDateTime = bid.time().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            timeLabel.setText(localDateTime.format(TextUtils.DATE_TIME_FORMATTER));
             timeLabel.setVisible(true);
         } else {
             timeLabel.setVisible(false);
