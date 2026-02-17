@@ -88,8 +88,7 @@ public abstract class Request {
     @ToString.Include
     private Double loadingMeter;
 
-    @Column(length = 1000)
-    @ToString.Include
+    @Column(columnDefinition = "text")
     private String comments;
 
     @Column(nullable = false)

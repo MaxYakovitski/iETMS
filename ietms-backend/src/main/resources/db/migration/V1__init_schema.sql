@@ -10,7 +10,7 @@ CREATE TABLE public.bids (
     "time" timestamptz NOT NULL,
     user_id bigint NOT NULL,
     version bigint,
-    comment character varying(255)
+    comment text
 );
 
 
@@ -219,7 +219,7 @@ CREATE TABLE public.requests (
     version bigint,
     request_type character varying(31) NOT NULL,
     refuse_reason character varying(64),
-    comments character varying(1000),
+    comments text,
     customer_reference character varying(255),
     shipment_type character varying(255) NOT NULL,
     status character varying(255) NOT NULL,
@@ -260,7 +260,7 @@ CREATE TABLE public.shipment (
     version bigint,
     license_plate character varying(250),
     transport_order character varying(250),
-    comments character varying(1000),
+    comments text,
     cancel_reason character varying(255),
     status character varying(255) NOT NULL,
     CONSTRAINT shipment_cancel_reason_check CHECK (((cancel_reason)::text = ANY ((ARRAY['CANCELLED_BY_CLIENT'::character varying, 'CANCELLED_BY_US'::character varying])::text[]))),

@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/iet
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://localhost:5432/ietms
+    username: ietms_user
+    password: ietms
     driver-class-name: org.postgresql.Driver
 
   jpa:
