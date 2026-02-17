@@ -2,7 +2,7 @@ package com.mayak.ietms.shipment.dto.view;
 
 import com.mayak.ietms.shipment.dto.enums.ShipmentStatusDto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record ShipmentUpdateDto(
         Long shipmentId,
@@ -11,5 +11,5 @@ public record ShipmentUpdateDto(
         ShipmentStatusDto status,
         String licensePlate,
         String transportOrder,
-        LocalDateTime statusAt) {
+        Instant statusAt) {
 }

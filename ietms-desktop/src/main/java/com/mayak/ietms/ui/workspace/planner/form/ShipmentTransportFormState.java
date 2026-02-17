@@ -5,7 +5,9 @@ import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentUpdateDto;
 import com.mayak.ietms.infrastructure.common.TextUtils;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Objects;
 
 public class ShipmentTransportFormState {
@@ -77,6 +79,11 @@ public class ShipmentTransportFormState {
             return null;
         }
 
+        Instant instantStatusAt = null;
+        if (statusToSend != null && statusAt != null) {
+            instantStatusAt = statusAt.atZone(ZoneId.systemDefault()).toInstant();
+        }
+
         return new ShipmentUpdateDto(
                 shipmentId,
                 carrierToSend,
@@ -84,7 +91,7 @@ public class ShipmentTransportFormState {
                 statusToSend,
                 licenseToSend,
                 orderToSend,
-                statusToSend != null ? statusAt : null
+                instantStatusAt
         );
     }
 

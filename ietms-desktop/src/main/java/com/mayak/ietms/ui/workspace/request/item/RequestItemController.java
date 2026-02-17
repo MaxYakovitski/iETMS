@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
@@ -147,7 +148,8 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
 
         authorFullName.setText(dto.author().fullName());
 
-        requestDateTime.setText(dto.issueDate().format(TextUtils.DATE_TIME_FORMATTER));
+        var localDateTime = dto.issueDate().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        requestDateTime.setText(localDateTime.format(TextUtils.DATE_TIME_FORMATTER));
 
         ItemStyleUtils.applyDefaultTextColor(
                 customerReference, customer, dataStart,

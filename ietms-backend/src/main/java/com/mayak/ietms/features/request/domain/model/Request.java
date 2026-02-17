@@ -13,6 +13,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -107,7 +108,7 @@ public abstract class Request {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime issueDate;
+    private Instant issueDate;
 
     @Column(precision = 7, scale = 2)
     private BigDecimal clientPrice;
