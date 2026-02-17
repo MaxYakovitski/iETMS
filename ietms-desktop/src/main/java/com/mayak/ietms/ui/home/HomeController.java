@@ -21,6 +21,7 @@ import com.mayak.ietms.ui.workspace.request.transport.TransportRequestController
 import com.mayak.ietms.infrastructure.window.WindowService;
 import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
+import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -32,6 +33,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -58,6 +60,8 @@ public class HomeController {
     private final UserClient userClient;
     private final WindowService windowService;
     private NavigationService navigation;
+
+    private final PauseTransition searchDebounce = new PauseTransition(Duration.millis(300));
 
     @Setter private RequestsParent requestsParent;
     private ViewLifecycle currentViewController;
@@ -88,8 +92,13 @@ public class HomeController {
             log.error("Failed to load current user", e);
         }
 
-        searchField.textProperty().addListener((text, oldText, newText) -> {
-            if (requestsParent != null) handleSearch(newText);
+        searchField.textProperty().addListener((obs, oldText, newText) -> {
+            searchDebounce.setOnFinished(event -> {
+                if (requestsParent != null) {
+                    handleSearch(newText);
+                }
+            });
+            searchDebounce.playFromStart();
         });
     }
 
