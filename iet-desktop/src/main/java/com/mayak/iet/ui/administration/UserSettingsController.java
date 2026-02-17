@@ -265,6 +265,11 @@ public class UserSettingsController extends AbstractSettingsController<UserRespo
         );
     }
 
+    @Override
+    protected boolean canEdit() {
+        return permissions != null && permissions.canViewAdministration();
+    }
+
     private void hideAllComboBoxPopups() {
         userTypeCombo.hide();
         userRoleCombo.hide();

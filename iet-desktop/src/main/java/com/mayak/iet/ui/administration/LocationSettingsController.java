@@ -137,4 +137,9 @@ public class LocationSettingsController extends AbstractSettingsController<Locat
                 "placeName", placeNameField
         );
     }
+
+    @Override
+    protected boolean canEdit() {
+        return permissions != null && permissions.canViewAdministration();
+    }
 }

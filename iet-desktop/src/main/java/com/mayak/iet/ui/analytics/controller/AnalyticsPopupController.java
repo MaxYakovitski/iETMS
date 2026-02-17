@@ -1,13 +1,15 @@
 package com.mayak.iet.ui.analytics.controller;
 
+import com.mayak.iet.infrastructure.window.HoverSubmenuTracker;
 import com.mayak.iet.support.enums.View;
 import com.mayak.iet.ui.core.BasePopupController;
 import com.mayak.iet.ui.navigation.ModalOptions;
 import com.mayak.iet.ui.navigation.NavigationType;
 import com.mayak.iet.infrastructure.window.PopupMenuUtils;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.stage.Popup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,26 +24,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AnalyticsPopupController extends BasePopupController {
 
-    @FXML public Button reportButton;
-    @FXML public Button statisticsButton;
+    @FXML public HBox statisticsRow, reportRow;
     @FXML public ImageView arrowIcon;
 
     private Popup submenuPopup;
 
     @Override
     public void onShow() {
-        boolean canViewAnalytics =
-                permissions != null && permissions.canViewAnalytics();
+        boolean canViewAnalytics = permissions != null && permissions.canViewAnalytics();
 
-        statisticsButton.setVisible(canViewAnalytics);
-        statisticsButton.setManaged(canViewAnalytics);
+        statisticsRow.setVisible(canViewAnalytics);
+        statisticsRow.setManaged(canViewAnalytics);
 
         arrowIcon.setVisible(canViewAnalytics);
         arrowIcon.setManaged(canViewAnalytics);
 
-        if (canViewAnalytics) {
-            PopupMenuUtils.setArrowClosed(arrowIcon);
-        }
+        statisticsRow.addEventHandler(MouseEvent.MOUSE_MOVED, e -> {
+            if (submenuPopup == null || !submenuPopup.isShowing()) {
+                openSubmenu();
+            }
+        });
     }
 
     @FXML
@@ -54,33 +56,25 @@ public class AnalyticsPopupController extends BasePopupController {
                 new ModalOptions("Statistics report", "/icons/graph.png"));
     }
 
-    @FXML
-    public void handleStatistics() {
-        if (submenuPopup != null && submenuPopup.isShowing()) {
-            submenuPopup.hide();
-            return;
-        }
-        openSubmenu();
-    }
-
     private void openSubmenu() {
+        if (submenuPopup != null && submenuPopup.isShowing()) return;
+
         submenuPopup = PopupMenuUtils.openPopupMenu(
-                arrowIcon,
-                arrowIcon,
+                statisticsRow,
                 List.of(
-                        PopupMenuUtils.menuButton(
+                        PopupMenuUtils.menuRow(
                                 "Departments",
                                 () -> navigate(View.STATISTICS_DEPARTMENT),
                                 popup,
                                 submenuPopup
                         ),
-                        PopupMenuUtils.menuButton(
+                        PopupMenuUtils.menuRow(
                                 "Employees",
                                 () -> navigate(View.STATISTICS_EMPLOYEES),
                                 popup,
                                 submenuPopup
                         ),
-                        PopupMenuUtils.menuButton(
+                        PopupMenuUtils.menuRow(
                                 "Companies",
                                 () -> navigate(View.STATISTICS_COMPANIES),
                                 popup,
@@ -88,6 +82,8 @@ public class AnalyticsPopupController extends BasePopupController {
                         )
                 )
         );
+        submenuPopup.setOnHidden(e -> submenuPopup = null);
+        HoverSubmenuTracker.track(statisticsRow, submenuPopup);
     }
 
     private void navigate(View view) {

@@ -1,5 +1,6 @@
 package com.mayak.iet.ui.workspace;
 
+import com.mayak.iet.infrastructure.window.HoverSubmenuTracker;
 import com.mayak.iet.request.dto.enums.RequestTypeDto;
 import com.mayak.iet.ui.core.BasePopupController;
 import com.mayak.iet.ui.navigation.NavigationType;
@@ -7,8 +8,8 @@ import com.mayak.iet.ui.workspace.request.transport.TransportRequestController;
 import com.mayak.iet.support.enums.View;
 import com.mayak.iet.infrastructure.window.PopupMenuUtils;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.stage.Popup;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WorkspacePopupController extends BasePopupController {
 
-    @FXML public Button plannerButton;
+    @FXML public HBox requestsRow, plannerRow;
     @FXML public ImageView arrowIcon;
 
     private Popup submenuPopup;
@@ -35,17 +36,32 @@ public class WorkspacePopupController extends BasePopupController {
 
     @Override
     public void onShow() {
-        boolean showArrow =
-                permissions != null
-                        && permissions.canViewTransportRequests()
-                        && !permissions.isAdmin();
+        boolean canClient = permissions.canViewClientRequests();
+        boolean canTransport = permissions.canViewTransportRequests();
+        boolean isAdmin = permissions.isAdmin();
+
+        boolean showArrow = canTransport && !isAdmin;
 
         arrowIcon.setVisible(showArrow);
         arrowIcon.setManaged(showArrow);
 
+        requestsRow.setOnMouseMoved(null);
+        requestsRow.setOnMouseClicked(null);
+
         if (showArrow) {
-            PopupMenuUtils.setArrowClosed(arrowIcon);
+            requestsRow.setOnMouseMoved(e -> {
+                if (submenuPopup == null || !submenuPopup.isShowing()) {
+                    openSubmenu();
+                }
+            });
+        } else if (canClient) {
+            requestsRow.setOnMouseClicked(e -> {
+                popup.hide();
+                navigation.navigate(View.REQUESTS_CLIENT, NavigationType.GLOBAL);
+                homeController.showRequestButtons(true);
+            });
         }
+
     }
 
     @FXML
@@ -79,17 +95,18 @@ public class WorkspacePopupController extends BasePopupController {
     }
 
     private void openSubmenu() {
+        if (submenuPopup != null && submenuPopup.isShowing()) return;
+
         submenuPopup = PopupMenuUtils.openPopupMenu(
-                arrowIcon,
-                arrowIcon,
+                requestsRow,
                 List.of(
-                        PopupMenuUtils.menuButton(
+                        PopupMenuUtils.menuRow(
                                 "Spot",
                                 () -> navigateTransport(RequestTypeDto.SPOT),
                                 popup,
                                 submenuPopup
                         ),
-                        PopupMenuUtils.menuButton(
+                        PopupMenuUtils.menuRow(
                                 "Contract",
                                 () -> navigateTransport(RequestTypeDto.CONTRACT),
                                 popup,
@@ -97,6 +114,9 @@ public class WorkspacePopupController extends BasePopupController {
                         )
                 )
         );
+
+        submenuPopup.setOnHidden(e -> submenuPopup = null);
+        HoverSubmenuTracker.track(requestsRow, submenuPopup);
     }
 
     private void navigateTransport(RequestTypeDto type) {

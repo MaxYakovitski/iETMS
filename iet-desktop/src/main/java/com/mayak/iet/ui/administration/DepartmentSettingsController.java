@@ -131,4 +131,9 @@ public class DepartmentSettingsController extends AbstractSettingsController<Dep
                 "name", deptNameField,
                 "code", deptCodeField);
     }
+
+    @Override
+    protected boolean canEdit() {
+        return permissions != null && permissions.canViewAdministration();
+    }
 }

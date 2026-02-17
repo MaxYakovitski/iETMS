@@ -260,9 +260,8 @@
 .popup-content {
     -fx-background-color: rgba(226, 226, 226, 0.9);
     -fx-background-radius: 5;
-    -fx-border-color: #ffffff;
+    -fx-border-color: #c8c8c8;
     -fx-border-radius: 5;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 2);
 }
 
 .popup-button {
