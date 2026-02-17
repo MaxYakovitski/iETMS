@@ -8,7 +8,7 @@
 <?import javafx.geometry.Insets?>
 <VBox xmlns="http://javafx.com/javafx/21.0.7"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.mayak.iet.ui.analytics.controller.AnalyticsPopupController"
+      fx:controller="com.mayak.ietms.ui.analytics.controller.AnalyticsPopupController"
       styleClass="popup-content"
       stylesheets="@/css/styles.css">
 

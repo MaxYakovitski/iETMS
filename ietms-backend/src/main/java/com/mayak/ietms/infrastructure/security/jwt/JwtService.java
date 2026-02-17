@@ -1,0 +1,61 @@
+package com.mayak.ietms.infrastructure.security.jwt;
+
+import com.mayak.ietms.features.user.domain.enums.Permission;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.SecretKey;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
+@Service
+public class JwtService {
+
+    private static final String SECRET =
+            "dev-secret-key-should-be-at-least-32-characters";
+
+    private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes());
+
+    private static final long EXPIRATION_MS = 1000 * 60 * 60 * 9;
+
+    public String generateToken(Long userId, String email,  Collection<Permission> permissions) {
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("email", email)
+                .claim("authorities", permissions.stream().map(Permission::name).toList())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .signWith(key)
+                .compact();
+    }
+
+    public Long extractUserId(String token) {
+        return Long.valueOf(
+                Jwts.parser()
+                        .verifyWith(key)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload()
+                        .getSubject()
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<? extends GrantedAuthority> extractAuthorities(String token) {
+        Collection<String> perms =
+                (Collection<String>) Jwts.parser()
+                        .verifyWith(key)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload()
+                        .get("authorities");
+
+        return perms.stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+    }
+}

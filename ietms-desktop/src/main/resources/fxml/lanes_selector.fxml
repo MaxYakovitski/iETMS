@@ -6,7 +6,7 @@
 
 <VBox xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.mayak.iet.ui.component.LaneSelectorController"
+      fx:controller="com.mayak.ietms.ui.component.LaneSelectorController"
       stylesheets="@../css/styles.css"
       styleClass="app-root"
       spacing="10">

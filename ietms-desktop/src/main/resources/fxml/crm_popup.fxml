@@ -6,7 +6,7 @@
 
 <VBox xmlns="http://javafx.com/javafx/21.0.7"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.mayak.iet.ui.crm.CrmPopupController"
+      fx:controller="com.mayak.ietms.ui.crm.CrmPopupController"
       styleClass="popup-content"
       stylesheets="@/css/styles.css">
 

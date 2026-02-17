@@ -7,7 +7,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/21.0.7"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.mayak.iet.ui.workspace.request.client.ClientRequestsController"
+            fx:controller="com.mayak.ietms.ui.workspace.request.client.ClientRequestsController"
             stylesheets="@../css/styles.css">
 
     <!-- LEFT: REQUEST FORM -->
