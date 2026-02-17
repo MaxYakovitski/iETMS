@@ -60,7 +60,7 @@ jobs:
         id: msi
         shell: bash
         run: |
-          MSI=$(ls iet-desktop/target/installer/*.msi)
+          MSI=$(ls ietms-desktop/target/installer/*.msi)
           echo "file=$MSI" >> $GITHUB_OUTPUT
           echo "MSI found: $MSI"
 
