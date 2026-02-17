@@ -6,16 +6,16 @@
 
     <parent>
         <groupId>com.mayak.iet</groupId>
-        <artifactId>iet-parent</artifactId>
+        <artifactId>ietms-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>iet-contract</artifactId>
+    <artifactId>ietms-contract</artifactId>
     <version>0.1.0</version>
     <packaging>jar</packaging>
 
-    <name>iet-contract</name>
+    <name>ietms-contract</name>
     <description>Shared contracts (DTOs, events) between backend and desktop</description>
 
     <dependencies>

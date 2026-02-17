@@ -3,14 +3,14 @@
 
     <parent>
         <groupId>com.mayak.iet</groupId>
-        <artifactId>iet-parent</artifactId>
+        <artifactId>ietms-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>iet-desktop-updater</artifactId>
+    <artifactId>ietms-desktop-updater</artifactId>
     <packaging>jar</packaging>
 
-    <name>iet-desktop-updater</name>
+    <name>ietms-desktop-updater</name>
 
     <build>
         <plugins>
