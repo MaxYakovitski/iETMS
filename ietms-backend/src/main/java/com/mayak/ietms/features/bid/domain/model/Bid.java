@@ -7,7 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 
 @Entity
@@ -38,7 +38,7 @@ public class Bid {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime time;
+    private Instant time;
 
     @Column(columnDefinition = "text")
     private String comment;
