@@ -1,15 +1,16 @@
 package com.mayak.ietms.shared.statistics;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.YearMonth;
+import java.time.ZoneOffset;
 
 public enum PeriodType {
     CURRENT_MONTH;
 
-    public LocalDateTime getStart() {
-        return YearMonth.now().atDay(1).atStartOfDay();
+    public Instant getStart() {
+        return YearMonth.now().atDay(1).atStartOfDay(ZoneOffset.UTC).toInstant();
     }
-    public LocalDateTime getEnd() {
-        return LocalDateTime.now();
+    public Instant getEnd() {
+        return Instant.now();
     }
 }

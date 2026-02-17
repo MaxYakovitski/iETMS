@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -60,8 +61,8 @@ ORDER BY
           AND r.issueDate BETWEEN :start AND :end
     """)
     int countByAuthorId(@Param("userId") Long userId,
-                        @Param("start") LocalDateTime start,
-                        @Param("end") LocalDateTime end);
+                        @Param("start") Instant start,
+                        @Param("end") Instant end);
 
     @Query("""
         SELECT COUNT(DISTINCT r)
@@ -70,8 +71,8 @@ ORDER BY
           AND r.issueDate BETWEEN :start AND :end
     """)
     int countByCompetitorsContains(@Param("userId") Long userId,
-                                   @Param("start") LocalDateTime start,
-                                   @Param("end") LocalDateTime end);
+                                   @Param("start") Instant start,
+                                   @Param("end") Instant end);
 
     @Query("""
         SELECT COUNT(DISTINCT b)
@@ -80,8 +81,8 @@ ORDER BY
           AND b.time BETWEEN :start AND :end
     """)
     int countDistinctByBidsUser(@Param("userId") Long userId,
-                                @Param("start") LocalDateTime start,
-                                @Param("end") LocalDateTime end);
+                                @Param("start") Instant start,
+                                @Param("end") Instant end);
 
     @Query("""
         SELECT COUNT(r)
@@ -90,8 +91,8 @@ ORDER BY
           AND r.issueDate BETWEEN :start AND :end
     """)
     int countByDispatchedUser(@Param("userId") Long userId,
-                            @Param("start") LocalDateTime start,
-                            @Param("end") LocalDateTime end);
+                            @Param("start") Instant start,
+                            @Param("end") Instant end);
 
 
     @Query("""
