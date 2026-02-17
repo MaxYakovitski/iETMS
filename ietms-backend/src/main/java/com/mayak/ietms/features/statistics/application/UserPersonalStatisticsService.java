@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +26,8 @@ public class UserPersonalStatisticsService {
     }
 
     private UserPersonalStats getStats(Long userId, PeriodType period) {
-        LocalDateTime from = period.getStart();
-        LocalDateTime to   = period.getEnd();
+        Instant from = period.getStart();
+        Instant to   = period.getEnd();
 
         return new UserPersonalStats(
                 MetricType.PLACED.count(requestRepository, userId, from, to),
