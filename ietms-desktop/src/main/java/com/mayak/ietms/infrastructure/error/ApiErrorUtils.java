@@ -26,7 +26,11 @@ public class ApiErrorUtils {
             case 401 -> UiError.error(backendMessage != null ? backendMessage : "You are not authorized to perform this action.");
             case 403 -> UiError.error("You do not have permission to perform this action.");
             case 404 -> UiError.warning(defaultMessage != null ? defaultMessage : "Requested resource was not found.");
-            case 409 -> UiError.warning(defaultMessage != null ? defaultMessage : "Operation is not allowed due to existing dependencies.");
+            case 409 -> UiError.warning( backendMessage != null
+                    ? backendMessage
+                    : defaultMessage != null
+                    ? defaultMessage
+                    : "Operation conflict.");
             case 500 -> UiError.error(defaultMessage != null ? defaultMessage : "Server error occurred. Please try again later.");
             default -> UiError.error(defaultMessage != null ? defaultMessage : "Unexpected error occurred.");
         };
