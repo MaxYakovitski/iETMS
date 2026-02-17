@@ -5,8 +5,8 @@ on:
     branches:
       - master
     paths-ignore:
-      - 'iet-desktop/**'
-      - 'iet-desktop-updater/**'
+      - 'ietms-desktop/**'
+      - 'ietms-desktop-updater/**'
       - '.github/workflows/desktop-*.yml'
       - '.github/workflows/desktop-ci.yml'
       - '.github/workflows/desktop*.yml'
@@ -28,7 +28,7 @@ jobs:
           java-version: 21
 
       - name: Build backend
-        run: mvn -B -pl iet-backend -am clean package -DskipTests
+        run: mvn -B -pl ietms-backend -am clean package -DskipTests
 
       - name: Prepare backend jar
         run: |
@@ -41,7 +41,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "iet-backend/target/iet-backend.jar"
+          source: "ietms-backend/target/ietms-backend.jar"
           target: "/opt/ietms/backend/app/"
           strip_components: 2
 

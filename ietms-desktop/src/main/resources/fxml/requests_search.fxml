@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.ietms.ui.workspace.request.search.SearchController"
+      prefWidth="270.0" minWidth="270.0" maxWidth="270.0"
+      stylesheets="@../css/styles.css"
+      styleClass="app-root">
+
+    <padding>
+        <Insets left="30" right="30" top="15" bottom="15"/>
+    </padding>
+        <TextField fx:id="searchField" alignment="CENTER"
+                   style="-fx-background-color: white; -fx-border-color: #c8c8c8; -fx-background-radius: 5; -fx-border-radius: 5;">
+        </TextField>
+</VBox>
