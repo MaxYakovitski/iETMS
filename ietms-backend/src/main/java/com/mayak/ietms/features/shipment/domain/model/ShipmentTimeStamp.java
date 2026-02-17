@@ -6,7 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Getter
@@ -27,9 +27,9 @@ public class ShipmentTimeStamp {
     private ShipmentStatus status;
 
     @Column(nullable = false)
-    private LocalDateTime at;
+    private Instant at;
 
-    public ShipmentTimeStamp(Shipment shipment, ShipmentStatus status, LocalDateTime at) {
+    public ShipmentTimeStamp(Shipment shipment, ShipmentStatus status, Instant at) {
         this.shipment = shipment;
         this.status = status;
         this.at = at;

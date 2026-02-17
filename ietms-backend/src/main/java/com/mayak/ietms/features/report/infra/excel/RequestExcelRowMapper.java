@@ -7,7 +7,10 @@ import com.mayak.ietms.features.request.domain.model.Request;
 import com.mayak.ietms.features.request.domain.model.SpotRequest;
 import org.apache.poi.ss.usermodel.*;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,7 +60,16 @@ public class RequestExcelRowMapper {
     private void setDate(Row row, int index, LocalDateTime dt, CellStyle style) {
         Cell cell = row.createCell(index);
         if (dt != null) {
-            cell.setCellValue(java.sql.Timestamp.valueOf(dt));
+            cell.setCellValue(Timestamp.valueOf(dt));
+            cell.setCellStyle(style);
+        }
+    }
+
+    private void setDate(Row row, int index, Instant instant, CellStyle style) {
+        Cell cell = row.createCell(index);
+        if (instant != null) {
+            LocalDateTime dt = LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+            cell.setCellValue(Timestamp.valueOf(dt));
             cell.setCellStyle(style);
         }
     }

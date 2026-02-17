@@ -12,6 +12,7 @@ import com.mayak.ietms.user.dto.UserLookupDto;
 import lombok.Builder;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -57,7 +58,7 @@ public record RequestDetailsDto (
         UserLookupDto dispatchedUser,
         UserLookupDto author,
 
-        LocalDateTime issueDate,
+        Instant issueDate,
         BigDecimal price,
         BigDecimal profitMargin,
         List<RefuseReasonOptionDto> refuseReasons,

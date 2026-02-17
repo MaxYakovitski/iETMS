@@ -7,7 +7,7 @@ CREATE TABLE public.bids (
     deleted boolean NOT NULL,
     id bigint NOT NULL,
     request_id bigint NOT NULL,
-    "time" timestamp(6) without time zone NOT NULL,
+    "time" timestamptz NOT NULL,
     user_id bigint NOT NULL,
     version bigint,
     comment character varying(255)
@@ -213,7 +213,7 @@ CREATE TABLE public.requests (
     dispatcher_id bigint,
     end_date timestamp(6) without time zone NOT NULL,
     id bigint NOT NULL,
-    issue_date timestamp(6) without time zone NOT NULL,
+    issue_date timestamptz NOT NULL,
     lane_id bigint,
     start_date timestamp(6) without time zone NOT NULL,
     version bigint,
@@ -273,7 +273,7 @@ CREATE TABLE public.shipment (
 --
 
 CREATE TABLE public.shipment_timestamp (
-    at timestamp(6) without time zone NOT NULL,
+    at timestamptz NOT NULL,
     id bigint NOT NULL,
     shipment_id bigint NOT NULL,
     status character varying(255) NOT NULL,

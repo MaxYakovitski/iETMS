@@ -8,6 +8,7 @@ import com.mayak.ietms.user.dto.UserNameDto;
 import lombok.Builder;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public record RequestListItemDto(
         String comments,
         RequestStatusDto status,
         UserNameDto author,
-        LocalDateTime issueDate,
+        Instant issueDate,
 
         BigDecimal totalPrice,
         UserNameDto dispatchedUser) {

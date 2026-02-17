@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 
 /**
  * Builds ShipmentListItemDto reflecting shipment state as of given date.
@@ -31,7 +32,7 @@ public class ShipmentListItemAssembler {
         ShipmentListItemDto dto = shipmentMapper.toListItemDto(shipment);
 
         var filteredTimestamps = dto.timestamps().stream()
-                .filter(t -> !t.at().toLocalDate().isAfter(date))
+                .filter(t -> !t.at().atZone(ZoneOffset.UTC).toLocalDate().isAfter(date))
                 .toList();
 
         return enrichCommon(dto.withTimestamps(filteredTimestamps), shipment);
@@ -48,7 +49,7 @@ public class ShipmentListItemAssembler {
         var timestamps = isLastPlannedDay
                 ? dto.timestamps()
                 : dto.timestamps().stream()
-                .filter(t -> !t.at().toLocalDate().isAfter(date))
+                .filter(t -> !t.at().atZone(ZoneOffset.UTC).toLocalDate().isAfter(date))
                 .toList();
 
         return enrichCommon(dto.withTimestamps(timestamps), shipment);

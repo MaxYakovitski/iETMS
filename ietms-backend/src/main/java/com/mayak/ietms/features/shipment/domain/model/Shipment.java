@@ -8,8 +8,9 @@ import com.mayak.ietms.shared.exception.business.DeliveryTimeLineException;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,18 +71,18 @@ public class Shipment {
     public Shipment(Request request) {
         this.request = request;
         this.status = ShipmentStatus.PLANNED;
-        addTimestamp(ShipmentStatus.PLANNED, LocalDateTime.now());
+        addTimestamp(ShipmentStatus.PLANNED, Instant.now());
         this.plannedLoadDate = request.getStartDate().toLocalDate();
         this.plannedDropDate = request.getEndDate().toLocalDate();
     }
 
-    private void addTimestamp(ShipmentStatus status, LocalDateTime at) {
+    private void addTimestamp(ShipmentStatus status, Instant at) {
         if (status == null) throw new IllegalArgumentException("Status must not be null");
         if (at == null) throw new IllegalArgumentException("Timestamp time must not be null");
         this.timestamps.add(new ShipmentTimeStamp(this, status, at));
     }
 
-    public void markLoaded(LocalDateTime at) {
+    public void markLoaded(Instant at) {
         if (!status.canTransitionTo(ShipmentStatus.LOADED)) {
             throw new IllegalStateException("Cannot mark as LOADED from " + status);
         }
@@ -89,7 +90,7 @@ public class Shipment {
         addTimestamp(ShipmentStatus.LOADED, at);
     }
 
-    public void markDropped(LocalDateTime at) {
+    public void markDropped(Instant at) {
         if (!status.canTransitionTo(ShipmentStatus.DROPPED)) {
             throw new IllegalStateException("Cannot mark as DROPPED from " + status);
         }
@@ -116,7 +117,7 @@ public class Shipment {
 
         this.status = ShipmentStatus.CANCELED;
         this.cancelReason = reason;
-        addTimestamp(ShipmentStatus.CANCELED, LocalDateTime.now());
+        addTimestamp(ShipmentStatus.CANCELED, Instant.now());
     }
 
     public void assignDispatcher(Long dispatcherId) {
@@ -147,16 +148,18 @@ public class Shipment {
         this.carrier = null;
     }
 
-    public void validateStatusChange(ShipmentStatus target, LocalDateTime at) {
+    public void validateStatusChange(ShipmentStatus target, Instant at) {
         if (target == ShipmentStatus.LOADED) {
-            if (at.toLocalDate().isBefore(plannedLoadDate)) {
+
+            LocalDate eventDate = at.atZone(ZoneOffset.UTC).toLocalDate();
+            if (eventDate.isBefore(plannedLoadDate)) {
                 throw new DeliveryTimeLineException("Loading time cannot be before planned load date");
             }
         }
 
 
         if (target == ShipmentStatus.DROPPED) {
-            LocalDateTime loadedAt = getLastTimestamp(ShipmentStatus.LOADED);
+            Instant loadedAt = getLastTimestamp(ShipmentStatus.LOADED);
 
             if (loadedAt == null) {
                 throw new DeliveryTimeLineException("Cannot drop shipment that was not loaded");
@@ -168,31 +171,29 @@ public class Shipment {
         }
     }
 
-    private LocalDateTime getLastTimestamp(ShipmentStatus status) {
+    private Instant getLastTimestamp(ShipmentStatus status) {
         return timestamps.stream()
                 .filter(t -> t.getStatus() == status)
                 .map(ShipmentTimeStamp::getAt)
-                .max(LocalDateTime::compareTo)
+                .max(Instant::compareTo)
                 .orElse(null);
     }
 
-    public LocalDateTime plannedAt() {return getLastTimestamp(ShipmentStatus.PLANNED);}
-    public LocalDateTime loadedAt() {return getLastTimestamp(ShipmentStatus.LOADED);}
-    public LocalDateTime droppedAt() {return getLastTimestamp(ShipmentStatus.DROPPED);}
-    public LocalDateTime canceledAt() {return getLastTimestamp(ShipmentStatus.CANCELED);}
-
-    public boolean isLoaded() {return loadedAt() != null;}
-    public boolean isDropped() {return droppedAt() != null;}
-    public boolean isCanceled() {return status == ShipmentStatus.CANCELED;}
+    public Instant plannedAt() {return getLastTimestamp(ShipmentStatus.PLANNED);}
+    public Instant loadedAt() {return getLastTimestamp(ShipmentStatus.LOADED);}
+    public Instant droppedAt() {return getLastTimestamp(ShipmentStatus.DROPPED);}
+    public Instant canceledAt() {return getLastTimestamp(ShipmentStatus.CANCELED);}
 
     public boolean isLoadedBeforeOrOn(LocalDate date) {
-        LocalDateTime t = loadedAt();
-        return t != null && !t.toLocalDate().isAfter(date);
+        Instant t = loadedAt();
+        LocalDate eventDate = t.atZone(ZoneOffset.UTC).toLocalDate();
+        return !eventDate.isAfter(date);
     }
 
     public boolean isDroppedBeforeOrOn(LocalDate date) {
-        LocalDateTime t = droppedAt();
-        return t != null && !t.toLocalDate().isAfter(date);
+        Instant t = droppedAt();
+        LocalDate eventDate = t.atZone(ZoneOffset.UTC).toLocalDate();
+        return !eventDate.isAfter(date);
     }
 
     public boolean isOwnedBy(Long userId) {
