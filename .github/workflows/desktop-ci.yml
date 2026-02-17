@@ -80,7 +80,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: iETMS-msi
-          path: iet-desktop/target/installer/*.msi
+          path: ietms-desktop/target/installer/*.msi
 
       # 8. Create GitHub Release
       - name: Create GitHub Release

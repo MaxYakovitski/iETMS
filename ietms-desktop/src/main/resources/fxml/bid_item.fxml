@@ -9,7 +9,7 @@
 <HBox xmlns="http://javafx.com/javafx/21.0.7"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:id="root"
-      fx:controller="com.mayak.iet.ui.workspace.request.item.bid.BidItemController"
+      fx:controller="com.mayak.ietms.ui.workspace.request.item.bid.BidItemController"
       styleClass="app-root"
       spacing="10" alignment="CENTER">
 

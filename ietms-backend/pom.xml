@@ -128,7 +128,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>com.mayak.iet.IetBackendApplication</mainClass>
+                    <mainClass>com.mayak.ietms.IetBackendApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

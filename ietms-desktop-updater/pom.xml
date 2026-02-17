@@ -21,7 +21,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.mayak.iet.updater.WindowsUpdaterMain</mainClass>
+                            <mainClass>com.mayak.ietms.updater.WindowsUpdaterMain</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -101,7 +101,7 @@
                                         <argument>${project.build.finalName}.jar</argument>
 
                                         <argument>--main-class</argument>
-                                        <argument>com.mayak.iet.updater.WindowsUpdaterMain</argument>
+                                        <argument>com.mayak.ietms.updater.WindowsUpdaterMain</argument>
 
                                         <argument>--win-console</argument>
                                     </arguments>

@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.Region?>
 <VBox xmlns="http://javafx.com/javafx/21.0.7"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.mayak.iet.ui.workspace.request.item.RequestMoreController"
+      fx:controller="com.mayak.ietms.ui.workspace.request.item.RequestMoreController"
       prefWidth="480.0" spacing="10"
       stylesheets="@../css/styles.css"
       styleClass="app-root">
