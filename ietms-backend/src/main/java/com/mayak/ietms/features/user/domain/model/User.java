@@ -36,6 +36,14 @@ public class User {
     @JsonIgnore
     private String password;
 
+    @Builder.Default
+    @Column(name = "token_version", nullable = false)
+    private Integer tokenVersion = 0;
+
+    public void incrementTokenVersion() {
+        this.tokenVersion = (this.tokenVersion == null) ? 1 : (this.tokenVersion + 1);
+    }
+
     @Enumerated(EnumType.STRING)
     @Column(name = "userType", nullable = false)
     private UserType userType;
