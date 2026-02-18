@@ -12,5 +12,6 @@ public interface UserUpdateMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "profile", ignore = true)
     @Mapping(target = "password", ignore = true)
+    @Mapping(target = "tokenVersion", ignore = true)
     void update(@MappingTarget User user, UserUpdateDto dto);
 }
