@@ -12,8 +12,8 @@
             fx:controller="com.mayak.ietms.ui.workspace.planner.item.ShipmentItemController"
             stylesheets="@../css/styles.css">
 
-    <HBox fx:id="requestPane" styleClass="request-pane" minHeight="60" spacing="5" alignment="CENTER">
-        <padding><Insets left="5" right="5"/></padding>
+    <HBox fx:id="requestPane" styleClass="request-pane" minHeight="60" spacing="5" alignment="CENTER"
+          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 
         <VBox fx:id="fromISOContainer" prefWidth="18" minHeight="60" spacing="5" alignment="CENTER"/>
         <VBox prefWidth="10" minHeight="60" alignment="CENTER">
@@ -92,7 +92,7 @@
         <VBox minHeight="60" alignment="CENTER">
             <Button fx:id="commentsButton"
                     contentDisplay="GRAPHIC_ONLY"
-                    style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent;"
                     onAction="#handleComments">
                 <graphic>
                     <ImageView fitHeight="30" fitWidth="30" pickOnBounds="true" preserveRatio="true">
@@ -103,14 +103,16 @@
         </VBox>
 
 
-        <VBox minHeight="60" prefWidth="110" alignment="CENTER">
+        <VBox minHeight="60" alignment="CENTER">
             <HBox alignment="CENTER_LEFT">
-                <Label fx:id="rIDLabel" text="r.ID:" minWidth="25"/>
-                <TextField fx:id="rId" focusTraversable="false" editable="false" styleClass="request-textfield"/>
+                <Label fx:id="rIDLabel" text="r.ID:"/>
+                <TextField fx:id="rId" focusTraversable="false" editable="false" prefWidth="90"
+                           styleClass="request-textfield"/>
             </HBox>
             <HBox alignment="CENTER_LEFT">
-                <Label fx:id="tIdLabel" text="t.ID:" minWidth="25"/>
-                <TextField fx:id="tId"  focusTraversable="false" editable="false" styleClass="request-textfield"/>
+                <Label fx:id="tIdLabel" text="t.ID:"/>
+                <TextField fx:id="tId"  focusTraversable="false" editable="false" prefWidth="90"
+                           styleClass="request-textfield"/>
             </HBox>
         </VBox>
 

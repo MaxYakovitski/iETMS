@@ -15,8 +15,6 @@
     <HBox fx:id="requestPane" styleClass="request-pane" minHeight="60" spacing="5" alignment="CENTER"
           AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 
-        <HBox prefWidth="5" minHeight="60"/>
-
         <VBox fx:id="fromISOContainer" prefWidth="18" minHeight="60" spacing="5" alignment="CENTER"/>
         <VBox prefWidth="10" minHeight="60" alignment="CENTER">
             <Line startX="-100" endX="-90"/>
@@ -167,7 +165,7 @@
         <VBox minHeight="60" alignment="CENTER">
             <HBox alignment="CENTER_LEFT">
                 <Label fx:id="rIDLabel" text="r.ID:"/>
-                <TextField fx:id="rId" focusTraversable="false" editable="false" prefWidth="85"
+                <TextField fx:id="rId" focusTraversable="false" editable="false" prefWidth="90"
                            styleClass="request-textfield"/>
             </HBox>
             <HBox alignment="CENTER_LEFT">
