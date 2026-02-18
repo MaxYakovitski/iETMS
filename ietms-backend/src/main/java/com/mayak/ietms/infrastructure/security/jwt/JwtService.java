@@ -20,13 +20,14 @@ public class JwtService {
 
     private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    private static final long EXPIRATION_MS = 1000 * 60 * 60 * 9;
+    private static final long EXPIRATION_MS = 1000 * 60 * 60 * 10;
 
-    public String generateToken(Long userId, String email,  Collection<Permission> permissions) {
+    public String generateToken(Long userId, String email,  Collection<Permission> permissions, Integer tokenVersion) {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("email", email)
                 .claim("authorities", permissions.stream().map(Permission::name).toList())
+                .claim("tv", tokenVersion)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
                 .signWith(key)
@@ -57,5 +58,24 @@ public class JwtService {
         return perms.stream()
                 .map(SimpleGrantedAuthority::new)
                 .toList();
+    }
+
+    public Integer extractTokenVersion(String token) {
+        Object value = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("tv");
+
+        if (value instanceof Integer i) {
+            return i;
+        }
+
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+
+        return null;
     }
 }

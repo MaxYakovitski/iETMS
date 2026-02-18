@@ -9,9 +9,11 @@ import com.mayak.ietms.infrastructure.window.WindowService;
 import com.mayak.ietms.integration.auth.AuthClient;
 import com.mayak.ietms.integration.auth.AuthState;
 import com.mayak.ietms.integration.exception.ApiException;
+import com.mayak.ietms.integration.exception.SessionExpiredException;
 import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.auth.LoginController;
 import com.mayak.ietms.ui.auth.LoginRequest;
+import com.mayak.ietms.ui.core.SessionManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Parent;
@@ -84,6 +86,18 @@ public class JavaFxApplication extends Application {
 
     private void showMainStage(ConfigurableApplicationContext ctx) {
         this.springContext = ctx;
+
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            Throwable t = throwable;
+            while (t.getCause() != null) t = t.getCause();
+
+            if (t instanceof SessionExpiredException) {
+                ctx.getBean(SessionManager.class).handleSessionExpired();
+                return;
+            }
+
+            log.error("Unhandled exception", throwable);
+        });
 
         WindowService windowService = ctx.getBean(WindowService.class);
         AlertUtils.setWindowService(windowService);

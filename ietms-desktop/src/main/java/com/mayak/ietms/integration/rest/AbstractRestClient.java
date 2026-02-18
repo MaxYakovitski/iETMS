@@ -3,6 +3,7 @@ package com.mayak.ietms.integration.rest;
 import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.integration.exception.ApiValidationException;
+import com.mayak.ietms.integration.exception.SessionExpiredException;
 import lombok.AllArgsConstructor;
 import org.springframework.web.client.*;
 
@@ -32,6 +33,10 @@ public class AbstractRestClient {
 
         int status = ex.getStatusCode().value();
         String body = ex.getResponseBodyAsString();
+
+        if (status == 401) {
+            return new SessionExpiredException();
+        }
 
         if (status == 400 && body.contains("\"errors\"")) {
             return ApiValidationException.fromResponse(ex);

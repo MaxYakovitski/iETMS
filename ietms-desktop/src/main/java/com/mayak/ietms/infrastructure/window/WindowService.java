@@ -1,5 +1,6 @@
 package com.mayak.ietms.infrastructure.window;
 
+import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.connection.ConnectionOverlayController;
 import com.mayak.ietms.ui.core.ViewLifecycle;
 import javafx.animation.FadeTransition;
@@ -394,6 +395,27 @@ public class WindowService {
                 primaryStage.show();
                 primaryStage.toFront();
                 primaryStage.requestFocus();
+            }
+        });
+    }
+
+    public void forceLogout() {
+
+        Platform.runLater(() -> {
+            log.warn("Forcing logout due to session expiration");
+
+            closeAllDetachedWindows();
+            try {
+
+                Loaded<?> loaded = loadControllerWithNode(View.LOGIN.getPath());
+
+                Scene scene = new Scene(loaded.node());
+                primaryStage.setScene(scene);
+                primaryStage.centerOnScreen();
+                primaryStage.show();
+
+            } catch (Exception e) {
+                log.error("Failed to load login screen during force logout", e);
             }
         });
     }

@@ -1,5 +1,7 @@
 package com.mayak.ietms.infrastructure.security.jwt;
 
+import com.mayak.ietms.features.user.domain.model.User;
+import com.mayak.ietms.features.user.infra.persistence.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +23,7 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -41,10 +44,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-
         try {
             String token = authHeader.substring(7);
             Long userId = jwtService.extractUserId(token);
+            Integer tokenVersion = jwtService.extractTokenVersion(token);
+
+            User user = userRepository.findById(userId).orElseThrow();
+            if (!user.getTokenVersion().equals(tokenVersion)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
             var authorities = jwtService.extractAuthorities(token);
             var authentication = new UsernamePasswordAuthenticationToken(userId, null, authorities);
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -53,6 +63,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         } catch (Exception e) {
             SecurityContextHolder.clearContext();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
 
         filterChain.doFilter(request, response);
