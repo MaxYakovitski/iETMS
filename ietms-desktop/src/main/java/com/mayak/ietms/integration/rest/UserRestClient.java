@@ -2,6 +2,7 @@ package com.mayak.ietms.integration.rest;
 
 import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.api.UserClient;
+import com.mayak.ietms.ui.core.SessionManager;
 import com.mayak.ietms.user.dto.*;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -18,8 +19,8 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
 
     private static final String API = "/api/users";
 
-    public UserRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
-        super(restTemplate, connectionMonitor);
+    public UserRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
+        super(restTemplate, connectionMonitor, sessionManager);
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.mayak.ietms.shipment.dto.enums.ShipmentCancelReasonDto;
 import com.mayak.ietms.shipment.dto.view.MyTransportEventDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentUpdateDto;
+import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -21,8 +22,8 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
 
     private static final String API = "/api/shipments";
 
-    public ShipmentRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
-        super(restTemplate, connectionMonitor);
+    public ShipmentRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
+        super(restTemplate, connectionMonitor, sessionManager);
     }
 
     @Override

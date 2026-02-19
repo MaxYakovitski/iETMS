@@ -4,6 +4,7 @@ import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.integration.exception.ApiValidationException;
 import com.mayak.ietms.integration.exception.SessionExpiredException;
+import com.mayak.ietms.ui.core.SessionManager;
 import lombok.AllArgsConstructor;
 import org.springframework.web.client.*;
 
@@ -14,6 +15,7 @@ public class AbstractRestClient {
 
     protected final RestTemplate restTemplate;
     protected final BackendConnectionMonitor connectionMonitor;
+    protected final SessionManager sessionManager;
 
     protected <T> T exchangeSafely(Supplier<T> supplier) {
         return execute(() -> {
@@ -51,6 +53,10 @@ public class AbstractRestClient {
             connectionMonitor.markConnected();
             return result;
         } catch (HttpStatusCodeException e) {
+            if (e.getStatusCode().value() == 401) {
+                sessionManager.handleSessionExpired();
+            }
+
             connectionMonitor.markConnected();
             throw e;
         } catch (ResourceAccessException e) {

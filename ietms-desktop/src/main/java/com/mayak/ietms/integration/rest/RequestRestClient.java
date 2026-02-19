@@ -11,6 +11,7 @@ import com.mayak.ietms.request.dto.filter.RequestFilterDto;
 import com.mayak.ietms.request.dto.view.RequestDetailsDto;
 import com.mayak.ietms.request.dto.view.RequestListItemDto;
 import com.mayak.ietms.integration.api.RequestClient;
+import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,8 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
 
     private static final String API = "/api/requests";
 
-    public RequestRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
-        super(restTemplate, connectionMonitor);
+    public RequestRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
+        super(restTemplate, connectionMonitor, sessionManager);
     }
 
     @Override

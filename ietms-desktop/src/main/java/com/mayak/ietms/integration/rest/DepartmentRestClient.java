@@ -4,6 +4,7 @@ import com.mayak.ietms.department.dto.DepartmentCreateDto;
 import com.mayak.ietms.department.dto.DepartmentDto;
 import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.api.DepartmentClient;
+import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -17,8 +18,8 @@ public class DepartmentRestClient extends AbstractRestClient implements Departme
 
     private static final String API = "/api/departments";
 
-    public DepartmentRestClient(RestTemplate restTemplate,  BackendConnectionMonitor connectionMonitor) {
-        super(restTemplate,   connectionMonitor);
+    public DepartmentRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
+        super(restTemplate,   connectionMonitor, sessionManager);
     }
 
     @Override

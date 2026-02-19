@@ -1,6 +1,5 @@
 package com.mayak.ietms.infrastructure.window;
 
-import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.connection.ConnectionOverlayController;
 import com.mayak.ietms.ui.core.ViewLifecycle;
 import javafx.animation.FadeTransition;
@@ -42,7 +41,11 @@ public class WindowService {
     private Parent connectionOverlay;
     private ConnectionOverlayController connectionOverlayController;
 
-    @Getter @Setter private Stage primaryStage;
+    @Getter @Setter
+    private Stage primaryStage;
+
+    @Setter
+    private Runnable loginCallback;
 
     public <T> void openModalWindow(String fxmlPath,
                                     Class<T> controllerClass,
@@ -400,22 +403,16 @@ public class WindowService {
     }
 
     public void forceLogout() {
-
         Platform.runLater(() -> {
-            log.warn("Forcing logout due to session expiration");
 
-            closeAllDetachedWindows();
-            try {
+            for (Window w : Window.getWindows()) {
+                if (w instanceof Stage s) {
+                    try { s.close(); } catch (Exception ignored) {}
+                }
+            }
 
-                Loaded<?> loaded = loadControllerWithNode(View.LOGIN.getPath());
-
-                Scene scene = new Scene(loaded.node());
-                primaryStage.setScene(scene);
-                primaryStage.centerOnScreen();
-                primaryStage.show();
-
-            } catch (Exception e) {
-                log.error("Failed to load login screen during force logout", e);
+            if (loginCallback != null) {
+                loginCallback.run();
             }
         });
     }

@@ -4,6 +4,7 @@ import com.mayak.ietms.company.dto.CompanyCreateDto;
 import com.mayak.ietms.company.dto.CompanyDto;
 import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.api.CompanyClient;
+import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -18,8 +19,8 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
 
     private static final String API = "/api/companies";
 
-    public CompanyRestClient(RestTemplate restTemplate,  BackendConnectionMonitor connectionMonitor) {
-        super(restTemplate,  connectionMonitor);
+    public CompanyRestClient(RestTemplate restTemplate,  BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
+        super(restTemplate,  connectionMonitor, sessionManager);
     }
 
     @Override
