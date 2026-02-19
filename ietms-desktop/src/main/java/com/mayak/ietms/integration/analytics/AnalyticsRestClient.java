@@ -5,6 +5,7 @@ import com.mayak.ietms.integration.rest.AbstractRestClient;
 import com.mayak.ietms.analytics.AnalyticsFilterDto;
 import com.mayak.ietms.analytics.AnalyticsReportDto;
 import com.mayak.ietms.company.dto.CompanyDto;
+import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,8 @@ public class AnalyticsRestClient extends AbstractRestClient implements Analytics
 
     private static final String API = "/api/analytics";
 
-    public AnalyticsRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
-        super(restTemplate, connectionMonitor);
+    public AnalyticsRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
+        super(restTemplate, connectionMonitor, sessionManager);
     }
 
     @Override

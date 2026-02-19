@@ -4,6 +4,7 @@ import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.lane.dto.LaneCreateDto;
 import com.mayak.ietms.lane.dto.LaneViewDto;
 import com.mayak.ietms.integration.api.LaneClient;
+import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,8 @@ public class LaneRestClient extends AbstractRestClient implements LaneClient {
 
     private static final String API = "/api/lanes";
 
-    public LaneRestClient(RestTemplate restTemplate,  BackendConnectionMonitor connectionMonitor) {
-        super(restTemplate, connectionMonitor);
+    public LaneRestClient(RestTemplate restTemplate,  BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
+        super(restTemplate, connectionMonitor, sessionManager);
     }
 
     @Override

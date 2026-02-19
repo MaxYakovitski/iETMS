@@ -4,6 +4,7 @@ import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.request.dto.bid.BidCreateDto;
 import com.mayak.ietms.request.dto.bid.BidViewDto;
 import com.mayak.ietms.integration.api.BidClient;
+import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -18,8 +19,8 @@ public class BidRestClient extends AbstractRestClient implements BidClient {
 
     private static final String API = "/api/bids";
 
-    public BidRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
-        super(restTemplate,  connectionMonitor);
+    public BidRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor,  SessionManager sessionManager) {
+        super(restTemplate,  connectionMonitor, sessionManager);
     }
 
     @Override

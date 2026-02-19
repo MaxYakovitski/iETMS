@@ -20,7 +20,6 @@ public class SessionManager {
         Platform.runLater(() -> {
             AlertUtils.showWarning("Session expired!\nYou logged in from another device.");
             windowService.forceLogout();
-            logoutInProgress = false;
         });
     }
 }

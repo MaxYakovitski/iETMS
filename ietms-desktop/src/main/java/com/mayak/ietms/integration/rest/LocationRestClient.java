@@ -4,6 +4,7 @@ import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.location.dto.LocationCreateDto;
 import com.mayak.ietms.location.dto.LocationDto;
 import com.mayak.ietms.integration.api.LocationClient;
+import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -17,8 +18,8 @@ public class LocationRestClient extends AbstractRestClient implements LocationCl
 
     private static final String API = "/api/locations";
 
-    public LocationRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
-        super(restTemplate, connectionMonitor);
+    public LocationRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
+        super(restTemplate, connectionMonitor, sessionManager);
     }
 
     @Override
