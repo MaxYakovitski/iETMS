@@ -14,6 +14,7 @@
     </parent>
 
     <artifactId>ietms-desktop</artifactId>
+    <version>0.1.10</version>
     <packaging>jar</packaging>
 
     <name>ietms-desktop</name>
@@ -143,7 +144,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Implementation-Version>${app.version}</Implementation-Version>
+                            <Implementation-Version>${project.version}</Implementation-Version>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -160,36 +161,7 @@
             <build>
                 <plugins>
 
-                    <!-- 1. Капіруем desktop-updater -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <version>3.3.1</version>
-                        <executions>
-                            <execution>
-                                <id>copy-updater</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>
-                                        ${project.build.directory}/jpackage-input/app/updater
-                                    </outputDirectory>
-                                    <resources>
-                                        <resource>
-                                            <directory>
-                                                ${project.parent.basedir}/ietms-desktop-updater/target/updater-image/iETMS-Updater
-                                            </directory>
-                                            <filtering>false</filtering>
-                                        </resource>
-                                    </resources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-
-                    <!-- 2. Капіруем desktop -->
+                    <!-- 1. Капіруем main jar -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-dependency-plugin</artifactId>
@@ -197,18 +169,19 @@
                         <executions>
 
                             <execution>
-                                <id>copy-desktop</id>
+                                <id>copy-main-jar</id>
                                 <phase>package</phase>
-                                <goals><goal>copy</goal></goals>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
                                             <groupId>${project.groupId}</groupId>
                                             <artifactId>${project.artifactId}</artifactId>
                                             <version>${project.version}</version>
-                                            <destFileName>${project.build.finalName}.jar</destFileName>
                                             <outputDirectory>
-                                                ${project.build.directory}/jpackage-input/app
+                                                ${project.build.directory}/jpackage-input
                                             </outputDirectory>
                                         </artifactItem>
                                     </artifactItems>
@@ -216,12 +189,14 @@
                             </execution>
 
                             <execution>
-                                <id>copy-lib</id>
+                                <id>copy-dependencies</id>
                                 <phase>package</phase>
-                                <goals><goal>copy-dependencies</goal></goals>
+                                <goals>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
                                 <configuration>
                                     <outputDirectory>
-                                        ${project.build.directory}/jpackage-input/app/lib
+                                        ${project.build.directory}/jpackage-input/lib
                                     </outputDirectory>
                                 </configuration>
                             </execution>
@@ -229,6 +204,7 @@
                         </executions>
                     </plugin>
 
+                    <!-- 2. jpackage -->
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
@@ -237,15 +213,53 @@
                             <execution>
                                 <id>build-msi</id>
                                 <phase>package</phase>
-                                <goals><goal>exec</goal></goals>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
                                 <configuration>
                                     <executable>jpackage</executable>
                                     <arguments>
+
+                                        <argument>--type</argument>
+                                        <argument>msi</argument>
+
+                                        <argument>--name</argument>
+                                        <argument>iETMS</argument>
+
+                                        <argument>--vendor</argument>
+                                        <argument>Maxim Yakovitski</argument>
+
                                         <argument>--app-version</argument>
-                                        <argument>${app.version}</argument>
-                                        <argument>
-                                            @${project.basedir}/src/main/resources/installer/jpackage-windows.properties
-                                        </argument>
+                                        <argument>${project.version}</argument>
+
+                                        <argument>--input</argument>
+                                        <argument>${project.build.directory}/jpackage-input</argument>
+
+                                        <argument>--main-jar</argument>
+                                        <argument>${project.build.finalName}.jar</argument>
+
+                                        <argument>--main-class</argument>
+                                        <argument>com.mayak.ietms.app.DesktopLauncher</argument>
+
+                                        <argument>--dest</argument>
+                                        <argument>${project.build.directory}/installer</argument>
+
+                                        <argument>--win-menu</argument>
+                                        <argument>--win-shortcut</argument>
+                                        <argument>--win-dir-chooser</argument>
+
+                                        <argument>--win-upgrade-uuid</argument>
+                                        <argument>548FEBED-D910-4079-9911-7AB6B0B66BE8</argument>
+
+                                        <argument>--icon</argument>
+                                        <argument>${project.build.outputDirectory}/installer/ietms.ico</argument>
+
+                                        <argument>--java-options</argument>
+                                        <argument>-Xms128m</argument>
+
+                                        <argument>--java-options</argument>
+                                        <argument>-Xmx512m</argument>
+
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -255,7 +269,6 @@
                 </plugins>
             </build>
         </profile>
-
     </profiles>
 
 </project>
