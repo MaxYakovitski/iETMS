@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -405,12 +406,15 @@ public class WindowService {
     public void forceLogout() {
         Platform.runLater(() -> {
 
-            for (Window w : Window.getWindows()) {
+            var windows = new ArrayList<>(Window.getWindows());
+
+            for (Window w : windows) {
                 if (w instanceof Stage s) {
-                    try { s.close(); } catch (Exception ignored) {}
+                    try {
+                        s.close();
+                    } catch (Exception ignored) {}
                 }
             }
-
             if (loginCallback != null) {
                 loginCallback.run();
             }
