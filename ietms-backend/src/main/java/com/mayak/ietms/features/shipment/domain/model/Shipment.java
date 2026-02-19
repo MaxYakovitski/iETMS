@@ -77,8 +77,8 @@ public class Shipment {
     }
 
     private void addTimestamp(ShipmentStatus status, Instant at) {
-        if (status == null) throw new IllegalArgumentException("Status must not be null");
-        if (at == null) throw new IllegalArgumentException("Timestamp time must not be null");
+        if (status == null) throw new IllegalArgumentException("Status must not be null!");
+        if (at == null) throw new IllegalArgumentException("Timestamp time must not be null!");
         this.timestamps.add(new ShipmentTimeStamp(this, status, at));
     }
 
@@ -100,7 +100,7 @@ public class Shipment {
 
     public void cancel(ShipmentCancelReason reason) {
         if (reason == null) {
-            throw new IllegalArgumentException("Cancel reason must not be null");
+            throw new IllegalArgumentException("Cancel reason must not be null!");
         }
 
         if (status.isFinal()) {
@@ -121,7 +121,7 @@ public class Shipment {
     }
 
     public void assignDispatcher(Long dispatcherId) {
-        if (dispatcherId == null) throw new IllegalArgumentException("Dispatcher id must not be null");
+        if (dispatcherId == null) throw new IllegalArgumentException("Dispatcher id must not be null!");
         this.dispatcherId = dispatcherId;
     }
 
@@ -131,7 +131,7 @@ public class Shipment {
 
     public void assignCarrier(Company carrier) {
         if (carrier == null) {
-            throw new IllegalArgumentException("Carrier must not be null");
+            throw new IllegalArgumentException("Carrier must not be null!");
         }
 
         if (status.isFinal()) {
@@ -153,20 +153,19 @@ public class Shipment {
 
             LocalDate eventDate = at.atZone(ZoneOffset.UTC).toLocalDate();
             if (eventDate.isBefore(plannedLoadDate)) {
-                throw new DeliveryTimeLineException("Loading time cannot be before planned load date");
+                throw new DeliveryTimeLineException("Actual loading time cannot be before planned loading time!");
             }
         }
-
 
         if (target == ShipmentStatus.DROPPED) {
             Instant loadedAt = getLastTimestamp(ShipmentStatus.LOADED);
 
             if (loadedAt == null) {
-                throw new DeliveryTimeLineException("Cannot drop shipment that was not loaded");
+                throw new DeliveryTimeLineException("Cannot drop shipment that was not loaded!");
             }
 
             if (at.isBefore(loadedAt)) {
-                throw new DeliveryTimeLineException("Dropping time cannot be before loaded time");
+                throw new DeliveryTimeLineException("Dropping time cannot be before loading time!");
             }
         }
     }
