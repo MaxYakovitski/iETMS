@@ -8,6 +8,7 @@
     </parent>
 
     <artifactId>ietms-desktop-updater</artifactId>
+    <version>0.1.10</version>
     <packaging>jar</packaging>
 
     <name>ietms-desktop-updater</name>
