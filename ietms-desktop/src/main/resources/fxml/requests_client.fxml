@@ -149,7 +149,7 @@
         <StackPane style="-fx-background-color: #ffffff">
 
             <BorderPane.margin>
-                <Insets top="10" bottom="10"/>
+                <Insets top="10" bottom="10" right="5"/>
             </BorderPane.margin>
 
             <ListView fx:id="requestsListView">

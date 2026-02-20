@@ -11,9 +11,8 @@
       stylesheets="@/css/styles.css"
       styleClass="app-root">
 
-    <HBox>
-        <ToolBar minHeight="40" maxHeight="40.0"  HBox.hgrow="ALWAYS"
-                 style="-fx-background-color: #c8c8c8; -fx-background-radius: 5 0 0 5; -fx-background-insets: 5 0 5 5">
+        <ToolBar minHeight="40" maxHeight="40.0"
+                 style="-fx-background-color: #c8c8c8; -fx-background-radius: 5; -fx-background-insets: 5; -fx-padding: 6;">
 
             <Button text="Home" mnemonicParsing="false" prefHeight="30.0"
                     style="-fx-background-color: transparent; -fx-border-color: transparent;" onAction="#handleHome"/>
@@ -47,17 +46,12 @@
                         </ImageView>
                     </graphic>
                 </Button>
+            <TextField fx:id="searchField" promptText="search" prefHeight="28" prefWidth="250.0"
+                       visible="false" managed="false"
+                       style="-fx-background-color: #ffffff; -fx-background-radius: 0 4 4 0; -fx-border-width: 0">
+            </TextField>
 
         </ToolBar>
-
-        <HBox alignment="CENTER">
-            <TextField fx:id="searchField" promptText="search" prefHeight="30" prefWidth="250.0"
-                       visible="false" managed="false"
-            style="-fx-background-color: #ffffff; -fx-background-radius: 0 5 5 0;
-                   -fx-border-color: #c8c8c8; -fx-border-radius: 0 5 5 0; -fx-border-insets: 0 5 0 0">
-            </TextField>
-        </HBox>
-    </HBox>
 
     <AnchorPane fx:id="contentArea"
                 VBox.vgrow="ALWAYS"

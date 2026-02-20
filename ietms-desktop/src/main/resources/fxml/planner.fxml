@@ -23,7 +23,7 @@
       styleClass="app-root">
 
     <padding>
-        <Insets top="25" bottom="25" left="25" right="25"/>
+        <Insets top="5" bottom="5" left="5" right="5"/>
     </padding>
 
     <VBox alignment="TOP_CENTER"
