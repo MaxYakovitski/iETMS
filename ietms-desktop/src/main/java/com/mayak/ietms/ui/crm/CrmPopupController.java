@@ -18,12 +18,12 @@ public class CrmPopupController extends BasePopupController {
     @FXML
     public void handleCompanies() {
         popup.hide();
-        navigation.navigate(View.CRM_COMPANIES, NavigationType.INLINE);
+        navigation.navigate(View.CRM_COMPANIES, NavigationType.GLOBAL);
     }
 
     @FXML
     public void handleContracts() {
         popup.hide();
-        navigation.navigate(View.CRM_CONTRACTS, NavigationType.INLINE);
+        navigation.navigate(View.CRM_CONTRACTS, NavigationType.GLOBAL);
     }
 }

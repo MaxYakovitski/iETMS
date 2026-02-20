@@ -94,6 +94,6 @@ public class AdministrationPopupController extends BasePopupController {
     }
 
     private void navigate(View view) {
-        navigation.navigate(view, NavigationType.INLINE);
+        navigation.navigate(view, NavigationType.GLOBAL);
     }
 }
