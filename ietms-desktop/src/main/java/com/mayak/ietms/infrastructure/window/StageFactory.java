@@ -22,6 +22,7 @@ public class StageFactory {
 
     public Stage createMainStage(Scene scene) {
         Stage stage = baseStage(scene);
+        stage.centerOnScreen();
         stage.setMaximized(true);
         return stage;
     }

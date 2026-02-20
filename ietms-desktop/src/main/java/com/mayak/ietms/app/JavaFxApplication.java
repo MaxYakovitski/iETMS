@@ -100,24 +100,18 @@ public class JavaFxApplication extends Application {
         });
 
         WindowService windowService = ctx.getBean(WindowService.class);
-
         windowService.setLoginCallback(() -> {
-
             if (springContext != null) {
                 springContext.close();
                 springContext = null;
             }
-
             showLogin();
         });
 
         AlertUtils.setWindowService(windowService);
 
-        Parent root = ctx.getBean(WindowService.class).loadControllerWithNode(View.HOME.getPath()).node();
-        Scene scene = new Scene(root);
-
         StageFactory stageFactory = ctx.getBean(StageFactory.class);
-        Stage mainStage = stageFactory.createMainStage(scene);
+        Stage mainStage = stageFactory.createMainStage(null);
 
         windowService.setPrimaryStage(mainStage);
         ctx.getBean(DesktopBootstrap.class).start(mainStage);
