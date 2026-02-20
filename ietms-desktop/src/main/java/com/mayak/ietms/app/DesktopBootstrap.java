@@ -22,9 +22,7 @@ public class DesktopBootstrap {
     private final WindowService windowService;
 
     public void start(Stage stage) {
-
         UpdateCheckResult result = updateService.checkVersion();
-
         if (result.updateRequired()) {
             showUpdate(stage, result);
         } else {
@@ -48,7 +46,6 @@ public class DesktopBootstrap {
     }
 
     private void showUpdate(Stage stage, UpdateCheckResult result) {
-
         UpdateController controller = new UpdateController();
         controller.setUpdateService(updateService);
 
