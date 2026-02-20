@@ -13,7 +13,7 @@
     <!-- LEFT: REQUEST FORM -->
     <left>
         <VBox prefWidth="400"
-              style="-fx-background-color: #f9f9f9; -fx-background-radius: 10">
+              style="-fx-border-color: #c8c8c8; -fx-border-width: 0 1 0 0">
 
             <BorderPane.margin>
                 <Insets top="10" right="10" bottom="10" left="10"/>
