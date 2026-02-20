@@ -185,12 +185,14 @@ public class Shipment {
 
     public boolean isLoadedBeforeOrOn(LocalDate date) {
         Instant t = loadedAt();
+        if (t == null) return false;
         LocalDate eventDate = t.atZone(ZoneOffset.UTC).toLocalDate();
         return !eventDate.isAfter(date);
     }
 
     public boolean isDroppedBeforeOrOn(LocalDate date) {
         Instant t = droppedAt();
+        if (t == null) return false;
         LocalDate eventDate = t.atZone(ZoneOffset.UTC).toLocalDate();
         return !eventDate.isAfter(date);
     }
