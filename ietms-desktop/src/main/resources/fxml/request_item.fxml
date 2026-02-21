@@ -19,8 +19,8 @@
         <VBox prefWidth="10" minHeight="60" alignment="CENTER">
             <Line startX="-100" endX="-90"/>
         </VBox>
-
         <VBox fx:id="toISOContainer" prefWidth="18" minHeight="60" spacing="5" alignment="CENTER"/>
+
         <VBox prefWidth="90" minHeight="60"
               spacing="5" alignment="CENTER">
             <Label fx:id="customerReference"/>
@@ -39,9 +39,7 @@
                 <ImageView fitHeight="13" fitWidth="13" pickOnBounds="true" preserveRatio="true">
                     <Image url="@../icons/calendar.png"/>
                 </ImageView>
-                <Label fx:id="dataStart">
-                    <font><Font size="13"/></font>
-                </Label>
+                <Label fx:id="dataStart"/>
             </HBox>
         </VBox>
 
@@ -53,9 +51,8 @@
 
         <VBox prefWidth="160" minHeight="60" spacing="5" alignment="CENTER">
             <HBox spacing="5" alignment="CENTER_LEFT">
-                <ImageView fitHeight="13" fitWidth="11" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="13" fitWidth="13" pickOnBounds="true" preserveRatio="true">
                     <Image url="@../icons/location.png"/>
-                    <HBox.margin><Insets top="2"/></HBox.margin>
                 </ImageView>
                 <VBox fx:id="toPointContainer"
                       minHeight="0"/>
@@ -64,9 +61,7 @@
                 <ImageView fitHeight="13" fitWidth="13" pickOnBounds="true" preserveRatio="true">
                     <Image url="@../icons/calendar.png"/>
                 </ImageView>
-                <Label fx:id="dataEnd">
-                    <font><Font size="13"/></font>
-                </Label>
+                <Label fx:id="dataEnd"/>
             </HBox>
         </VBox>
 
@@ -75,7 +70,7 @@
             <Label fx:id="transportType" textAlignment="CENTER"/>
         </VBox>
 
-        <VBox prefWidth="75" minHeight="60" spacing="5" alignment="CENTER">
+        <VBox prefWidth="65" minHeight="60" spacing="5" alignment="CENTER">
             <Label fx:id="dangerousCheck" textAlignment="CENTER" textFill="#ff6173">
                 <font><Font size="13"/></font>
             </Label>
@@ -84,7 +79,7 @@
             </Label>
         </VBox>
 
-        <VBox prefWidth="80" minHeight="60" spacing="5" alignment="CENTER_LEFT">
+        <VBox prefWidth="75" minHeight="60" spacing="5" alignment="CENTER_LEFT">
             <Label fx:id="weight"/>
             <Label fx:id="loadingMeters"/>
         </VBox>
@@ -121,8 +116,8 @@
         <VBox prefWidth="40" minHeight="60" alignment="CENTER">
             <Pane prefWidth="20" minHeight="60">
                 <Button fx:id="joinButton"  visible="false" contentDisplay="GRAPHIC_ONLY"
-                        layoutY="15" prefWidth="20" prefHeight="20"
-                        style="-fx-background-color: transparent;" onAction="#handleJoin">
+                        layoutX="2.5" layoutY="15" prefWidth="20" prefHeight="20"
+                        style="-fx-background-color: transparent; -fx-padding: 0;" onAction="#handleJoin">
                     <graphic>
                         <ImageView fx:id="joinImageView" opacity="0.65" fitHeight="20" fitWidth="20" pickOnBounds="true" preserveRatio="true">
                             <Image url="@../icons/user_join.png"/>
@@ -132,7 +127,7 @@
 
                 <Button fx:id="confirmedAndOfferedButton" visible="false" contentDisplay="GRAPHIC_ONLY"
                         layoutY="12.5" prefWidth="25" prefHeight="25"
-                        style="-fx-background-color: transparent;" onAction="#handleConfirm">
+                        style="-fx-background-color: transparent; -fx-padding: 0;" onAction="#handleConfirm">
                     <graphic>
                         <ImageView fitHeight="25" fitWidth="25" opacity="0.65" pickOnBounds="true" preserveRatio="true">
                             <Image url="@../icons/decision_making.png"/>
@@ -141,8 +136,8 @@
                 </Button>
 
                 <Button fx:id="acceptButton" visible="false" contentDisplay="GRAPHIC_ONLY"
-                        layoutX="2.5" prefWidth="20" prefHeight="20"
-                        style="-fx-background-color: transparent;" onAction="#handleAccept">
+                        layoutX="2.5" layoutY="5" prefWidth="20" prefHeight="20"
+                        style="-fx-background-color: transparent; -fx-padding: 0;" onAction="#handleAccept">
                     <graphic>
                         <ImageView fitHeight="20" fitWidth="20" opacity="0.65" pickOnBounds="true" preserveRatio="true">
                             <Image url="@../icons/accept.png"/>
@@ -151,8 +146,8 @@
                 </Button>
 
                 <Button fx:id="refuseButton" visible="false" contentDisplay="GRAPHIC_ONLY"
-                        layoutX="3.0" layoutY="30" prefWidth="18" prefHeight="18"
-                        style="-fx-background-color: transparent;" onAction="#handleRefuse">
+                        layoutX="3.0" layoutY="35" prefWidth="18" prefHeight="18"
+                        style="-fx-background-color: transparent; -fx-padding: 0;" onAction="#handleRefuse">
                     <graphic>
                         <ImageView fitHeight="18" fitWidth="18" opacity="0.65" pickOnBounds="true" preserveRatio="true">
                             <Image url="@../icons/refuse.png"/>
@@ -194,12 +189,12 @@
             </Button>
         </VBox>
 
-        <VBox prefWidth="80" minHeight="60" spacing="5" alignment="CENTER">
+        <VBox prefWidth="85" minHeight="60" spacing="5" alignment="CENTER">
             <Label fx:id="requestTypeLabel" textAlignment="CENTER"/>
             <Label fx:id="customerPriceLabel" style="-fx-font-weight: bold" textAlignment="CENTER"/>
         </VBox>
 
-        <VBox prefWidth="150" minHeight="60" alignment="CENTER" spacing="5">
+        <VBox prefWidth="125" minHeight="60" alignment="CENTER" spacing="5">
             <Label fx:id="authorFullName"/>
             <Label fx:id="requestDateTime"/>
         </VBox>

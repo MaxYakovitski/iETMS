@@ -7,7 +7,6 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ComboBox?>
@@ -18,12 +17,12 @@
 <HBox xmlns="http://javafx.com/javafx/21.0.7"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.mayak.ietms.ui.workspace.planner.controller.PlannerController"
-      spacing="15"
+      spacing="10"
       stylesheets="@../css/styles.css"
       styleClass="app-root">
 
     <padding>
-        <Insets top="5" bottom="5" left="5" right="5"/>
+        <Insets top="5" bottom="10" left="10" right="10"/>
     </padding>
 
     <VBox alignment="TOP_CENTER"
@@ -114,7 +113,8 @@
         </StackPane>
     </VBox>
 
-    <Separator orientation="VERTICAL"/>
+    <Region minWidth="1" prefWidth="1" maxWidth="1"
+            style="-fx-background-color: #c8c8c8;"/>
 
     <VBox spacing="10" HBox.hgrow="ALWAYS">
         <HBox fx:id="buttonsContainer" spacing="10" alignment="CENTER" StackPane.alignment="TOP_CENTER">
@@ -123,9 +123,7 @@
         </HBox>
 
         <StackPane VBox.vgrow="ALWAYS">
-            <VBox fx:id="myShipmentsContainer" alignment="TOP_CENTER" VBox.vgrow="ALWAYS" StackPane.alignment="CENTER"
-                  style="-fx-background-color: #f9f9f9; -fx-background-radius: 5" >
-                <padding><Insets top="20"/></padding>
+            <VBox fx:id="myShipmentsContainer" alignment="TOP_CENTER" VBox.vgrow="ALWAYS" StackPane.alignment="CENTER">
                 <ListView fx:id="shipmentsListView"  VBox.vgrow="ALWAYS">
                     <styleClass>
                         <String fx:value="app-list-view"/>

@@ -5,153 +5,144 @@
 <?import javafx.geometry.Insets?>
 <?import java.lang.String?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21.0.7"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.mayak.ietms.ui.workspace.request.client.ClientRequestsController"
-            stylesheets="@../css/styles.css">
+<HBox xmlns="http://javafx.com/javafx/21.0.7"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.ietms.ui.workspace.request.client.ClientRequestsController"
+      alignment="CENTER" spacing="10"
+      stylesheets="@../css/styles.css"
+      styleClass="app-root">
 
-    <!-- LEFT: REQUEST FORM -->
-    <left>
-        <VBox prefWidth="400"
-              style="-fx-border-color: #c8c8c8; -fx-border-width: 0 1 0 0">
+    <padding>
+        <Insets top="5" bottom="10" left="10" right="10"/>
+    </padding>
 
-            <BorderPane.margin>
-                <Insets top="10" right="10" bottom="10" left="10"/>
-            </BorderPane.margin>
+    <VBox prefWidth="400" maxWidth="400">
 
-            <padding>
-                <Insets top="10" bottom="10" right="25"/>
-            </padding>
-
-            <GridPane hgap="10" vgap="15" VBox.vgrow="ALWAYS">
-                <columnConstraints>
-                    <ColumnConstraints minWidth="75" prefWidth="75" maxWidth="75" halignment="RIGHT"/>
-                    <ColumnConstraints hgrow="ALWAYS"/>
-                </columnConstraints>
+        <GridPane hgap="10" vgap="15">
+            <columnConstraints>
+                <ColumnConstraints minWidth="60" halignment="RIGHT"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
 
                 <!-- ROW 0 -->
-                <HBox spacing="100" GridPane.columnIndex="1" alignment="CENTER">
-                    <RadioButton fx:id="spotRadioButton" text="Spot" userData="SPOT"/>
-                    <RadioButton fx:id="contractRadioButton" text="Contract" userData="CONTRACT"/>
-                </HBox>
+            <HBox spacing="100" GridPane.columnIndex="1" alignment="CENTER">
+                <RadioButton fx:id="spotRadioButton" text="Spot" userData="SPOT"/>
+                <RadioButton fx:id="contractRadioButton" text="Contract" userData="CONTRACT"/>
+            </HBox>
 
                 <!-- ROW 1 -->
-                <Label text="from" GridPane.rowIndex="1"/>
-                <TextArea fx:id="fromTextArea" wrapText="true"
-                          GridPane.rowIndex="1" GridPane.columnIndex="1"
-                          prefHeight="50">
-                    <styleClass>
-                        <String fx:value="price-field"/>
-                        <String fx:value="scroll-minimal"/>
-                    </styleClass>
-                </TextArea>
+            <Label text="from" GridPane.rowIndex="1"/>
+            <TextArea fx:id="fromTextArea" wrapText="true"
+                      GridPane.rowIndex="1" GridPane.columnIndex="1"
+                      prefHeight="50">
+                <styleClass>
+                    <String fx:value="price-field"/>
+                    <String fx:value="scroll-minimal"/>
+                </styleClass>
+            </TextArea>
 
                 <!-- ROW 2 -->
-                <Label text="to" GridPane.rowIndex="2"/>
-                <TextArea fx:id="toTextArea" wrapText="true"
-                          GridPane.rowIndex="2" GridPane.columnIndex="1"
-                          prefHeight="50">
-                    <styleClass>
-                        <String fx:value="price-field"/>
-                        <String fx:value="scroll-minimal"/>
-                    </styleClass>
-                </TextArea>
+            <Label text="to" GridPane.rowIndex="2"/>
+            <TextArea fx:id="toTextArea" wrapText="true"
+                      GridPane.rowIndex="2" GridPane.columnIndex="1"
+                      prefHeight="50">
+                <styleClass>
+                    <String fx:value="price-field"/>
+                    <String fx:value="scroll-minimal"/>
+                </styleClass>
+            </TextArea>
 
                 <!-- ROW 3 -->
-                <Label text="ID" GridPane.rowIndex="3"/>
-                <TextField fx:id="idField" styleClass="price-field"
-                           GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+            <Label text="ID" GridPane.rowIndex="3"/>
+            <TextField fx:id="idField" styleClass="price-field"
+                       GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
                 <!-- ROW 4 -->
-                <Label text="company" GridPane.rowIndex="4"/>
-                <HBox spacing="5" GridPane.rowIndex="4" GridPane.columnIndex="1" alignment="CENTER_LEFT">
+            <Label text="company" GridPane.rowIndex="4"/>
+            <HBox spacing="5" GridPane.rowIndex="4" GridPane.columnIndex="1" alignment="CENTER_LEFT">
                 <TextField fx:id="companyField" styleClass="price-field" HBox.hgrow="ALWAYS"/>
 
                 <Button fx:id="laneButton" prefWidth="60" prefHeight="28" text="lane"
                         onAction="#handleLaneSelect"/>
-                </HBox>
+            </HBox>
 
                 <!-- ROW 5 -->
-                <Label text="start" GridPane.rowIndex="5"/>
-                <DatePicker fx:id="startDate"
-                            GridPane.rowIndex="5" GridPane.columnIndex="1"
-                            prefWidth="150"/>
+            <Label text="start" GridPane.rowIndex="5"/>
+            <DatePicker fx:id="startDate"
+                        GridPane.rowIndex="5" GridPane.columnIndex="1"
+                        prefWidth="150"/>
 
                 <!-- ROW 6 -->
-                <Label text="end" GridPane.rowIndex="6"/>
-                <DatePicker fx:id="endDate"
-                            GridPane.rowIndex="6" GridPane.columnIndex="1"
-                            prefWidth="150"/>
+            <Label text="end" GridPane.rowIndex="6"/>
+            <DatePicker fx:id="endDate"
+                        GridPane.rowIndex="6" GridPane.columnIndex="1"
+                        prefWidth="150"/>
 
                 <!-- ROW 7 -->
-                <Label text="type" GridPane.rowIndex="7"/>
-                <HBox spacing="10" GridPane.rowIndex="7" GridPane.columnIndex="1" maxWidth="150" alignment="CENTER">
-                    <RadioButton fx:id="ftlRadioButton" text="FTL" userData="FTL"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <RadioButton fx:id="ltlRadioButton" text="LTL" userData="LTL"/>
-                </HBox>
+            <Label text="type" GridPane.rowIndex="7"/>
+            <HBox spacing="10" GridPane.rowIndex="7" GridPane.columnIndex="1" maxWidth="150" alignment="CENTER">
+                <RadioButton fx:id="ftlRadioButton" text="FTL" userData="FTL"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <RadioButton fx:id="ltlRadioButton" text="LTL" userData="LTL"/>
+            </HBox>
 
                 <!-- ROW 8 -->
-                <Label text="transport" GridPane.rowIndex="8"/>
-                <ComboBox fx:id="transportComboBox"
-                          GridPane.rowIndex="8" GridPane.columnIndex="1"
-                          prefWidth="150"/>
+            <Label text="transport" GridPane.rowIndex="8"/>
+            <ComboBox fx:id="transportComboBox"
+                      GridPane.rowIndex="8" GridPane.columnIndex="1"
+                      prefWidth="150"/>
 
                 <!-- ROW 9 -->
-                <Label text="temp.°C" GridPane.rowIndex="9"/>
-                <TextField fx:id="temperatureTextField" styleClass="price-field"
-                           disable="true"
-                           GridPane.rowIndex="9" GridPane.columnIndex="1"
-                           maxWidth="150"/>
+            <Label text="temp.°C" GridPane.rowIndex="9"/>
+            <TextField fx:id="temperatureTextField" styleClass="price-field"
+                       disable="true"
+                       GridPane.rowIndex="9" GridPane.columnIndex="1"
+                       maxWidth="150"/>
 
                 <!-- ROW 10 -->
-                <Label text="ADR" GridPane.rowIndex="10"/>
-                <CheckBox fx:id="dangerousCheckBox"
-                          GridPane.rowIndex="10" GridPane.columnIndex="1"/>
+            <Label text="ADR" GridPane.rowIndex="10"/>
+            <CheckBox fx:id="dangerousCheckBox"
+                      GridPane.rowIndex="10" GridPane.columnIndex="1"/>
 
                 <!-- ROW 11 -->
-                <Label text="weight,KG" GridPane.rowIndex="11"/>
-                <TextField fx:id="weightTextField" styleClass="price-field"
-                           GridPane.rowIndex="11" GridPane.columnIndex="1"
-                           maxWidth="150"/>
+            <Label text="weight,KG" GridPane.rowIndex="11"/>
+            <TextField fx:id="weightTextField" styleClass="price-field"
+                       GridPane.rowIndex="11" GridPane.columnIndex="1"
+                       maxWidth="150"/>
 
                 <!-- ROW 12 -->
-                <Label text="LDM" GridPane.rowIndex="12"/>
-                <TextField fx:id="loadingMeterTextField" styleClass="price-field"
-                           disable="true"
-                           GridPane.rowIndex="12" GridPane.columnIndex="1"
-                           maxWidth="150"/>
+            <Label text="LDM" GridPane.rowIndex="12"/>
+            <TextField fx:id="loadingMeterTextField" styleClass="price-field"
+                       disable="true"
+                       GridPane.rowIndex="12" GridPane.columnIndex="1"
+                       maxWidth="150"/>
 
                 <!-- ROW 13 -->
-                <Label text="comments" GridPane.rowIndex="13"/>
-                <TextArea fx:id="commentsTextArea" wrapText="true"
-                          GridPane.rowIndex="13" GridPane.columnIndex="1"
-                          prefRowCount="5">
-                    <styleClass>
-                        <String fx:value="price-field"/>
-                        <String fx:value="scroll-minimal"/>
-                    </styleClass>
-                </TextArea>
+            <Label text="comments" GridPane.rowIndex="13"/>
+            <TextArea fx:id="commentsTextArea" wrapText="true"
+                      GridPane.rowIndex="13" GridPane.columnIndex="1"
+                      prefRowCount="5">
+                <styleClass>
+                    <String fx:value="price-field"/>
+                    <String fx:value="scroll-minimal"/>
+                </styleClass>
+            </TextArea>
 
                 <!-- ROW 14 -->
-                <Button text="submit"
-                        onAction="#submitRequestForm"
-                        GridPane.rowIndex="14" GridPane.columnIndex="1"
-                        GridPane.halignment="RIGHT"
-                        maxWidth="100" styleClass="submit-outline"/>
+            <Button text="submit"
+                    onAction="#submitRequestForm"
+                    GridPane.rowIndex="14" GridPane.columnIndex="1"
+                    GridPane.halignment="RIGHT"
+                    maxWidth="100" styleClass="submit-outline"/>
+        </GridPane>
+    </VBox>
 
-            </GridPane>
-        </VBox>
-    </left>
+    <Region minWidth="1" prefWidth="1" maxWidth="1"
+            style="-fx-background-color: #c8c8c8;"/>
 
-    <!-- CENTER: REQUEST LIST -->
-    <center>
-        <StackPane style="-fx-background-color: #ffffff">
+    <VBox HBox.hgrow="ALWAYS">
 
-            <BorderPane.margin>
-                <Insets top="10" bottom="10" right="5"/>
-            </BorderPane.margin>
-
+        <StackPane VBox.vgrow="ALWAYS">
             <ListView fx:id="requestsListView">
                 <styleClass>
                     <String fx:value="app-list-view"/>
@@ -174,5 +165,5 @@
             </StackPane>
 
         </StackPane>
-    </center>
-</BorderPane>
+    </VBox>
+</HBox>
