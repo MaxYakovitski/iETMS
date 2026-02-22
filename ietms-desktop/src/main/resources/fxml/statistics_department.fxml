@@ -18,9 +18,9 @@
 
     <VBox spacing="10"
           alignment="TOP_CENTER"
-          style="-fx-padding: 20">
+          style="-fx-padding: 0 20 10 20">
 
-        <HBox spacing="10" alignment="CENTER" style="-fx-background-color: #eff5fb; -fx-background-radius: 5">
+        <HBox spacing="10" alignment="CENTER">
             <padding><Insets top="10" bottom="10"/></padding>
 
             <VBox spacing="10" alignment="CENTER">
@@ -39,16 +39,16 @@
 
         <Separator HBox.hgrow="ALWAYS"/>
 
-        <HBox alignment="CENTER">
+        <HBox alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
             <StackPane fx:id="allContainer" prefWidth="350" prefHeight="350">
                 <PieChart fx:id="pieChartAll" prefWidth="350" prefHeight="350" styleClass="pie-default"
                           title="Requests"/>
             </StackPane>
         </HBox>
 
-        <Region prefHeight="20" HBox.hgrow="ALWAYS" style="-fx-background-color: #eff5fb; -fx-background-radius: 5"/>
+        <Separator HBox.hgrow="ALWAYS"/>
 
-        <HBox spacing="100" alignment="CENTER">
+        <HBox spacing="100" alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
             <StackPane fx:id="spotBidedContainer" prefWidth="350" prefHeight="350">
                 <PieChart fx:id="pieChartSpotBided" prefWidth="350" prefHeight="350" styleClass="pie-default"
                           title="Spot bidding"/>
@@ -64,9 +64,9 @@
             </BarChart>
         </HBox>
 
-        <Region prefHeight="20" HBox.hgrow="ALWAYS" style="-fx-background-color: #eff5fb; -fx-background-radius: 5"/>
+        <Separator HBox.hgrow="ALWAYS"/>
 
-        <HBox spacing="100" alignment="CENTER">
+        <HBox spacing="100" alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
             <StackPane fx:id="contractEfficiencyContainer" prefWidth="350" prefHeight="350">
                 <PieChart fx:id="pieChartContractEfficiency" prefWidth="350" prefHeight="350" styleClass="pie-stat"
                           title="Contract"/>
@@ -78,9 +78,9 @@
             </BarChart>
         </HBox>
 
-        <Region prefHeight="20" HBox.hgrow="ALWAYS" style="-fx-background-color: #eff5fb; -fx-background-radius: 5"/>
+        <Separator HBox.hgrow="ALWAYS"/>
 
-        <HBox>
+        <HBox alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
             <LineChart fx:id="lineChartCompression" HBox.hgrow="ALWAYS" styleClass="line-spot-contract"
                        title="Spot/Contract compression">
                 <xAxis><CategoryAxis/></xAxis>
