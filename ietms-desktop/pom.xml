@@ -289,6 +289,9 @@
                                         <argument>--java-options</argument>
                                         <argument>-Xmx512m</argument>
 
+                                        <argument>--java-options</argument>
+                                        <argument>-Dprism.order=sw</argument>
+
                                     </arguments>
                                 </configuration>
                             </execution>

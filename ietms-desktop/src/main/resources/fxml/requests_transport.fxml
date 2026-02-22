@@ -42,15 +42,20 @@
         <Button fx:id="filterActiveButton"
                 StackPane.alignment="TOP_RIGHT"
                 visible="false" managed="false"
-                style="-fx-background-radius: 25; -fx-background-color: rgba(33, 148, 243, 0.5); -fx-padding: 5;">
+                contentDisplay="GRAPHIC_ONLY"
+                alignment="CENTER"
+                prefWidth="32" prefHeight="32"
+                minWidth="32"  minHeight="32"
+                maxWidth="32"  maxHeight="32"
+                style="-fx-background-color: #306eed; -fx-background-radius: 16;">
 
             <StackPane.margin>
                 <Insets top="15" right="10"/>
             </StackPane.margin>
 
             <graphic>
-                <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
-                    <Image url="@/icons/filter-red.png"/>
+                <ImageView fitHeight="18.0" fitWidth="18.0" preserveRatio="true">
+                    <Image url="@/icons/filter-white.png"/>
                 </ImageView>
             </graphic>
         </Button>
