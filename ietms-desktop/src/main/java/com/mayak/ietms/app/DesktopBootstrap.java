@@ -10,6 +10,7 @@ import com.mayak.ietms.ui.update.UpdateController;
 import javafx.event.Event;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -39,7 +40,8 @@ public class DesktopBootstrap {
                 windowService.loadControllerWithNode(View.HOME.getPath(), HomeController.class);
 
         Scene scene = new Scene(loaded.node());
-        return new StartupPlan(scene, stage -> {/* no-op */});
+        scene.setFill(Color.WHITE);
+        return new StartupPlan(scene, stage -> stage.setMaximized(true));
     }
 
     private StartupPlan buildUpdatePlan(UpdateCheckResult result) {
