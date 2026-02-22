@@ -6,7 +6,7 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public interface UserStatisticsRepository extends Repository <User, Long> {
@@ -34,7 +34,8 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
             JOIN requests r ON r.id = b.request_id
             WHERE b.deleted = false
               AND r.request_type = 'SPOT'
-              AND r.issue_date BETWEEN :from AND :to
+              AND r.issue_date >= :from
+              AND r.issue_date < :toExclusive
               AND b.user_id = ANY(:userIds)
             GROUP BY b.user_id, b.request_id
         )
@@ -64,7 +65,8 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
         FROM users u
         LEFT JOIN requests r_created
             ON r_created.author_id = u.id
-           AND r_created.issue_date BETWEEN :from AND :to
+           AND r_created.issue_date >= :from
+           AND r_created.issue_date < :toExclusive
 
         LEFT JOIN request_competitors rc
             ON rc.user_id = u.id
@@ -77,14 +79,15 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
 
         LEFT JOIN requests r_dispatched
             ON r_dispatched.dispatcher_id = u.id
-           AND r_dispatched.issue_date BETWEEN :from AND :to
+           AND r_created.issue_date >= :from
+           AND r_created.issue_date < :toExclusive
 
         WHERE u.id = ANY(:userIds)
         GROUP BY u.id, u.name, u.surname
         """, nativeQuery = true)
     List<UserStatsRow> userStats(
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to,
+            @Param("from") Instant from,
+            @Param("toExclusive") Instant toExclusive,
             @Param("userIds") Long[] userIds
     );
 }

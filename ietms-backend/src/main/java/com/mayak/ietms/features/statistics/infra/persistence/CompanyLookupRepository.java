@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public interface CompanyLookupRepository extends Repository<Company, Long> {
@@ -25,12 +25,12 @@ public interface CompanyLookupRepository extends Repository<Company, Long> {
     JOIN company c    ON c.id = r.customer_company_id
     WHERE p.department_id = :departmentId
       AND r.issue_date >= :from
-      AND r.issue_date <= :to
+      AND r.issue_date < :toExclusive
     ORDER BY c.name
     """, nativeQuery = true)
     List<CompanyLookupRow> findActiveCompaniesForDepartment(
             @Param("departmentId") Long departmentId,
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to
+            @Param("from") Instant from,
+            @Param("toExclusive") Instant toExclusive
     );
 }

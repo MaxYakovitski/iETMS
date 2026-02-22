@@ -10,9 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,10 +27,12 @@ public class CompanyStatisticsService {
     public List<CompanyStatsDto> getCompanyReport(LocalDate start, LocalDate end, List<Long> companyIds) {
         if (companyIds == null || companyIds.isEmpty()) return List.of();
 
-        LocalDateTime from = start.atStartOfDay();
-        LocalDateTime to = end.atTime(LocalTime.MAX);
+        ZoneOffset zone = ZoneOffset.UTC;
 
-        var rows = repo.companyLaneStats(from, to, companyIds.toArray(Long[]::new));
+        Instant from = start.atStartOfDay(zone).toInstant();
+        Instant toExclusive = end.plusDays(1).atStartOfDay(zone).toInstant();
+
+        var rows = repo.companyLaneStats(from, toExclusive, companyIds.toArray(Long[]::new));
 
         Map<Long, List<CompanyStatisticsRepository.CompanyLaneRow>> grouped = new LinkedHashMap<>();
         for (var r : rows) {
@@ -63,11 +63,13 @@ public class CompanyStatisticsService {
         return result;
     }
 
-    public List<CompanyDto> findCompaniesForDepartmentAnalytics(Long departmentId, LocalDate from, LocalDate to) {
-        LocalDateTime start = from.atStartOfDay();
-        LocalDateTime end   = to.atTime(LocalTime.MAX);
+    public List<CompanyDto> findCompaniesForDepartmentAnalytics(Long departmentId, LocalDate fromDate, LocalDate toDate) {
+        ZoneOffset zone = ZoneOffset.UTC;
 
-        return lookupRepo.findActiveCompaniesForDepartment(departmentId, start, end)
+        Instant from = fromDate.atStartOfDay(zone).toInstant();
+        Instant toExclusive = toDate.plusDays(1).atStartOfDay(zone).toInstant();
+
+        return lookupRepo.findActiveCompaniesForDepartment(departmentId, from, toExclusive)
                 .stream()
                 .map(r -> new CompanyDto(r.getCompanyId(), r.getCompanyName()))
                 .toList();
