@@ -12,9 +12,7 @@ import com.mayak.ietms.statistics.UserStatsDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.List;
 
 @Service
@@ -27,29 +25,19 @@ public class AnalyticsService {
 
     public AnalyticsReportDto buildAnalyticsReport(AnalyticsFilterDto filter) {
 
-        LocalDateTime from = filter.start().atStartOfDay();
-        LocalDateTime to   = filter.end().atTime(LocalTime.MAX);
+        ZoneId zone = ZoneOffset.UTC;
+
+        Instant from = filter.start().atStartOfDay(zone).toInstant();
+        Instant toExclusive = filter.end().plusDays(1).atStartOfDay(zone).toInstant();
 
         List<CompanyStatsDto> companies =
-                companyStats.getCompanyReport(
-                        filter.start(),
-                        filter.end(),
-                        filter.companyIds()
-                );
+                companyStats.getCompanyReport(filter.start(), filter.end(), filter.companyIds());
 
         List<UserStatsDto> users =
-                userStats.getUserStats(
-                        filter.start(),
-                        filter.end(),
-                        filter.userIds()
-                );
+                userStats.getUserStats(filter.start(), filter.end(), filter.userIds());
 
         DepartmentStatsDto department =
-                departmentStats.getDepartmentStats(
-                        filter.departmentId(),
-                        from,
-                        to
-                );
+                departmentStats.getDepartmentStats(filter.departmentId(), from, toExclusive);
 
         return new AnalyticsReportDto(companies, users, department);
     }

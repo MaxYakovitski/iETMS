@@ -13,9 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.List;
 
 @Service
@@ -44,12 +42,14 @@ public class UserStatisticsService {
     public List<UserStatsDto> getUserStats(LocalDate start, LocalDate end, List<Long> userIds) {
         if (userIds == null || userIds.isEmpty()) return List.of();
 
-        LocalDateTime from = start.atStartOfDay();
-        LocalDateTime to   = end.atTime(LocalTime.MAX);
+        ZoneOffset zone = ZoneOffset.UTC;
+
+        Instant from = start.atStartOfDay(zone).toInstant();
+        Instant toExclusive = end.plusDays(1).atStartOfDay(zone).toInstant();
 
         var rows = repo.userStats(
                 from,
-                to,
+                toExclusive,
                 userIds.toArray(Long[]::new)
         );
 

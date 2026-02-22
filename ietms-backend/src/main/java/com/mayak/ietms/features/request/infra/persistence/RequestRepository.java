@@ -102,12 +102,13 @@ ORDER BY
     JOIN Profile p ON p.id = u.id
     WHERE TYPE(r) = :type
       AND p.department.id = :departmentId
-      AND r.issueDate BETWEEN :start AND :end
+      AND r.issueDate >= :from
+      AND r.issueDate < :toExclusive
 """)
     int countByTypeAndDepartment(@Param("type") Class<? extends Request> type,
                                  @Param("departmentId") Long departmentId,
-                                 @Param("start") LocalDateTime start,
-                                 @Param("end") LocalDateTime end);
+                                 @Param("from") Instant from,
+                                 @Param("toExclusive") Instant toExclusive);
 
     @Query("""
     SELECT COUNT(r)
@@ -117,13 +118,14 @@ ORDER BY
     WHERE TYPE(r) = :type
       AND r.status = :status
       AND p.department.id = :departmentId
-      AND r.issueDate BETWEEN :start AND :end
+      AND r.issueDate >= :from
+      AND r.issueDate < :toExclusive
 """)
     int countByTypeAndStatusAndDepartment(@Param("type") Class<? extends Request> type,
                                           @Param("status") RequestStatus status,
                                           @Param("departmentId") Long departmentId,
-                                          @Param("start") LocalDateTime start,
-                                          @Param("end") LocalDateTime end);
+                                          @Param("from") Instant from,
+                                          @Param("toExclusive") Instant toExclusive);
 
     @Query("""
     SELECT r.refuseReason, COUNT(r)
@@ -132,15 +134,16 @@ ORDER BY
     JOIN Profile p ON p.id = u.id
     WHERE r.status = :status
       AND p.department.id = :departmentId
-      AND r.issueDate BETWEEN :startDate AND :endDate
+      AND r.issueDate >= :from
+      AND r.issueDate < :toExclusive
       AND r.refuseReason IS NOT NULL
     GROUP BY r.refuseReason
 """)
     List<Object[]> countRefusedByReason(@Param("type") Class<? extends Request> type,
                                         @Param("departmentId") Long departmentId,
                                         @Param("status") RequestStatus status,
-                                        @Param("startDate") LocalDateTime startDate,
-                                        @Param("endDate") LocalDateTime endDate);
+                                        @Param("from") Instant from,
+                                        @Param("toExclusive") Instant toExclusive);
 
     @Query("""
     SELECT r FROM SpotRequest r

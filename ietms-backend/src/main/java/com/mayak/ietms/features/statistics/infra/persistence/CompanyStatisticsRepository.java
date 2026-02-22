@@ -6,7 +6,7 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public interface CompanyStatisticsRepository extends Repository<Company, Long> {
@@ -59,15 +59,15 @@ public interface CompanyStatisticsRepository extends Repository<Company, Long> {
 
         WHERE r.status = 'ACCEPTED'
           AND r.issue_date >= :from
-          AND r.issue_date <= :to
+          AND r.issue_date < :toExclusive
           AND r.customer_company_id = ANY(:companyIds)
 
         GROUP BY c.id, c.name, lane, r.transport_type
         ORDER BY c.id, lane, r.transport_type
         """, nativeQuery = true)
     List<CompanyLaneRow> companyLaneStats(
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to,
+            @Param("from") Instant from,
+            @Param("toExclusive") Instant toExclusive,
             @Param("companyIds") Long[] companyIds
     );
 }
