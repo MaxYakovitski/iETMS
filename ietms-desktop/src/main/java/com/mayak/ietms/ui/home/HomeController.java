@@ -30,7 +30,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Region;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -243,10 +242,10 @@ public class HomeController {
 
         contentArea.getChildren().setAll(node);
 
-        if (node instanceof Region region) {
-            region.prefWidthProperty().bind(contentArea.widthProperty());
-            region.prefHeightProperty().bind(contentArea.heightProperty());
-        }
+        AnchorPane.setTopAnchor(node, 0.0);
+        AnchorPane.setRightAnchor(node, 0.0);
+        AnchorPane.setBottomAnchor(node, 0.0);
+        AnchorPane.setLeftAnchor(node, 0.0);
 
         currentViewController = null;
         requestsParent = null;
