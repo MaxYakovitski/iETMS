@@ -8,8 +8,10 @@ import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.home.HomeController;
 import com.mayak.ietms.ui.update.UpdateController;
 import javafx.event.Event;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -39,7 +41,14 @@ public class DesktopBootstrap {
                 windowService.loadControllerWithNode(View.HOME.getPath(), HomeController.class);
 
         Scene scene = new Scene(loaded.node());
-        return new StartupPlan(scene, stage -> stage.setMaximized(true));
+        return new StartupPlan(scene, stage -> {
+            Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+
+            stage.setX(bounds.getMinX());
+            stage.setY(bounds.getMinY());
+            stage.setWidth(bounds.getWidth());
+            stage.setHeight(bounds.getHeight());
+        });
     }
 
     private StartupPlan buildUpdatePlan(UpdateCheckResult result) {
