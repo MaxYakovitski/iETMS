@@ -4,7 +4,6 @@ import com.mayak.ietms.DesktopApplication;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
 import com.mayak.ietms.infrastructure.window.FxmlLoader;
-import com.mayak.ietms.infrastructure.window.StageFactory;
 import com.mayak.ietms.infrastructure.window.WindowService;
 import com.mayak.ietms.integration.auth.AuthClient;
 import com.mayak.ietms.integration.auth.AuthState;
@@ -18,18 +17,27 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class JavaFxApplication extends Application {
 
+    private static final String TITLE = "iETMS";
+    private static final Image APP_ICON = new Image(
+            Objects.requireNonNull(JavaFxApplication.class.getResource("/icons/icon.png"))
+                    .toExternalForm());
+
     private ConfigurableApplicationContext springContext;
+
+    private Stage mainStage;
 
     @Override
     public void init() {
@@ -41,13 +49,25 @@ public class JavaFxApplication extends Application {
         showLogin();
     }
 
+    private Stage createBaseStage(Scene scene) {
+        Objects.requireNonNull(scene, "Scene must not be null");
+
+        Stage stage = new Stage();
+        stage.setTitle(TITLE);
+        stage.setScene(scene);
+        stage.getIcons().add(APP_ICON);
+
+        return stage;
+    }
+
     private void showLogin() {
         LoginController controller = new LoginController();
         Parent root = FxmlLoader.load(View.LOGIN.getPath(), controller);
         Scene scene = new Scene(root);
 
-        StageFactory stageFactory = new StageFactory();
-        Stage loginStage = stageFactory.createLoginStage(scene);
+        Stage loginStage = createBaseStage(scene);
+        loginStage.setResizable(false);
+        loginStage.centerOnScreen();
 
         controller.setOnLogin(req ->
                 CompletableFuture
@@ -101,20 +121,30 @@ public class JavaFxApplication extends Application {
 
         WindowService windowService = ctx.getBean(WindowService.class);
         windowService.setLoginCallback(() -> {
+            if (mainStage != null) {
+                mainStage.close();
+                mainStage = null;
+            }
+
             if (springContext != null) {
                 springContext.close();
                 springContext = null;
             }
+
             showLogin();
         });
 
         AlertUtils.setWindowService(windowService);
 
-        StageFactory stageFactory = ctx.getBean(StageFactory.class);
-        Stage mainStage = stageFactory.createMainStage(null);
+        DesktopBootstrap bootstrap = ctx.getBean(DesktopBootstrap.class);
+        DesktopBootstrap.StartupPlan plan = bootstrap.buildInitialPlan();
 
-        windowService.setPrimaryStage(mainStage);
-        ctx.getBean(DesktopBootstrap.class).start(mainStage);
+        Stage stage = createBaseStage(plan.scene());
+        plan.stageConfigurer().accept(stage);
+
+        windowService.setPrimaryStage(stage);
+        this.mainStage = stage;
+        stage.show();
     }
 
     private void handleLoginError(LoginController controller, Throwable ex) {
@@ -132,8 +162,14 @@ public class JavaFxApplication extends Application {
 
     @Override
     public void stop() {
+        if (mainStage != null) {
+            mainStage.close();
+            mainStage = null;
+        }
+
         if (springContext != null) {
             springContext.close();
+            springContext = null;
         }
         Platform.exit();
     }
