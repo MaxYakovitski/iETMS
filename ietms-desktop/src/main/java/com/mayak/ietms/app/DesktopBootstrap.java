@@ -13,6 +13,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 @Component
 @RequiredArgsConstructor
@@ -21,46 +23,49 @@ public class DesktopBootstrap {
     private final UpdateService updateService;
     private final WindowService windowService;
 
-    public void start(Stage stage) {
+    public record StartupPlan(Scene scene, Consumer<Stage> stageConfigurer) {}
+
+    public StartupPlan buildInitialPlan() {
         UpdateCheckResult result = updateService.checkVersion();
         if (result.updateRequired()) {
-            showUpdate(stage, result);
-        } else {
-            showHome(stage);
+            return buildUpdatePlan(result);
         }
+
+        return buildHomePlan();
     }
 
-    private void showHome(Stage stage) {
+    private StartupPlan buildHomePlan() {
         WindowService.Loaded<HomeController> loaded =
                 windowService.loadControllerWithNode(View.HOME.getPath(), HomeController.class);
 
-        HomeController controller = loaded.controller();
         Scene scene = new Scene(loaded.node());
-        stage.setScene(scene);
-
-        windowService.injectStageIfSupported(controller, stage);
-        windowService.setPrimaryStage(stage);
-
-        stage.setMaximized(true);
-        stage.show();
+        return new StartupPlan(scene, stage -> stage.setMaximized(true));
     }
 
-    private void showUpdate(Stage stage, UpdateCheckResult result) {
+    private StartupPlan buildUpdatePlan(UpdateCheckResult result) {
         UpdateController controller = new UpdateController();
         controller.setUpdateService(updateService);
 
         Parent root = FxmlLoader.load(View.UPDATE.getPath(), controller);
+        Scene scene = new Scene(root);
 
-        stage.setScene(new Scene(root));
-        stage.setResizable(false);
-        stage.centerOnScreen();
+        var started = new AtomicBoolean(false);
+        scene.windowProperty().addListener((obs, oldWin, newWin) -> {
+            if (newWin != null && started.compareAndSet(false, true)) {
+                controller.start(result);
+            }
+        });
 
-        if (result.forced()) {
-            stage.setOnCloseRequest(Event::consume);
-        }
-
-        stage.show();
-
-        controller.start(result);
+        return new StartupPlan(
+                scene,
+                stage -> {
+                    stage.setResizable(false);
+                    stage.centerOnScreen();
+                    if (result.forced()) {
+                        stage.setOnCloseRequest(Event::consume);
+                    }
+                }
+        );
     }
+
 }
