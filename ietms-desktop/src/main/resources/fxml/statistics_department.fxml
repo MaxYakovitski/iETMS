@@ -78,7 +78,7 @@
             <Separator HBox.hgrow="ALWAYS"/>
 
             <HBox spacing="100" alignment="CENTER_LEFT" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
-                <StackPane prefWidth="350" prefHeight="350"/> <!--empty stackPane-->
+                <StackPane prefWidth="310" prefHeight="310"/> <!--empty stackPane-->
                 <VBox spacing="10" alignment="CENTER">
                     <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
                     <Label text="Contract efficiency"/>
