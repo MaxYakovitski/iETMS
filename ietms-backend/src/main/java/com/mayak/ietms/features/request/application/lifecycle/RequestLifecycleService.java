@@ -39,7 +39,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -269,16 +270,13 @@ public class RequestLifecycleService {
         notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
-
-
     @Transactional
     public void autoRefuseExpiredRequests(SchedulerMode mode) {
-        LocalDateTime threshold = LocalDateTime.now().minusDays(3);
+        Instant threshold = Instant.now().minus(3, ChronoUnit.DAYS);
 
         List<Request> expired = requestRepository.findExpiredRequests(
                 Set.of(RequestStatus.NEW, RequestStatus.IN_PROGRESS),
-                threshold
-        );
+                threshold);
 
         for (Request r : expired) {
             if (mode == SchedulerMode.DRY_RUN) {
@@ -293,12 +291,11 @@ public class RequestLifecycleService {
 
     @Transactional
     public void autoArchiveOldRequests(SchedulerMode mode) {
-        LocalDateTime threshold = LocalDateTime.now().minusDays(45);
+        Instant threshold = Instant.now().minus(45, ChronoUnit.DAYS);
 
         List<Request> toArchive = requestRepository.findRequestsForArchiving(
                 Set.of(RequestStatus.ACCEPTED, RequestStatus.REFUSED),
-                threshold
-        );
+                threshold);
 
         for (Request r : toArchive) {
             if (mode == SchedulerMode.DRY_RUN) {

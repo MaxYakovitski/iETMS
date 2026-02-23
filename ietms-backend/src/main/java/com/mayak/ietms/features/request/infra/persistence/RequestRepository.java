@@ -12,7 +12,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -225,7 +224,7 @@ ORDER BY
         WHERE r.status IN :statuses
           AND r.issueDate < :threshold
     """)
-    List<Request> findExpiredRequests(@Param("statuses") Set<RequestStatus> statuses, @Param("threshold") LocalDateTime threshold);
+    List<Request> findExpiredRequests(@Param("statuses") Set<RequestStatus> statuses, @Param("threshold") Instant threshold);
 
     @Query("""
         SELECT r
@@ -234,6 +233,6 @@ ORDER BY
           AND r.archived = false
           AND r.issueDate < :threshold
     """)
-    List<Request> findRequestsForArchiving(@Param("statuses")Set<RequestStatus> statuses, @Param("threshold") LocalDateTime threshold);
+    List<Request> findRequestsForArchiving(@Param("statuses")Set<RequestStatus> statuses, @Param("threshold") Instant threshold);
 
 }
