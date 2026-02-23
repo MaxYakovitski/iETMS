@@ -7,7 +7,6 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
@@ -106,7 +105,6 @@ public class DepartmentChartsRenderer {
 
         NumberAxis xAxis = (NumberAxis) chart.getXAxis();
         xAxis.setAutoRanging(false);
-        xAxis.setTickMarkVisible(false);
         xAxis.setMinorTickVisible(false);
 
         int max = data.values().stream()
@@ -114,6 +112,9 @@ public class DepartmentChartsRenderer {
                 .max()
                 .orElse(1);
         xAxis.setUpperBound(max);
+
+        double tickUnit = niceTick(max / 5.0);
+        xAxis.setTickUnit(tickUnit);
 
 
         BarChart.Series<Number, String> series = new BarChart.Series<>();
@@ -167,6 +168,20 @@ public class DepartmentChartsRenderer {
 
             chart.setOpacity(1);
         });
+    }
+
+    private double niceTick(double max) {
+        double exponent = Math.floor(Math.log10(max));
+        double fraction = max / Math.pow(10, exponent);
+
+        double niceFraction;
+
+        if (fraction <= 1) niceFraction = 1;
+        else if (fraction <= 2) niceFraction = 2;
+        else if (fraction <= 5) niceFraction = 5;
+        else niceFraction = 10;
+
+        return niceFraction * Math.pow(10, exponent);
     }
 
     private void showPlaceholder(StackPane container) {
