@@ -44,6 +44,7 @@ public class CompanyStatisticsController extends BaseStatisticsController {
     @FXML public DatePicker startDatePicker, endDatePicker;
     @FXML public CheckComboBox<CompanyDto> companiesCheckComboBox;
     @FXML public VBox reportContainer;
+    @FXML public HBox placeholderContainer;
     @FXML public ComboBox<DepartmentDto> departmentComboBox;
 
     @Getter @Setter
@@ -180,6 +181,9 @@ public class CompanyStatisticsController extends BaseStatisticsController {
     }
 
     private void showCompaniesReport(List<CompanyStatsDto> stats) {
+        placeholderContainer.setVisible(false);
+        placeholderContainer.setManaged(false);
+
         reportContainer.getChildren().clear();
 
         boolean empty = (stats == null || stats.isEmpty());
