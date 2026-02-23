@@ -132,7 +132,8 @@ ORDER BY
     FROM Request r
     JOIN User u ON u.id = r.authorId
     JOIN Profile p ON p.id = u.id
-    WHERE r.status = :status
+    WHERE TYPE(r) = :type
+      AND r.status = :status
       AND p.department.id = :departmentId
       AND r.issueDate >= :from
       AND r.issueDate < :toExclusive
