@@ -17,7 +17,6 @@ import com.mayak.ietms.support.validation.DateRangeUiValidator;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.PieChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.DatePicker;
@@ -44,7 +43,6 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
     @FXML public DatePicker startDatePicker, endDatePicker;
     @FXML public VBox reportContainer;
     @FXML public HBox placeholderContainer;
-    @FXML public PieChart pieChartAll, pieChartSpotBided, pieChartSpotEfficiency, pieChartContractEfficiency;
     @FXML public BarChart<Number, String> barChartSpotRefusedReason, barChartContractRefusedReason;
     @FXML public StackPane allContainer, spotBidedContainer, spotEfficiencyContainer, contractEfficiencyContainer;
     @FXML public LineChart <String, Number>lineChartCompression;
@@ -118,25 +116,29 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
     // ---------- RENDER ----------
     private void render(DepartmentStatsDto stats) {
 
-        charts.renderPie(
-                stats.spotBided(), stats.spotNotBided(),
-                "Bided", "Not bided",
-                pieChartSpotBided, spotBidedContainer);
-
-        charts.renderPie(
+        charts.renderProgressRing(
                 stats.spotTotal(), stats.contractTotal(),
                 "Spot", "Contract",
-                pieChartAll, allContainer);
+                DepartmentChartsRenderer.COLOR_COMMON,
+                allContainer);
 
-        charts.renderPie(
+        charts.renderProgressRing(
+                stats.spotBided(), stats.spotNotBided(),
+                "Bided", "Not bided",
+                DepartmentChartsRenderer.COLOR_COMMON,
+                spotBidedContainer);
+
+        charts.renderProgressRing(
                 stats.spotAccepted(), stats.spotRefused(),
                 "Accepted", "Refused",
-                pieChartSpotEfficiency, spotEfficiencyContainer);
+                DepartmentChartsRenderer.COLOR_EFFICIENCY,
+                spotEfficiencyContainer);
 
-        charts.renderPie(
+        charts.renderProgressRing(
                 stats.contractAccepted(), stats.contractRefused(),
                 "Accepted", "Refused",
-                pieChartContractEfficiency, contractEfficiencyContainer);
+                DepartmentChartsRenderer.COLOR_EFFICIENCY,
+                contractEfficiencyContainer);
 
         charts.renderBar(toBarData(stats.spotRefusedByReason()), barChartSpotRefusedReason);
         charts.renderBar(toBarData(stats.contractRefusedByReason()), barChartContractRefusedReason);
