@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -117,8 +117,14 @@ public class RequestQueryService {
     }
 
     public List<Request> findRequestsForReport(LocalDate from, LocalDate to, Long userId) {
-        var fromDt = from.atStartOfDay();
-        var toDt = to.atTime(LocalTime.MAX);
+        var fromInstant = from
+                .atStartOfDay()
+                .toInstant(ZoneOffset.UTC);
+
+        var toInstant = to
+                .plusDays(1)
+                .atStartOfDay()
+                .toInstant(ZoneOffset.UTC);
 
         List<RequestStatus> statuses = List.of(
                 RequestStatus.ACCEPTED,
@@ -130,10 +136,10 @@ public class RequestQueryService {
                 .orElse(null);
 
         if (departmentId == null) {
-            return requestRepository.findFullByIssueDateBetweenAndStatusIn(fromDt, toDt, statuses);
+            return requestRepository.findFullByIssueDateBetweenAndStatusIn(fromInstant, toInstant, statuses);
         }
 
-        return requestRepository.findFullByDepartmentAndIssueDateBetweenAndStatusIn(departmentId, fromDt, toDt, statuses);
+        return requestRepository.findFullByDepartmentAndIssueDateBetweenAndStatusIn(departmentId, fromInstant, toInstant, statuses);
 
     }
 

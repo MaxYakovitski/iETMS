@@ -171,8 +171,8 @@ ORDER BY
       AND r.status IN :statuses
 """)
     List<Request> findFullByIssueDateBetweenAndStatusIn(
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to,
+            @Param("from") Instant from,
+            @Param("to") Instant to,
             @Param("statuses") List<RequestStatus> statuses
     );
 
@@ -187,8 +187,8 @@ ORDER BY
 """)
     List<Request> findFullByDepartmentAndIssueDateBetweenAndStatusIn(
             @Param("departmentId") Long departmentId,
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to,
+            @Param("from") Instant from,
+            @Param("to") Instant to,
             @Param("statuses") List<RequestStatus> statuses
     );
 
