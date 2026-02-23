@@ -129,7 +129,7 @@ public class DepartmentStatisticsService {
         ZonedDateTime current = from.atZone(zone).withDayOfMonth(1);
         ZonedDateTime end = toExclusive.atZone(zone).withDayOfMonth(1);
 
-        while (!current.isAfter(end)) {
+        while (current.isBefore(end)) {
             Instant monthStart = current.toInstant();
             Instant nextMonthStart = current.plusMonths(1).toInstant();
 
