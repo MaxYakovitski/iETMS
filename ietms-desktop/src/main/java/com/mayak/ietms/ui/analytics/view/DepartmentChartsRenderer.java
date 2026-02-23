@@ -1,19 +1,24 @@
 package com.mayak.ietms.ui.analytics.view;
 
 import com.mayak.ietms.statistics.MonthlyCountDto;
+import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.PieChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.*;
 import javafx.util.Duration;
 import org.springframework.stereotype.Component;
 
@@ -23,63 +28,112 @@ import java.util.Map;
 @Component
 public class DepartmentChartsRenderer {
 
-    public void renderPie(
-            int a,
-            int b,
-            String labelA,
-            String labelB,
-            PieChart chart,
-            StackPane container
-    ) {
-        int total = a + b;
+    public static final String COLOR_COMMON = "#306eed";
+    public static final String COLOR_EFFICIENCY = "#81c784";
 
+    public void renderProgressRing(int a, int b, String labelA, String labelB, String strokeColor, StackPane container) {
+        int total = a + b;
         if (total == 0) {
             showPlaceholder(container);
-            chart.setVisible(false);
             return;
         }
 
-        chart.setVisible(true);
-        container.getChildren().setAll(chart);
+        container.getChildren().clear();
 
-        PieChart.Data d1 = new PieChart.Data(labelA + " (" + percent(a, total) + "%)\n" + a, a);
-        PieChart.Data d2 = new PieChart.Data(labelB + " (" + percent(b, total) + "%)\n" + b, b);
+        double percent = (double) a / total;
 
-        chart.getData().setAll(d1, d2);
-        chart.setLabelsVisible(false);
-        animate(chart);
+        double size = 260;
+        double strokeWidth = 28;
+
+        // TRACK
+        Circle track = new Circle(size / 2);
+        track.setStroke(Color.web("#eeeeee"));
+        track.setStrokeWidth(strokeWidth);
+        track.setFill(null);
+
+        // PROGRESS
+        Arc progress = new Arc();
+        progress.setManaged(false);
+        progress.setMouseTransparent(true);
+
+        progress.setStartAngle(90);
+        progress.setLength(0);
+        progress.setType(ArcType.OPEN);
+
+        progress.setStrokeWidth(strokeWidth);
+        progress.setStrokeLineCap(StrokeLineCap.ROUND);
+        progress.setStroke(Paint.valueOf(strokeColor));
+        progress.setFill(null);
+
+        progress.setRadiusX(size / 2);
+        progress.setRadiusY(size / 2);
+
+        progress.centerXProperty().bind(container.widthProperty().divide(2));
+        progress.centerYProperty().bind(container.heightProperty().divide(2));
+
+        // CENTER LABEL
+        Label center = new Label(String.format("%.2f%% %s", percent * 100, labelA));
+        center.setAlignment(Pos.CENTER);
+
+        container.getChildren().addAll(track, progress, center);
+
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.ZERO,
+                        new KeyValue(progress.lengthProperty(), 0)),
+                new KeyFrame(Duration.seconds(1.4),
+                        new KeyValue(progress.lengthProperty(),
+                                -360 * percent,
+                                Interpolator.EASE_BOTH))
+        );
+
+        timeline.play();
     }
 
-    public void renderBar(
-            Map<String, Integer> data,
-            BarChart<Number, String> chart
-    ) {
+    public void renderBar(Map<String, Integer> data, BarChart<Number, String> chart) {
+        chart.setAnimated(false);
+        chart.setLegendVisible(false);
+        chart.setVerticalGridLinesVisible(false);
+        chart.setHorizontalGridLinesVisible(false);
+        chart.setAlternativeRowFillVisible(false);
+        chart.setAlternativeColumnFillVisible(false);
+
         chart.getData().clear();
 
         CategoryAxis yAxis = (CategoryAxis) chart.getYAxis();
         yAxis.setAutoRanging(false);
+        yAxis.setTickMarkVisible(false);
         yAxis.setCategories(FXCollections.observableArrayList(data.keySet()));
 
-        String[] colors = {
-                "#e96c3f",
-                "#e3971c",
-                "#4ca8c4",
-                "#d94f42",
-                "#2990ff",
-                "#5ab05a"
-        };
+        NumberAxis xAxis = (NumberAxis) chart.getXAxis();
+        xAxis.setAutoRanging(false);
+        xAxis.setTickMarkVisible(false);
+        xAxis.setMinorTickVisible(false);
+
+        int max = data.values().stream()
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElse(1);
+        xAxis.setUpperBound(max);
+
 
         BarChart.Series<Number, String> series = new BarChart.Series<>();
+        String[] colors = {"#ed7647", "#e74c3c", "#306eed"};
 
         int index = 0;
         for (var entry : data.entrySet()) {
-            BarChart.Data<Number, String> d =
-                    new BarChart.Data<>(entry.getValue(), entry.getKey());
+            int targetValue = entry.getValue();
 
+            BarChart.Data<Number, String> d = new BarChart.Data<>(targetValue, entry.getKey());
             final int colorIndex = index;
-            d.nodeProperty().addListener((node, oldNode, newNode) -> {
+
+            d.nodeProperty().addListener((obs, oldNode, newNode) -> {
                 if (newNode != null) {
-                    newNode.setStyle("-fx-bar-fill: " + colors[colorIndex % colors.length] + ";");
+                    newNode.setStyle("""
+                    -fx-bar-fill: %s;
+                    -fx-background-radius: 0 10 10 0;
+                    -fx-background-insets: 0;
+                    """.formatted(colors[colorIndex % colors.length]));
+
                 }
             });
 
@@ -87,39 +141,38 @@ public class DepartmentChartsRenderer {
             index++;
         }
 
+        chart.setOpacity(0);
         chart.getData().add(series);
 
         Platform.runLater(() -> {
             chart.applyCss();
             chart.layout();
-            yAxis.setAutoRanging(false);
+
+            for (BarChart.Data<Number, String> d : series.getData()) {
+
+                Node node = d.getNode();
+                if (node == null) continue;
+
+                double fullWidth = node.getBoundsInLocal().getWidth();
+                Rectangle clip = new Rectangle(0, node.getBoundsInLocal().getHeight());
+
+                node.setClip(clip);
+
+                Timeline timeline = new Timeline(
+                        new KeyFrame(Duration.seconds(1.4),
+                                new KeyValue(clip.widthProperty(), fullWidth, Interpolator.EASE_BOTH)));
+
+                timeline.play();
+            }
+
+            chart.setOpacity(1);
         });
-    }
-
-    private void animate(PieChart chart) {
-        for (PieChart.Data d : chart.getData()) {
-
-            double target = d.getPieValue();
-
-            DoubleProperty p = new SimpleDoubleProperty(0);
-            d.pieValueProperty().bind(p);
-
-            Timeline t = new Timeline(
-                    new KeyFrame(Duration.ZERO, new KeyValue(p, 0)),
-                    new KeyFrame(Duration.seconds(1), new KeyValue(p, target))
-            );
-            t.play();
-        }
     }
 
     private void showPlaceholder(StackPane container) {
         Label lbl = new Label("No data for this field...");
         lbl.getStyleClass().add("chart-placeholder");
         container.getChildren().setAll(lbl);
-    }
-
-    private String percent(int v, int total) {
-        return String.format("%.2f", (v * 100.0) / total);
     }
 
     public void renderCompression(List<MonthlyCountDto> data, LineChart<String, Number> chart) {
@@ -133,12 +186,8 @@ public class DepartmentChartsRenderer {
         contractSeries.setName("Contract");
 
         for (var m : data) {
-            spotSeries.getData().add(
-                    new LineChart.Data<>(m.month(), m.spot())
-            );
-            contractSeries.getData().add(
-                    new LineChart.Data<>(m.month(), m.contract())
-            );
+            spotSeries.getData().add(new LineChart.Data<>(m.month(), m.spot()));
+            contractSeries.getData().add(new LineChart.Data<>(m.month(), m.contract()));
         }
 
         chart.getData().add(spotSeries);

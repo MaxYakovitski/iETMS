@@ -2,7 +2,6 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.CategoryAxis?>
@@ -48,23 +47,27 @@
               visible="false"
               managed="false">
 
-            <HBox alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
-                <StackPane fx:id="allContainer" prefWidth="350" prefHeight="350">
-                    <PieChart fx:id="pieChartAll" prefWidth="350" prefHeight="350" styleClass="pie-default" title="Requests"/>
-                </StackPane>
+            <HBox alignment="CENTER_LEFT" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
+                <VBox spacing="10" alignment="CENTER">
+                    <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
+                    <Label text="Requests: spots vs. contracts"/>
+                    <StackPane fx:id="allContainer" VBox.vgrow="ALWAYS"/>
+                </VBox>
             </HBox>
 
             <Separator HBox.hgrow="ALWAYS"/>
 
-            <HBox spacing="100" alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
-                <StackPane fx:id="spotBidedContainer" prefWidth="350" prefHeight="350">
-                    <PieChart fx:id="pieChartSpotBided" prefWidth="350" prefHeight="350" styleClass="pie-default"
-                              title="Spot bidding"/>
-                </StackPane>
-                <StackPane fx:id="spotEfficiencyContainer" prefWidth="350" prefHeight="350">
-                    <PieChart fx:id="pieChartSpotEfficiency" prefWidth="350" prefHeight="350" styleClass="pie-stat"
-                              title="Bidding efficiency"/>
-                </StackPane>
+            <HBox spacing="100" alignment="CENTER_LEFT" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
+                <VBox spacing="10" alignment="CENTER">
+                    <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
+                    <Label text="Spot"/>
+                    <StackPane fx:id="spotBidedContainer" VBox.vgrow="ALWAYS"/>
+                </VBox>
+                <VBox spacing="10" alignment="CENTER">
+                    <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
+                    <Label text="Spot efficiency"/>
+                    <StackPane fx:id="spotEfficiencyContainer" VBox.vgrow="ALWAYS"/>
+                </VBox>
                 <BarChart fx:id="barChartSpotRefusedReason" prefWidth="500" prefHeight="350"
                           styleClass="bar-spot-contract" title="Refused reasons">
                     <xAxis><NumberAxis minorTickVisible="false"/></xAxis>
@@ -74,11 +77,13 @@
 
             <Separator HBox.hgrow="ALWAYS"/>
 
-            <HBox spacing="100" alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
-                <StackPane fx:id="contractEfficiencyContainer" prefWidth="350" prefHeight="350">
-                    <PieChart fx:id="pieChartContractEfficiency" prefWidth="350" prefHeight="350" styleClass="pie-stat"
-                              title="Contract"/>
-                </StackPane>
+            <HBox spacing="100" alignment="CENTER_LEFT" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
+                <StackPane prefWidth="350" prefHeight="350"/> <!--empty stackPane-->
+                <VBox spacing="10" alignment="CENTER">
+                    <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
+                    <Label text="Contract efficiency"/>
+                    <StackPane fx:id="contractEfficiencyContainer" VBox.vgrow="ALWAYS"/>
+                </VBox>
                 <BarChart fx:id="barChartContractRefusedReason" prefWidth="500" prefHeight="350"
                           styleClass="bar-spot-contract" title="Refused reasons">
                     <xAxis><NumberAxis minorTickVisible="false"/></xAxis>
@@ -92,7 +97,7 @@
                 <LineChart fx:id="lineChartCompression" HBox.hgrow="ALWAYS" styleClass="line-spot-contract"
                            title="Spot/Contract compression">
                     <xAxis><CategoryAxis/></xAxis>
-                    <yAxis><NumberAxis/></yAxis>
+                    <yAxis><NumberAxis minorTickVisible="false"/></yAxis>
                 </LineChart>
             </HBox>
         </VBox>
