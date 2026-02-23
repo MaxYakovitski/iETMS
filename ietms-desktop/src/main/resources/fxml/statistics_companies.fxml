@@ -14,9 +14,9 @@
 
     <VBox spacing="10"
           alignment="TOP_CENTER"
-          style="-fx-padding: 20">
+          style="-fx-padding: 0 20 10 20">
 
-        <HBox spacing="10" alignment="CENTER" style="-fx-background-color: #eff5fb; -fx-background-radius: 5">
+        <HBox spacing="10" alignment="CENTER">
             <padding><Insets top="10" bottom="10"/></padding>
 
             <VBox spacing="10" alignment="CENTER">
@@ -35,6 +35,10 @@
         </HBox>
 
         <Separator HBox.hgrow="ALWAYS"/>
+
+        <HBox fx:id="placeholderContainer" alignment="CENTER" VBox.vgrow="ALWAYS">
+            <Label text="report hasn't been formed yet..." style="-fx-opacity: 0.5;"/>
+        </HBox>
 
         <Label fx:id="emptyMessageLabel"
                text="Oops! Nothing to show..."
