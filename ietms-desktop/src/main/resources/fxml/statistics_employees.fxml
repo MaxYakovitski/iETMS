@@ -3,20 +3,20 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.controlsfx.control.CheckComboBox?>
-
 <?import javafx.geometry.Insets?>
+
 <ScrollPane xmlns="http://javafx.com/javafx/21.0.7"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.mayak.ietms.ui.analytics.controller.UserStatisticsController"
+            fx:controller="com.mayak.ietms.ui.analytics.controller.EmployeeStatisticsController"
             styleClass="scroll-minimal"
             fitToWidth="true"
             hbarPolicy="NEVER">
 
     <VBox spacing="10"
           alignment="TOP_CENTER"
-          style="-fx-padding: 20">
+          style="-fx-padding: 0 20 10 20">
 
-        <HBox spacing="10" alignment="CENTER" style="-fx-background-color: #eff5fb; -fx-background-radius: 5">
+        <HBox spacing="10" alignment="CENTER">
         <padding><Insets top="10" bottom="10"/></padding>
 
             <!-- Date range -->
@@ -37,6 +37,10 @@
         </HBox>
 
         <Separator HBox.hgrow="ALWAYS"/>
+
+        <HBox fx:id="placeholderContainer" alignment="CENTER" VBox.vgrow="ALWAYS">
+            <Label text="report hasn't been formed yet..." style="-fx-opacity: 0.5;"/>
+        </HBox>
 
         <VBox fx:id="reportContainer"/>
 

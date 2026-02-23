@@ -22,7 +22,9 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -40,6 +42,8 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
 
     @FXML public Label departmentFullNameLabel;
     @FXML public DatePicker startDatePicker, endDatePicker;
+    @FXML public VBox reportContainer;
+    @FXML public HBox placeholderContainer;
     @FXML public PieChart pieChartAll, pieChartSpotBided, pieChartSpotEfficiency, pieChartContractEfficiency;
     @FXML public BarChart<Number, String> barChartSpotRefusedReason, barChartContractRefusedReason;
     @FXML public StackPane allContainer, spotBidedContainer, spotEfficiencyContainer, contractEfficiencyContainer;
@@ -104,6 +108,11 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
         );
 
         render(stats);
+
+        placeholderContainer.setVisible(false);
+        placeholderContainer.setManaged(false);
+        reportContainer.setVisible(true);
+        reportContainer.setManaged(true);
     }
 
     // ---------- RENDER ----------
