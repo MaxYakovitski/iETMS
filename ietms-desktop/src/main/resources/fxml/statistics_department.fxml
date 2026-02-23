@@ -39,54 +39,63 @@
 
         <Separator HBox.hgrow="ALWAYS"/>
 
-        <HBox alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
-            <StackPane fx:id="allContainer" prefWidth="350" prefHeight="350">
-                <PieChart fx:id="pieChartAll" prefWidth="350" prefHeight="350" styleClass="pie-default"
-                          title="Requests"/>
-            </StackPane>
+        <HBox fx:id="placeholderContainer" alignment="CENTER" VBox.vgrow="ALWAYS">
+            <Label text="report hasn't been formed yet..." style="-fx-opacity: 0.5;"/>
         </HBox>
 
-        <Separator HBox.hgrow="ALWAYS"/>
+        <VBox fx:id="reportContainer"
+              spacing="10"
+              visible="false"
+              managed="false">
 
-        <HBox spacing="100" alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
-            <StackPane fx:id="spotBidedContainer" prefWidth="350" prefHeight="350">
-                <PieChart fx:id="pieChartSpotBided" prefWidth="350" prefHeight="350" styleClass="pie-default"
-                          title="Spot bidding"/>
-            </StackPane>
-            <StackPane fx:id="spotEfficiencyContainer" prefWidth="350" prefHeight="350">
-                <PieChart fx:id="pieChartSpotEfficiency" prefWidth="350" prefHeight="350" styleClass="pie-stat"
-                          title="Bidding efficiency"/>
-            </StackPane>
-            <BarChart fx:id="barChartSpotRefusedReason" prefWidth="350" prefHeight="350"
-                      styleClass="bar-spot-contract" title="Refused reasons">
-                <xAxis><NumberAxis/></xAxis>
-                <yAxis><CategoryAxis/></yAxis>
-            </BarChart>
-        </HBox>
+            <HBox alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
+                <StackPane fx:id="allContainer" prefWidth="350" prefHeight="350">
+                    <PieChart fx:id="pieChartAll" prefWidth="350" prefHeight="350" styleClass="pie-default" title="Requests"/>
+                </StackPane>
+            </HBox>
 
-        <Separator HBox.hgrow="ALWAYS"/>
+            <Separator HBox.hgrow="ALWAYS"/>
 
-        <HBox spacing="100" alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
-            <StackPane fx:id="contractEfficiencyContainer" prefWidth="350" prefHeight="350">
-                <PieChart fx:id="pieChartContractEfficiency" prefWidth="350" prefHeight="350" styleClass="pie-stat"
-                          title="Contract"/>
-            </StackPane>
-            <BarChart fx:id="barChartContractRefusedReason" prefWidth="350" prefHeight="350"
-                      styleClass="bar-spot-contract" title="Refused reasons">
-                <xAxis><NumberAxis/></xAxis>
-                <yAxis><CategoryAxis/></yAxis>
-            </BarChart>
-        </HBox>
+            <HBox spacing="100" alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
+                <StackPane fx:id="spotBidedContainer" prefWidth="350" prefHeight="350">
+                    <PieChart fx:id="pieChartSpotBided" prefWidth="350" prefHeight="350" styleClass="pie-default"
+                              title="Spot bidding"/>
+                </StackPane>
+                <StackPane fx:id="spotEfficiencyContainer" prefWidth="350" prefHeight="350">
+                    <PieChart fx:id="pieChartSpotEfficiency" prefWidth="350" prefHeight="350" styleClass="pie-stat"
+                              title="Bidding efficiency"/>
+                </StackPane>
+                <BarChart fx:id="barChartSpotRefusedReason" prefWidth="500" prefHeight="350"
+                          styleClass="bar-spot-contract" title="Refused reasons">
+                    <xAxis><NumberAxis minorTickVisible="false"/></xAxis>
+                    <yAxis><CategoryAxis/></yAxis>
+                </BarChart>
+            </HBox>
 
-        <Separator HBox.hgrow="ALWAYS"/>
+            <Separator HBox.hgrow="ALWAYS"/>
 
-        <HBox alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
-            <LineChart fx:id="lineChartCompression" HBox.hgrow="ALWAYS" styleClass="line-spot-contract"
-                       title="Spot/Contract compression">
-                <xAxis><CategoryAxis/></xAxis>
-                <yAxis><NumberAxis/></yAxis>
-            </LineChart>
-        </HBox>
+            <HBox spacing="100" alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
+                <StackPane fx:id="contractEfficiencyContainer" prefWidth="350" prefHeight="350">
+                    <PieChart fx:id="pieChartContractEfficiency" prefWidth="350" prefHeight="350" styleClass="pie-stat"
+                              title="Contract"/>
+                </StackPane>
+                <BarChart fx:id="barChartContractRefusedReason" prefWidth="500" prefHeight="350"
+                          styleClass="bar-spot-contract" title="Refused reasons">
+                    <xAxis><NumberAxis minorTickVisible="false"/></xAxis>
+                    <yAxis><CategoryAxis/></yAxis>
+                </BarChart>
+            </HBox>
+
+            <Separator HBox.hgrow="ALWAYS"/>
+
+            <HBox alignment="CENTER" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
+                <LineChart fx:id="lineChartCompression" HBox.hgrow="ALWAYS" styleClass="line-spot-contract"
+                           title="Spot/Contract compression">
+                    <xAxis><CategoryAxis/></xAxis>
+                    <yAxis><NumberAxis/></yAxis>
+                </LineChart>
+            </HBox>
+        </VBox>
 
     </VBox>
 </ScrollPane>

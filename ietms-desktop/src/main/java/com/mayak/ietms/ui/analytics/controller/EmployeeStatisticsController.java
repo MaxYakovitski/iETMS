@@ -35,13 +35,14 @@ import java.util.Objects;
 @Controller
 @Scope("prototype")
 @RequiredArgsConstructor
-public class UserStatisticsController extends BaseStatisticsController {
+public class EmployeeStatisticsController extends BaseStatisticsController {
 
     @FXML public Label departmentFullNameLabel;
     @FXML public ComboBox <DepartmentDto> departmentComboBox;
     @FXML public DatePicker startDatePicker, endDatePicker;
     @FXML public CheckComboBox<UserLookupDto> usersComboBox;
     @FXML public VBox reportContainer;
+    @FXML public HBox placeholderContainer;
 
     private final DepartmentClient departmentClient;
     private final UserClient userClient;
@@ -163,6 +164,9 @@ public class UserStatisticsController extends BaseStatisticsController {
     }
 
     private void showReport(List<UserReport> reports) {
+        placeholderContainer.setVisible(false);
+        placeholderContainer.setManaged(false);
+
         reportContainer.getChildren().clear();
         reports.forEach(r ->
                 reportContainer.getChildren().add(userReportRenderer.render(r))
