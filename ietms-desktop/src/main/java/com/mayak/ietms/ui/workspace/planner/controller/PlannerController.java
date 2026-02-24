@@ -3,6 +3,7 @@ package com.mayak.ietms.ui.workspace.planner.controller;
 import com.mayak.ietms.domain.planner.service.PlannerDataService;
 import com.mayak.ietms.domain.planner.service.PlannerSelectionService;
 import com.mayak.ietms.request.dto.event.ShipmentEventDto;
+import com.mayak.ietms.shipment.dto.enums.TransportEventType;
 import com.mayak.ietms.shipment.event.ShipmentEvent;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
 import com.mayak.ietms.infrastructure.toast.ToastService;
@@ -190,8 +191,8 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         toDropListView.setItems(toDropItems);
         shipmentsListView.setItems(shipmentsItems);
 
-        setupList(toLoadListView, toDropListView);
-        setupList(toDropListView, toLoadListView);
+        setupList(toLoadListView, toDropListView, TransportEventType.LOAD);
+        setupList(toDropListView, toLoadListView, TransportEventType.DROP);
         setupSingleList(shipmentsListView);
 
         setupDirtyListeners();
@@ -206,7 +207,9 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         TimeSpinnerUtils.setupTimeSpinner(timeSpinner, 15);
     }
 
-    private void setupList(ListView<ShipmentListItemDto> list, ListView<ShipmentListItemDto> otherList) {
+    private void setupList(ListView<ShipmentListItemDto> list,
+                           ListView<ShipmentListItemDto> otherList,
+                           TransportEventType eventType) {
         list.setCellFactory(lv -> {
             ShipmentCell cell = new ShipmentCell(windowService);
             cell.setActiveTab(ActiveTab.MY_TRANSPORTS);
@@ -217,16 +220,15 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                 .selectedItemProperty()
                 .addListener((obs, oldItem, newItem) -> {
 
-                    if (newItem == null) {
-                        clearSelection();
-                        return;
-                    }
+                    if (newItem == null) return;
+                    state.setSelectedTransportEvent(eventType);
 
                     if (otherList.getSelectionModel().getSelectedItem() != null) {
-                        otherList.getSelectionModel().clearSelection();
+                        Platform.runLater(() ->
+                                otherList.getSelectionModel().clearSelection());
                     }
 
-                    selectShipment(newItem);
+                    Platform.runLater(() -> selectShipment(newItem));
                 });
     }
 
@@ -579,7 +581,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         formState.reset();
         submitButton.setDisable(true);
 
-        ShipmentContext ctx = selectionService.buildContext(dto, state.getSelectedDate());
+        ShipmentContext ctx = selectionService.buildContext(dto, state.getSelectedDate(), state.getSelectedTransportEvent());
 
         detailsPresenter.showTransportDetails(
                 dto,

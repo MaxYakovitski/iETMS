@@ -2,6 +2,7 @@ package com.mayak.ietms.domain.planner.policy;
 
 import com.mayak.ietms.domain.planner.model.ShipmentContext;
 import com.mayak.ietms.shipment.dto.enums.ShipmentStatusDto;
+import com.mayak.ietms.shipment.dto.enums.TransportEventType;
 import org.springframework.stereotype.Service;
 
 import java.util.EnumSet;
@@ -21,8 +22,8 @@ public class ShipmentPlannerPolicy {
         }
 
         return switch (ctx.status()) {
-            case PLANNED -> true;
-            case LOADED -> ctx.isDropDate();
+            case PLANNED -> ctx.eventType() == TransportEventType.LOAD;
+            case LOADED -> ctx.eventType() == TransportEventType.DROP;
             default -> false;
         };
     }

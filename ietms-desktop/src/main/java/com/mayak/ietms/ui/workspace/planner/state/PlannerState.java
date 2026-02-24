@@ -1,5 +1,6 @@
 package com.mayak.ietms.ui.workspace.planner.state;
 
+import com.mayak.ietms.shipment.dto.enums.TransportEventType;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.ui.workspace.planner.enums.ActiveTab;
 import lombok.Getter;
@@ -15,6 +16,8 @@ public class PlannerState {
     private ShipmentListItemDto selectedShipment;
 
     private ActiveTab activeTab;
+
+    private TransportEventType selectedTransportEvent;
 
     private boolean hasMyShipments;
     private boolean hasMyTransports;
