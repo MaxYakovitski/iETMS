@@ -88,6 +88,8 @@ public class AlertUtils {
 
         initOwner(alert, owner);
 
+        alert.getDialogPane().setStyle("-fx-background-color: #ffffff;");
+
         alert.showAndWait();
     }
 
