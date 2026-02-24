@@ -6,10 +6,7 @@ import com.mayak.ietms.infrastructure.security.current.CurrentUserId;
 import com.mayak.ietms.features.shipment.application.ShipmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,5 +27,13 @@ public class ShipmentQueryController {
     @GetMapping("/my-transport-events")
     public List<MyTransportEventDto> myTransportEvents(@RequestParam("date") LocalDate date, @CurrentUserId Long userId) {
         return shipmentService.findMyTransportEventsForDate(date, userId);
+    }
+
+    @GetMapping("/{id}")
+    public ShipmentListItemDto getShipment(
+            @PathVariable("id") Long id,
+            @CurrentUserId Long userId
+    ) {
+        return shipmentService.getShipmentForUser(id, userId);
     }
 }

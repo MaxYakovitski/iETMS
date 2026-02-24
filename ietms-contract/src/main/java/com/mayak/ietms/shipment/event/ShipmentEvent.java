@@ -11,6 +11,7 @@ public class ShipmentEvent <T> {
 
     public enum EventType {
         STATUS_CHANGED,
+        UPDATED
     }
 
     private final Long shipmentId;

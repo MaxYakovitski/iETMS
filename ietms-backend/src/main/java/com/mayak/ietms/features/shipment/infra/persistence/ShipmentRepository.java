@@ -28,4 +28,6 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
 
     boolean existsByRequestId(Long requestId);
 
+    boolean existsByIdAndRequestAuthorId(Long shipmentId, Long userId);
+    boolean existsByIdAndDispatcherId(Long shipmentId, Long userId);
 }
