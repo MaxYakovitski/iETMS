@@ -1,6 +1,7 @@
 package com.mayak.ietms.domain.planner.service;
 
 import com.mayak.ietms.domain.planner.model.ShipmentContext;
+import com.mayak.ietms.shipment.dto.enums.TransportEventType;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.ui.workspace.planner.enums.ActiveTab;
 import com.mayak.ietms.ui.workspace.planner.state.PlannerState;
@@ -21,12 +22,11 @@ public class PlannerSelectionService {
         return state.getActiveTab() == ActiveTab.MY_TRANSPORTS;
     }
 
-    public ShipmentContext buildContext(ShipmentListItemDto dto, LocalDate selectedDate) {
-        return new ShipmentContext(
-                dto.status(),
+    public ShipmentContext buildContext(ShipmentListItemDto dto, LocalDate selectedDate, TransportEventType eventType) {
+        return ShipmentContext.from(
+                dto,
                 selectedDate,
-                dto.startDate().toLocalDate(),
-                dto.endDate().toLocalDate()
+                eventType
         );
     }
 }

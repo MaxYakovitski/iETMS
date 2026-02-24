@@ -1,18 +1,25 @@
 package com.mayak.ietms.domain.planner.model;
 
 import com.mayak.ietms.shipment.dto.enums.ShipmentStatusDto;
+import com.mayak.ietms.shipment.dto.enums.TransportEventType;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 
 import java.time.LocalDate;
 
-public record ShipmentContext (ShipmentStatusDto status, LocalDate selectedDate, LocalDate loadDate, LocalDate dropDate) {
+public record ShipmentContext (
+        ShipmentStatusDto status,
+        LocalDate selectedDate,
+        LocalDate loadDate,
+        LocalDate dropDate,
+        TransportEventType eventType) {
 
-    public static ShipmentContext from(ShipmentListItemDto dto, LocalDate selectedDate) {
+    public static ShipmentContext from(ShipmentListItemDto dto, LocalDate selectedDate, TransportEventType eventType) {
         return new ShipmentContext(
                 dto.status(),
                 selectedDate,
                 dto.startDate().toLocalDate(),
-                dto.endDate().toLocalDate()
+                dto.endDate().toLocalDate(),
+                eventType
         );
     }
 
