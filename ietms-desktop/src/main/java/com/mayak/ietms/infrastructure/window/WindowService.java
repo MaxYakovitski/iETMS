@@ -140,6 +140,8 @@ public class WindowService {
             stage.setScene(new Scene(root));
             stage.setResizable(true);
 
+            applyDefaultIcon(iconPath, stage, primaryStage);
+
             double fixedWidth = 1520;
             stage.setWidth(fixedWidth);
             stage.setMinWidth(fixedWidth);
@@ -208,12 +210,7 @@ public class WindowService {
         injectStageIfSupported(controller, stage);
         if (initializer != null) initializer.accept(controller);
 
-        if (iconPath != null) {
-            Image icon = new Image(Objects.requireNonNull(getClass().getResource(iconPath)).toString());
-            stage.getIcons().setAll(icon);
-        } else if (owner != null && !owner.getIcons().isEmpty()) {
-            stage.getIcons().setAll(owner.getIcons());
-        }
+        applyDefaultIcon(iconPath, stage, owner);
 
         stage.setOnShown(event -> {
             centerOnScreen(stage);
@@ -419,5 +416,16 @@ public class WindowService {
                 loginCallback.run();
             }
         });
+    }
+
+    private void applyDefaultIcon(String iconPath, Stage stage, Stage primaryStage) {
+        if (iconPath != null) {
+            Image icon = new Image(
+                    Objects.requireNonNull(getClass().getResource(iconPath)).toString()
+            );
+            stage.getIcons().setAll(icon);
+        } else if (primaryStage != null && !primaryStage.getIcons().isEmpty()) {
+            stage.getIcons().setAll(primaryStage.getIcons());
+        }
     }
 }
