@@ -151,19 +151,19 @@ public class ShipmentService {
         ShipmentListItemDto dto = assembler.assembleAsOfDate(s, date);
 
         if (s.getStatus() == ShipmentStatus.CANCELED) {
-            if (date.equals(s.getPlannedLoadDate())) {
-                return Stream.of(new MyTransportEventDto(
+            if (!date.equals(s.getPlannedLoadDate())) return Stream.empty();
+            return Stream.of(new MyTransportEventDto(
                         s.getId(),
                         TransportEventType.LOAD,
                         s.getPlannedLoadDate().atStartOfDay(),
                         dto
                 ));
-            }
-            return Stream.empty();
         }
 
+        Stream.Builder<MyTransportEventDto> b = Stream.builder();
+
         if (date.equals(s.getPlannedLoadDate())) {
-            return Stream.of(new MyTransportEventDto(
+            b.add(new MyTransportEventDto(
                     s.getId(),
                     TransportEventType.LOAD,
                     s.getPlannedLoadDate().atStartOfDay(),
@@ -172,8 +172,7 @@ public class ShipmentService {
         }
 
         if (date.equals(s.getPlannedDropDate()) && s.isLoadedBeforeOrOn(date)) {
-
-            return Stream.of(new MyTransportEventDto(
+            b.add(new MyTransportEventDto(
                     s.getId(),
                     TransportEventType.DROP,
                     s.getPlannedDropDate().atStartOfDay(),
@@ -181,7 +180,7 @@ public class ShipmentService {
             ));
         }
 
-        return Stream.empty();
+        return b.build();
     }
 
     /**
