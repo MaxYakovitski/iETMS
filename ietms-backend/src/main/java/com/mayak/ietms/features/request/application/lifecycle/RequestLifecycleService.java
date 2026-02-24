@@ -192,8 +192,9 @@ public class RequestLifecycleService {
         lifecycle.accept(request, bestBid, clientPrice);
         requestRepository.save(request);
 
-        shipmentRepository.findById(request.getId())
+        Shipment shipment = shipmentRepository.findById(request.getId())
                 .orElseGet(() -> createShipment(request));
+        shipmentNotificationService.publishEvent(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
 
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
         Long dispatcherId = request.getDispatcherId();
@@ -278,8 +279,7 @@ public class RequestLifecycleService {
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
 
         shipmentRepository.findById(requestId).ifPresent(shipment ->
-                shipmentNotificationService.publishEvent(ShipmentEvent.EventType.UPDATED, shipment)
-        );
+                shipmentNotificationService.publishEvent(ShipmentEvent.EventType.UPDATED, shipment));
     }
 
     @Transactional
