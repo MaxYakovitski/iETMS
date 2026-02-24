@@ -15,6 +15,7 @@ import com.mayak.ietms.shipment.dto.enums.ShipmentCancelReasonDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentUpdateDto;
 import com.mayak.ietms.shipment.dto.enums.ShipmentStatusDto;
+import com.mayak.ietms.ui.workspace.planner.item.ShipmentItemController;
 import com.mayak.ietms.ui.workspace.planner.presenter.PlannerDetailsPresenter;
 import com.mayak.ietms.ui.workspace.planner.state.PlannerState;
 import com.mayak.ietms.user.dto.UserResponseDto;
@@ -56,6 +57,8 @@ import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 @Controller
@@ -109,6 +112,16 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     private final ObservableList<ShipmentListItemDto> toDropItems = FXCollections.observableArrayList();
     private final ObservableList<ShipmentListItemDto> shipmentsItems = FXCollections.observableArrayList();
 
+    private final ConcurrentMap<Long, ShipmentItemController> visibleShipments = new ConcurrentHashMap<>();
+
+    public void registerVisibleShipment(Long id, ShipmentItemController c) {
+        if (id != null && c != null) visibleShipments.put(id, c);
+    }
+
+    public void unregisterVisibleShipment(Long id) {
+        if (id == null) return;
+        visibleShipments.remove(id);
+    }
 
     @Override
     public void setLoggedInUser(UserResponseDto user) {
@@ -140,13 +153,18 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     /* ================= Realtime Updates ================= */
     private void initShipmentRealtimeUpdates() {
         shipmentWsClient.connect(
-                event -> Platform.runLater(this::handleShipmentEvent),
+                event -> Platform.runLater(() -> handleShipmentEvent(event)),
                 event -> Platform.runLater(() -> handleShipmentUserEvent(event))
         );
     }
 
-    private void handleShipmentEvent() {
-        reloadForDate(state.getSelectedDate());
+    private void handleShipmentEvent(ShipmentEvent<ShipmentEventDto> event) {
+        if (event == null) return;
+
+        switch (event.getType()) {
+            case STATUS_CHANGED -> reloadForDate(state.getSelectedDate());
+            case UPDATED -> invalidateShipment(event.getShipmentId());
+        }
     }
 
     private void handleShipmentUserEvent(ShipmentEvent<ShipmentEventDto> event) {
@@ -204,7 +222,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     private void setupList(ListView<ShipmentListItemDto> list, ListView<ShipmentListItemDto> otherList) {
         list.setCellFactory(lv -> {
-            ShipmentCell cell = new ShipmentCell(windowService);
+            ShipmentCell cell = new ShipmentCell(windowService, this);
             cell.setActiveTab(ActiveTab.MY_TRANSPORTS);
             return cell;
         });
@@ -228,7 +246,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     private void setupSingleList(ListView<ShipmentListItemDto> list) {
         list.setCellFactory(lv -> {
-            ShipmentCell cell = new ShipmentCell(windowService);
+            ShipmentCell cell = new ShipmentCell(windowService, this);
             cell.setActiveTab(ActiveTab.MY_SHIPMENTS);
             return cell;
         });
@@ -400,10 +418,26 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                 .supplyAsync(() -> dataService.loadMyShipments(date))
                 .thenCombine(CompletableFuture.supplyAsync(() -> dataService.loadMyTransports(date)), Map::entry)
                 .thenAccept(result ->
-                        Platform.runLater(() -> {
-                            applyDayData(result.getKey(), result.getValue());
-                        })
+                        Platform.runLater(() -> applyDayData(result.getKey(), result.getValue()))
                 );
+    }
+
+    private void invalidateShipment(Long shipmentId) {
+        if (shipmentId == null) return;
+
+        ShipmentItemController c = visibleShipments.get(shipmentId);
+        if (c == null) return;
+
+        CompletableFuture
+                .supplyAsync(() -> dataService.loadShipmentById(shipmentId))
+                .thenAccept(fresh -> Platform.runLater(() -> {
+                    if (!Objects.equals(c.getShipmentId(), shipmentId)) return;
+                    c.updateItem(fresh);
+                }))
+                .exceptionally(ex -> {
+                    log.warn("Failed to refresh shipment {}", shipmentId, ex);
+                    return null;
+                });
     }
 
     private void reloadAfterMutation(ActiveTab preferredTab) {

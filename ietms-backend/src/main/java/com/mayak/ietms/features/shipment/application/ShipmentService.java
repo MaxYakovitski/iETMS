@@ -72,6 +72,22 @@ public class ShipmentService {
         return !date.isBefore(s.getPlannedLoadDate()) && !date.isAfter(s.getPlannedDropDate());
     }
 
+    @Transactional(readOnly = true)
+    public ShipmentListItemDto getShipmentForUser(Long shipmentId, Long userId) {
+        Shipment shipment = shipmentRepository.findById(shipmentId)
+                .orElseThrow(() -> new ShipmentNotFoundException(shipmentId));
+
+        boolean visible =
+                shipmentRepository.existsByIdAndRequestAuthorId(shipmentId, userId)
+                        || shipmentRepository.existsByIdAndDispatcherId(shipmentId, userId);
+
+        if (!visible) {
+            throw new UnauthorizedException("Shipment is not visible for current user");
+        }
+
+        return assembler.assembleCurrent(shipment);
+    }
+
     public List<MyTransportEventDto> findMyTransportEventsForDate(LocalDate date, Long userId) {
         return shipmentRepository.findMyTransportShipments(userId).stream()
                 .flatMap(s -> toTransportEvents(s, date))
@@ -158,7 +174,7 @@ public class ShipmentService {
         }
 
         boolean statusChanged = applyStatusTransition(dto, shipment);
-        applyCarrier(dto, shipment);
+        boolean carrierChanged = applyCarrier(dto, shipment);
         applyLicense(dto, shipment);
         applyTransportOrder(dto, shipment);
         applyComments(dto, shipment);
@@ -166,6 +182,9 @@ public class ShipmentService {
         if (statusChanged) {
             shipmentNotificationService.publishEvent(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
             shipmentNotificationService.publishToDispatcher(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
+        } else if (carrierChanged) {
+            shipmentNotificationService.publishEvent(ShipmentEvent.EventType.UPDATED, shipment);
+            shipmentNotificationService.publishToDispatcher(ShipmentEvent.EventType.UPDATED, shipment);
         }
 
         return assembler.assembleCurrent(shipment);
@@ -239,15 +258,24 @@ public class ShipmentService {
         }
     }
 
-    private void applyCarrier(ShipmentUpdateDto dto, Shipment shipment) {
-        if (dto.carrierName() != null) {
-            if (dto.carrierName().isBlank()) {
-                shipment.unassignCarrier();
-            } else {
-                Company carrier = companyService.resolveCompany(dto.carrierName());
-                shipment.assignCarrier(carrier);
-            }
+    private boolean applyCarrier(ShipmentUpdateDto dto, Shipment shipment) {
+        if (dto.carrierName() == null) return false;
+
+        Company currentCarrier = shipment.getCarrier();
+
+        if (dto.carrierName().isBlank()) {
+            if (currentCarrier == null) return false;
+            shipment.unassignCarrier();
+            return true;
         }
+
+        Company newCarrier = companyService.resolveCompany(dto.carrierName());
+        if (currentCarrier != null && currentCarrier.getId().equals(newCarrier.getId())) {
+            return false;
+        }
+
+        shipment.assignCarrier(newCarrier);
+        return true;
     }
 
     /**

@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface ShipmentClient {
     ShipmentListItemDto update(ShipmentUpdateDto dto);
+    ShipmentListItemDto getShipment(Long shipmentId);
     List<ShipmentListItemDto> findMyShipments(LocalDate date);
     List<MyTransportEventDto> findMyTransportEvents(LocalDate date);
     void cancel(long shipmentId, ShipmentCancelReasonDto reason);

@@ -76,6 +76,21 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
     }
 
     @Override
+    public ShipmentListItemDto getShipment(Long shipmentId) {
+        return exchangeSafely(() -> {
+
+            RequestEntity<Void> request = RequestEntity
+                    .get(API + "/{id}", shipmentId)
+                    .build();
+
+            return restTemplate.exchange(
+                    request,
+                    ShipmentListItemDto.class
+            ).getBody();
+        });
+    }
+
+    @Override
     public void cancel(long shipmentId, ShipmentCancelReasonDto reason) {
         exchangeSafely(() -> {
             RequestEntity<CancelShipmentRequest> request =
