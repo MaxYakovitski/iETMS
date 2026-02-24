@@ -72,22 +72,59 @@ public class ShipmentService {
         return !date.isBefore(s.getPlannedLoadDate()) && !date.isAfter(s.getPlannedDropDate());
     }
 
+    /**
+     * Returns detailed shipment projection for the given user.
+     *
+     * <p>
+     * Access is granted only if the user is either:
+     * <ul>
+     *     <li>the shipment owner (request author), or</li>
+     *     <li>the assigned dispatcher</li>
+     * </ul>
+     * </p>
+     *
+     * @param shipmentId shipment identifier
+     * @param userId authenticated user identifier
+     * @return current shipment projection
+     * @throws UnauthorizedException if user is not authenticated or has no access
+     */
     @Transactional(readOnly = true)
-    public ShipmentListItemDto getShipmentForUser(Long shipmentId, Long userId) {
+    public ShipmentListItemDto getDetails(Long shipmentId, Long userId) {
+        if (userId == null) throw new UnauthorizedException("Not authenticated!");
+
         Shipment shipment = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new ShipmentNotFoundException(shipmentId));
 
-        boolean visible =
-                shipmentRepository.existsByIdAndRequestAuthorId(shipmentId, userId)
-                        || shipmentRepository.existsByIdAndDispatcherId(shipmentId, userId);
-
-        if (!visible) {
-            throw new UnauthorizedException("Shipment is not visible for current user");
+        if (!shipment.isOwnedBy(userId) && !shipment.isDispatchedBy(userId)) {
+            throw new UnauthorizedException("No access!");
         }
 
         return assembler.assembleCurrent(shipment);
     }
 
+    /**
+     * Returns transport events (LOAD / DROP) assigned to the given dispatcher
+     * for the specified calendar date.
+     *
+     * <p>
+     * The method retrieves shipments where the user acts as dispatcher and
+     * projects them into date-specific transport events.
+     * Depending on shipment state and planned dates, a shipment may produce:
+     * <ul>
+     *     <li>a LOAD event,</li>
+     *     <li>a DROP event,</li>
+     *     <li>or no events at all.</li>
+     * </ul>
+     * </p>
+     *
+     * <p>
+     * The projection reflects shipment state as of the given date.
+     * </p>
+     *
+     * @param date   calendar date selected in planner view
+     * @param userId dispatcher identifier
+     * @return list of transport events for the date
+     */
     public List<MyTransportEventDto> findMyTransportEventsForDate(LocalDate date, Long userId) {
         return shipmentRepository.findMyTransportShipments(userId).stream()
                 .flatMap(s -> toTransportEvents(s, date))
@@ -184,7 +221,6 @@ public class ShipmentService {
             shipmentNotificationService.publishToDispatcher(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
         } else if (carrierChanged) {
             shipmentNotificationService.publishEvent(ShipmentEvent.EventType.UPDATED, shipment);
-            shipmentNotificationService.publishToDispatcher(ShipmentEvent.EventType.UPDATED, shipment);
         }
 
         return assembler.assembleCurrent(shipment);

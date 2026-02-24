@@ -4,6 +4,7 @@ import com.mayak.ietms.features.request.domain.enums.ReasonCode;
 import com.mayak.ietms.features.request.domain.lifecycle.RequestLifecycle;
 import com.mayak.ietms.features.request.domain.model.RefuseReason;
 import com.mayak.ietms.features.request.infra.mapping.RefuseReasonMapper;
+import com.mayak.ietms.features.shipment.application.notify.ShipmentNotificationService;
 import com.mayak.ietms.features.user.application.UserQueryService;
 import com.mayak.ietms.request.dto.create.BaseRequestDto;
 import com.mayak.ietms.request.dto.create.ContractRequestDto;
@@ -33,6 +34,7 @@ import com.mayak.ietms.features.request.application.factory.RequestFactory;
 import com.mayak.ietms.features.request.application.notify.RequestNotificationService;
 import com.mayak.ietms.location.util.LocationParser;
 import com.mayak.ietms.request.validator.RequestContractValidator;
+import com.mayak.ietms.shipment.event.ShipmentEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,7 +60,8 @@ public class RequestLifecycleService {
     private final RequestContractValidator requestContractValidator;
     private final RequestFactory requestFactory;
     private final UserQueryService userQueryService;
-    private final RequestNotificationService notificationService;
+    private final RequestNotificationService requestNotificationService;
+    private final ShipmentNotificationService shipmentNotificationService;
     private final RequestAccessService accessService;
     private final RequestBidService bidService;
     private final CompanyService companyService;
@@ -96,7 +99,7 @@ public class RequestLifecycleService {
         }
 
         Request saved = requestRepository.save(request);
-        notificationService.publishEvent(RequestEvent.EventType.CREATED, saved);
+        requestNotificationService.publishEvent(RequestEvent.EventType.CREATED, saved);
         return saved;
     }
 
@@ -112,7 +115,7 @@ public class RequestLifecycleService {
         requestRepository.save(request);
 
         refreshStatus(request);
-        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+        requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -126,7 +129,7 @@ public class RequestLifecycleService {
         requestRepository.save(request);
 
         refreshStatus(request);
-        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+        requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -140,7 +143,7 @@ public class RequestLifecycleService {
         if (request.getStatus() == RequestStatus.BIDDING) return;
         lifecycle.markBidding(request);
         requestRepository.save(request);
-        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+        requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -161,7 +164,7 @@ public class RequestLifecycleService {
         lifecycle.offer(request);
 
         requestRepository.save(request);
-        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+        requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -192,9 +195,9 @@ public class RequestLifecycleService {
         shipmentRepository.findById(request.getId())
                 .orElseGet(() -> createShipment(request));
 
-        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+        requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
         Long dispatcherId = request.getDispatcherId();
-        notificationService.publishToUser(dispatcherId, RequestEvent.EventType.UPDATED, request);
+        requestNotificationService.publishToUser(dispatcherId, RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -220,7 +223,7 @@ public class RequestLifecycleService {
 
         lifecycle.refuse(request, reason);
         requestRepository.save(request);
-        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+        requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -240,14 +243,14 @@ public class RequestLifecycleService {
         }
 
         requestRepository.delete(request);
-        notificationService.publishEvent(RequestEvent.EventType.DELETED, request);
+        requestNotificationService.publishEvent(RequestEvent.EventType.DELETED, request);
     }
 
     @Transactional
     public void onBidsChanged(Long requestId) {
         Request request = getOrThrow(requestId);
         refreshStatus(request);
-        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+        requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
     @Transactional
@@ -265,9 +268,18 @@ public class RequestLifecycleService {
             throw new UnauthorizedException("Only author can update TID");
         }
 
+        String newTid = tid.trim();
+        if (Objects.equals(request.getTid(), newTid)) {
+            return;
+        }
+
         request.setTid(tid);
         requestRepository.save(request);
-        notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+        requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+
+        shipmentRepository.findById(requestId).ifPresent(shipment ->
+                shipmentNotificationService.publishToDispatcher(ShipmentEvent.EventType.UPDATED, shipment)
+        );
     }
 
     @Transactional
@@ -328,7 +340,7 @@ public class RequestLifecycleService {
 
         if (request.getStatus() != before) {
             requestRepository.save(request);
-            notificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+            requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
         }
     }
 
