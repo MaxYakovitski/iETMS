@@ -1,5 +1,7 @@
 package com.mayak.ietms.features.shipment.api;
 
+import com.mayak.ietms.features.user.application.UserQueryService;
+import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.shipment.dto.view.MyTransportEventDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.infrastructure.security.current.CurrentUserId;
@@ -17,23 +19,20 @@ import java.util.List;
 @Slf4j
 public class ShipmentQueryController {
 
-    private final ShipmentService shipmentService;
+    private final ShipmentService service;
 
     @GetMapping("/my-shipments")
     public List<ShipmentListItemDto> findMyShipments(@RequestParam("date") LocalDate date, @CurrentUserId Long userId) {
-        return shipmentService.findMyShipmentsForDate(date, userId);
+        return service.findMyShipmentsForDate(date, userId);
     }
 
     @GetMapping("/my-transport-events")
     public List<MyTransportEventDto> myTransportEvents(@RequestParam("date") LocalDate date, @CurrentUserId Long userId) {
-        return shipmentService.findMyTransportEventsForDate(date, userId);
+        return service.findMyTransportEventsForDate(date, userId);
     }
 
     @GetMapping("/{id}")
-    public ShipmentListItemDto getShipment(
-            @PathVariable("id") Long id,
-            @CurrentUserId Long userId
-    ) {
-        return shipmentService.getShipmentForUser(id, userId);
+    public ShipmentListItemDto getDetails(@PathVariable("id") Long id, @CurrentUserId Long userId) {
+        return service.getDetails(id, userId);
     }
 }
