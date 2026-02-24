@@ -278,7 +278,7 @@ public class RequestLifecycleService {
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
 
         shipmentRepository.findById(requestId).ifPresent(shipment ->
-                shipmentNotificationService.publishToDispatcher(ShipmentEvent.EventType.UPDATED, shipment)
+                shipmentNotificationService.publishEvent(ShipmentEvent.EventType.UPDATED, shipment)
         );
     }
 
