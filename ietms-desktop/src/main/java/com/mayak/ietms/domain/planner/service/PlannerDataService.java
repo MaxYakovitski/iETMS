@@ -46,7 +46,7 @@ public class PlannerDataService {
     }
 
     public ShipmentListItemDto loadShipmentById(Long shipmentId) {
-        return shipmentClient.getShipment(shipmentId);
+        return shipmentClient.getDetails(shipmentId);
     }
 
     public record TransportBuckets(List<ShipmentListItemDto> toLoad, List<ShipmentListItemDto> toDrop) {}

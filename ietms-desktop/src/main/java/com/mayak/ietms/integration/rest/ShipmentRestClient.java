@@ -76,7 +76,7 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
     }
 
     @Override
-    public ShipmentListItemDto getShipment(Long shipmentId) {
+    public ShipmentListItemDto getDetails(Long shipmentId) {
         return exchangeSafely(() -> {
 
             RequestEntity<Void> request = RequestEntity
