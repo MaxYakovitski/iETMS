@@ -1,5 +1,6 @@
 package com.mayak.ietms.ui.workspace.planner.item;
 
+import com.mayak.ietms.infrastructure.ui.*;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.core.ViewLifecycle;
@@ -11,10 +12,6 @@ import com.mayak.ietms.ui.workspace.planner.item.presenter.ShipmentItemViewData;
 import com.mayak.ietms.ui.workspace.request.item.CommentController;
 import com.mayak.ietms.infrastructure.common.TextUtils;
 import com.mayak.ietms.infrastructure.fx.VisibilityUtils;
-import com.mayak.ietms.infrastructure.ui.ItemStyleUtils;
-import com.mayak.ietms.infrastructure.ui.ItemVisibilityUtils;
-import com.mayak.ietms.infrastructure.ui.LabelTooltipUtils;
-import com.mayak.ietms.infrastructure.ui.LocationUIHelper;
 import com.mayak.ietms.infrastructure.window.WindowService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -66,6 +63,9 @@ public class ShipmentItemController implements ViewLifecycle {
     @FXML
     private void initialize() {
         LabelTooltipUtils.attachAutoTooltip(customerReference, customer, carrierLabel, authorName);
+
+        ControlSizingUtils.fitTextFieldToDigits(rId);
+        ControlSizingUtils.fitTextFieldToDigits(tId);
     }
 
     public void onShowOnce() {

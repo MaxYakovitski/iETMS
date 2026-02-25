@@ -2,6 +2,7 @@ package com.mayak.ietms.ui.workspace.request.item;
 
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
 import com.mayak.ietms.infrastructure.error.UiError;
+import com.mayak.ietms.infrastructure.ui.*;
 import com.mayak.ietms.integration.api.RequestClient;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.request.dto.bid.BidViewDto;
@@ -21,10 +22,6 @@ import com.mayak.ietms.infrastructure.error.AlertUtils;
 import com.mayak.ietms.infrastructure.common.TextUtils;
 import com.mayak.ietms.infrastructure.fx.VisibilityUtils;
 import com.mayak.ietms.infrastructure.status.StatusColorMapper;
-import com.mayak.ietms.infrastructure.ui.ItemStyleUtils;
-import com.mayak.ietms.infrastructure.ui.ItemVisibilityUtils;
-import com.mayak.ietms.infrastructure.ui.LabelTooltipUtils;
-import com.mayak.ietms.infrastructure.ui.LocationUIHelper;
 import com.mayak.ietms.infrastructure.window.WindowService;
 import com.mayak.ietms.ui.workspace.request.item.bid.FinalPriceController;
 import javafx.fxml.FXML;
@@ -87,6 +84,9 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     void initialize() {
         LabelTooltipUtils.attachAutoTooltip(customerReference, customer, authorFullName);
         priceButton.setOnAction(event -> showBidHistory());
+
+        ControlSizingUtils.fitTextFieldToDigits(rId);
+        ControlSizingUtils.fitTextFieldToDigits(tId);
     }
 
     public void bindRequest(Long requestId) {

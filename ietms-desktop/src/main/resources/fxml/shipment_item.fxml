@@ -103,16 +103,14 @@
         </VBox>
 
 
-        <VBox minHeight="60" alignment="CENTER">
+        <VBox minHeight="60" alignment="CENTER" minWidth="115" prefWidth="115" maxWidth="115">
             <HBox alignment="CENTER_LEFT">
-                <Label fx:id="rIDLabel" text="r.ID:"/>
-                <TextField fx:id="rId" focusTraversable="false" editable="false" prefWidth="90"
-                           styleClass="request-textfield"/>
+                <Label fx:id="rIDLabel" text="r.ID:" minWidth="25"/>
+                <TextField fx:id="rId" focusTraversable="false" editable="false" styleClass="request-textfield"/>
             </HBox>
             <HBox alignment="CENTER_LEFT">
-                <Label fx:id="tIdLabel" text="t.ID:"/>
-                <TextField fx:id="tId"  focusTraversable="false" editable="false" prefWidth="90"
-                           styleClass="request-textfield"/>
+                <Label fx:id="tIdLabel" text="t.ID:" minWidth="25"/>
+                <TextField fx:id="tId"  focusTraversable="false" editable="false" styleClass="request-textfield"/>
             </HBox>
         </VBox>
 
