@@ -204,7 +204,6 @@ public class WindowService {
 
         stage.setTitle(title);
         stage.setScene(new Scene(root));
-        stage.sizeToScene();
         stage.setResizable(false);
 
         injectStageIfSupported(controller, stage);
