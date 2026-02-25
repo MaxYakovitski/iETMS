@@ -205,10 +205,10 @@ public class WindowService {
         stage.setScene(new Scene(root));
         stage.setResizable(false);
 
-//        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-//
-//        stage.setMaxHeight(bounds.getHeight() - 50);
-//        stage.setMaxWidth(bounds.getWidth() - 50);
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+
+        stage.setMaxHeight(bounds.getHeight() - 50);
+        stage.setMaxWidth(bounds.getWidth() - 50);
 
         stage.sizeToScene();
         stage.centerOnScreen();
