@@ -5,7 +5,6 @@ import com.mayak.ietms.ui.core.ViewLifecycle;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -204,15 +203,7 @@ public class WindowService {
         stage.setTitle(title);
         stage.setScene(new Scene(root));
         stage.setResizable(false);
-        stage.sizeToScene();
         stage.centerOnScreen();
-
-        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-        double usableHeight = bounds.getHeight();
-
-        if (stage.getHeight() > usableHeight) {
-            stage.setHeight(usableHeight);
-        }
 
         applyDefaultIcon(iconPath, stage, owner);
         injectStageIfSupported(controller, stage);
