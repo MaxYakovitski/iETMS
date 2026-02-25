@@ -210,7 +210,7 @@ public class WindowService {
         double usableHeight = bounds.getHeight();
 
         if (stage.getHeight() > usableHeight) {
-            stage.setHeight(usableHeight);
+            stage.setMaxHeight(usableHeight);
         }
 
         applyDefaultIcon(iconPath, stage, owner);
