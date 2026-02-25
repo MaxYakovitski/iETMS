@@ -161,7 +161,8 @@ public class WindowService {
             if (initializer != null) initializer.accept(controller);
 
             stage.setOnShown(event -> {
-                centerRelativeToOwner(stage);
+                stage.centerOnScreen();
+//                centerRelativeToOwner(stage);
                 fadeIn(stage, 180);
 
                 if (controller instanceof ViewLifecycle lifecycle) {
@@ -205,16 +206,14 @@ public class WindowService {
         stage.setTitle(title);
         stage.setScene(new Scene(root));
         stage.setResizable(false);
+        stage.centerOnScreen();
+        fadeIn(stage, 180);
 
         injectStageIfSupported(controller, stage);
         if (initializer != null) initializer.accept(controller);
 
         applyDefaultIcon(iconPath, stage, owner);
 
-        stage.setOnShown(event -> {
-            centerOnScreen(stage);
-            fadeIn(stage, 180);
-        });
 
         if (wait) {
             stage.showAndWait();
@@ -256,24 +255,24 @@ public class WindowService {
     }
 
     // ------------------ POSITIONING & ANIMATION ------------------
-    public void centerOnScreen(Stage modalStage) {
-        if (primaryStage != null) {
-            modalStage.setX(primaryStage.getX() + primaryStage.getWidth() / 2 - modalStage.getWidth() / 2);
-            modalStage.setY(primaryStage.getY() + primaryStage.getHeight() / 2 - modalStage.getHeight() / 2);
-        } else {
-            modalStage.centerOnScreen();
-        }
-    }
+//    public void centerOnScreen(Stage modalStage) {
+//        if (primaryStage != null) {
+//            modalStage.setX(primaryStage.getX() + primaryStage.getWidth() / 2 - modalStage.getWidth() / 2);
+//            modalStage.setY(primaryStage.getY() + primaryStage.getHeight() / 2 - modalStage.getHeight() / 2);
+//        } else {
+//            modalStage.centerOnScreen();
+//        }
+//    }
 
-    public void centerRelativeToOwner(Stage stage) {
-        Window owner = stage.getOwner();
-        if (owner instanceof Stage ownerStage) {
-            stage.setX(ownerStage.getX() + (ownerStage.getWidth() - stage.getWidth()) / 2);
-            stage.setY(ownerStage.getY() + (ownerStage.getHeight() - stage.getHeight()) / 2);
-        } else {
-            centerOnScreen(stage);
-        }
-    }
+//    public void centerRelativeToOwner(Stage stage) {
+//        Window owner = stage.getOwner();
+//        if (owner instanceof Stage ownerStage) {
+//            stage.setX(ownerStage.getX() + (ownerStage.getWidth() - stage.getWidth()) / 2);
+//            stage.setY(ownerStage.getY() + (ownerStage.getHeight() - stage.getHeight()) / 2);
+//        } else {
+//            centerOnScreen(stage);
+//        }
+//    }
 
     public void fadeIn(Object target, Integer milliseconds) {
         Node nodeToAnimate = null;
