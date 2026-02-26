@@ -222,7 +222,7 @@ public class WindowService {
             stage.setHeight(usableHeight - 50);
         }
         stage.centerOnScreen();
-        fadeIn(stage, 180);
+//        fadeIn(stage, 180);
 
         return controller;
     }
