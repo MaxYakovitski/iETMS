@@ -204,13 +204,11 @@ public class WindowService {
         stage.setTitle(title);
         stage.setScene(new Scene(root));
         stage.setResizable(false);
-        stage.centerOnScreen();
 
         applyDefaultIcon(iconPath, stage, owner);
         injectStageIfSupported(controller, stage);
         if (initializer != null) initializer.accept(controller);
 
-        fadeIn(stage, 180);
 
         if (wait) {
             stage.showAndWait();
@@ -224,6 +222,8 @@ public class WindowService {
         if (stage.getHeight() > usableHeight) {
             stage.setHeight(usableHeight - 50);
         }
+        stage.centerOnScreen();
+        fadeIn(stage, 180);
 
         return controller;
     }
