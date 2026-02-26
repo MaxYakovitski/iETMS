@@ -71,7 +71,7 @@
         </VBox>
 
         <VBox prefWidth="65" minHeight="60" spacing="5" alignment="CENTER">
-            <Label fx:id="dangerousCheck" textAlignment="CENTER" textFill="#ff6173">
+            <Label fx:id="dangerousCheck" textAlignment="CENTER" textFill="#e74c3c">
                 <font><Font size="13"/></font>
             </Label>
             <Label fx:id="temperature" textAlignment="CENTER">

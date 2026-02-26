@@ -17,7 +17,7 @@ import java.util.function.UnaryOperator;
 public class TextUtils {
 
     public static final Color SYSTEM_TEXT_DEFAULT_COLOR = Color.valueOf("#313131");
-    public static final Color SYSTEM_TEXT_RED_COLOR = Color.valueOf("#ff6173");
+    public static final Color SYSTEM_TEXT_RED_COLOR = Color.valueOf("#e74c3c");
     public static final Color SYSTEM_TEXT_GREEN_COLOR = Color.valueOf("#4caf50");
 
     public static final String DATE_DOTS_PROMPT = "dd.mm.yyyy";
