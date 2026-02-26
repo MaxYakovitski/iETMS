@@ -35,7 +35,7 @@
     <VBox fx:id="tidContainer" spacing="10" visible="false" managed="false">
         <Separator/>
         <HBox alignment="CENTER" spacing="5">
-            <Label fx:id="tIdLabel" text="tId:" />
+            <Label fx:id="tIdLabel" text="t.ID:" />
             <TextField fx:id="tId" focusTraversable="false" prefWidth="180" styleClass="price-field"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="save" mnemonicParsing="false" focusTraversable="false" onAction="#handleSave"/>
