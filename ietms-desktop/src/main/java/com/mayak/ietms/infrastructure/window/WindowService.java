@@ -206,13 +206,6 @@ public class WindowService {
         stage.setResizable(false);
         stage.centerOnScreen();
 
-        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-        double usableHeight = bounds.getHeight();
-
-        if (stage.getHeight() > usableHeight) {
-            stage.setMaxHeight(usableHeight);
-        }
-
         applyDefaultIcon(iconPath, stage, owner);
         injectStageIfSupported(controller, stage);
         if (initializer != null) initializer.accept(controller);
@@ -224,6 +217,14 @@ public class WindowService {
         } else {
             stage.show();
         }
+
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        double usableHeight = bounds.getHeight();
+
+        if (stage.getHeight() > usableHeight) {
+            stage.setHeight(usableHeight - 50);
+        }
+
         return controller;
     }
 
