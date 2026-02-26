@@ -13,7 +13,7 @@
                AnchorPane.rightAnchor="0.0"
                AnchorPane.bottomAnchor="0.0">
 
-        <ImageView opacity="0.10" preserveRatio="true">
+        <ImageView opacity="0.5" preserveRatio="true">
             <Image url="@../icons/europe.png"/>
         </ImageView>
 
