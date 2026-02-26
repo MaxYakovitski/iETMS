@@ -17,8 +17,8 @@ jobs:
     env:
       APP_NAME: iETMS
       APP_VERSION: ${{ github.ref_name }}
-      BACKEND_URL: http://165.22.92.183:8080
-      BACKEND_WS_URL: ws://165.22.92.183:8080/ws
+      BACKEND_URL: https://165.22.92.183:8080
+      BACKEND_WS_URL: wss://165.22.92.183:8080/ws
 
     steps:
       # 1. Checkout sources
