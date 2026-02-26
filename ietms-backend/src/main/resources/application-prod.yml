@@ -35,7 +35,3 @@ app:
     last-name: administrator
     email: ${ADMIN_EMAIL}
     password: ${ADMIN_PASSWORD}
-
-server:
-  address: 127.0.0.1
-  port: 8080
