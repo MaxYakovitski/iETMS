@@ -201,6 +201,7 @@ public class WindowService {
         stage.initModality(Modality.WINDOW_MODAL);
         if (owner != null) stage.initOwner(owner);
 
+        stage.setScene(new Scene(root));
         stage.setTitle(title);
         stage.setResizable(false);
 
@@ -220,7 +221,6 @@ public class WindowService {
         if (stage.getHeight() > usableHeight) {
             stage.setHeight(usableHeight - 50);
         }
-        stage.setScene(new Scene(root));
         stage.centerOnScreen();
         fadeIn(stage, 180);
 
