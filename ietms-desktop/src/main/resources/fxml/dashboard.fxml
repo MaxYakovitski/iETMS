@@ -3,19 +3,21 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
+<?import javafx.scene.control.Label?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/21.0.7"
             stylesheets="@/css/styles.css"
             styleClass="app-root">
 
-    <StackPane AnchorPane.topAnchor="0.0"
-               AnchorPane.leftAnchor="0.0"
-               AnchorPane.rightAnchor="0.0"
-               AnchorPane.bottomAnchor="0.0">
+    <VBox alignment="CENTER" spacing="10"
+          AnchorPane.topAnchor="0.0"
+          AnchorPane.leftAnchor="5.0"
+          AnchorPane.rightAnchor="5.0"
+          AnchorPane.bottomAnchor="0.0">
 
         <ImageView opacity="0.5" preserveRatio="true">
             <Image url="@../icons/europe.png"/>
         </ImageView>
-
-    </StackPane>
+        <Label text="INTERNAL EUROPEAN TRANSPORT MANAGEMENT SYSTEM" opacity="0.5"/>
+    </VBox>
 </AnchorPane>
