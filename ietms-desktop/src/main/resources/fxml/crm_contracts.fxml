@@ -23,7 +23,7 @@
 
         <VBox spacing="10" alignment="CENTER">
             <padding>
-                <Insets top="20" bottom="30"/>
+                <Insets top="20" bottom="30" left="5" right="5"/>
             </padding>
 
             <HBox alignment="CENTER" VBox.vgrow="ALWAYS">
