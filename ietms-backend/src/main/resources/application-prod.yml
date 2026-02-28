@@ -35,3 +35,6 @@ app:
     last-name: administrator
     email: ${ADMIN_EMAIL}
     password: ${ADMIN_PASSWORD}
+
+slack:
+  webhook-url: ${SLACK_WEBHOOK_URL}
