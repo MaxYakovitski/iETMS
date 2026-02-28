@@ -1,19 +1,31 @@
 package com.mayak.ietms.infrastructure.web.exception;
 
 import com.mayak.ietms.common.dto.error.ErrorResponseDto;
+import com.mayak.ietms.infrastructure.notify.SlackNotifier;
 import com.mayak.ietms.shared.exception.business.*;
 import com.mayak.ietms.shared.exception.validation.ValidationException;
 import com.mayak.ietms.common.validation.ValidationError;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class ApiExceptionHandler {
+
+    private final SlackNotifier slackNotifier;
+    private final Environment environment;
 
     @ExceptionHandler({
             UserNotFoundException.class,
@@ -80,7 +92,57 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleUnexpected(Exception ex) {
-        return new ApiError("internal_error", ex.getMessage());
+    public ApiError handleUnexpected(Exception ex, HttpServletRequest request) {
+
+        log.error("Unexpected error", ex);
+        slackNotifier.sendError(buildSlackMessage(ex, request)
+        );
+
+        return new ApiError("internal_error", "Internal server error");
+    }
+
+    private String buildSlackMessage(Exception ex, HttpServletRequest request) {
+
+        String profile = Arrays.stream(environment.getActiveProfiles())
+                .findFirst()
+                .orElse("unknown")
+                .toUpperCase();
+
+        String host = getHostname();
+
+        String stack = Arrays.stream(ex.getStackTrace())
+                .limit(5)
+                .map(StackTraceElement::toString)
+                .collect(Collectors.joining("\n"));
+
+        return """
+                🚨 *Backend error (%s)*
+
+                Host: %s
+                URI: %s %s
+
+                Type: %s
+                Message: %s
+
+                Stack:
+                %s
+                """
+                .formatted(
+                        profile,
+                        host,
+                        request.getMethod(),
+                        request.getRequestURI(),
+                        ex.getClass().getSimpleName(),
+                        ex.getMessage(),
+                        stack
+                );
+    }
+
+    private String getHostname() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (Exception e) {
+            return "unknown";
+        }
     }
 }
