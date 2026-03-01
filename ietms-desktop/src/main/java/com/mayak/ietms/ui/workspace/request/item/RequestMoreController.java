@@ -82,11 +82,7 @@ public class RequestMoreController {
     private void saveTId() {
         if (details == null || !details.isAuthor()) return;
 
-        String value = tId.getText();
-        if (value == null || value.isBlank()) return;
-
         requestClient.updateTid(details.id(), tId.getText());
-
         details = requestClient.getDetails(details.id());
 
         if (onTidUpdated != null) {
