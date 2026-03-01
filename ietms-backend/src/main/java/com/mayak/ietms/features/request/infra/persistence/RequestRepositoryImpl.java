@@ -47,12 +47,19 @@ ORDER BY
         FROM requests r
         LEFT JOIN users a ON r.author_id = a.id
         LEFT JOIN company c ON r.customer_company_id = c.id
-        LEFT JOIN LATERAL jsonb_array_elements_text(r.from_location_ids_order) AS from_elem(id) ON TRUE
-        LEFT JOIN location from_loc ON from_loc.id = from_elem.id::bigint
-        LEFT JOIN LATERAL jsonb_array_elements_text(r.to_location_ids_order) AS to_elem(id) ON TRUE
-        LEFT JOIN location to_loc ON to_loc.id = to_elem.id::bigint
-        WHERE 1=1
-        AND r.archived = false
+        WHERE r.archived = false
+        AND EXISTS (
+                    SELECT 1
+                    FROM jsonb_array_elements_text(r.from_location_ids_order) AS f(id)
+                    JOIN location l ON l.id = f.id::bigint
+                    WHERE l.zip_code LIKE :fromZip
+        )
+        AND EXISTS (
+                   SELECT 1
+                   FROM jsonb_array_elements_text(r.to_location_ids_order) AS t(id)
+                   JOIN location l ON l.id = t.id::bigint
+                   WHERE l.zip_code LIKE :toZip
+                   )
     """);
 
         Map<String, Object> params = new HashMap<>();
@@ -208,24 +215,30 @@ ORDER BY
         FROM requests r
         LEFT JOIN users a ON r.author_id = a.id
         LEFT JOIN company c ON r.customer_company_id = c.id
-        LEFT JOIN LATERAL jsonb_array_elements_text(r.from_location_ids_order) AS from_elem(id) ON TRUE
-        LEFT JOIN location from_loc ON from_loc.id = from_elem.id::bigint
-        LEFT JOIN LATERAL jsonb_array_elements_text(r.to_location_ids_order) AS to_elem(id) ON TRUE
-        LEFT JOIN location to_loc ON to_loc.id = to_elem.id::bigint
-        WHERE (
-            LOWER(COALESCE(r.customer_reference, '')) LIKE :query
+        WHERE r.archived = false
+          AND (
+                LOWER(COALESCE(r.customer_reference, '')) LIKE :query
             OR LOWER(COALESCE(r.tid, '')) LIKE :query
             OR LOWER(COALESCE(a.name, '') || ' ' || COALESCE(a.surname, '')) LIKE :query
             OR LOWER(COALESCE(c.name, '')) LIKE :query
             OR LOWER(COALESCE(r.comments, '')) LIKE :query
             OR LOWER(COALESCE(r.temperature, '')) LIKE :query
-            OR LOWER(COALESCE(from_loc.zip_code::text, '')) LIKE :query
-            OR LOWER(COALESCE(from_loc.place_name, '')) LIKE :query
-            OR LOWER(COALESCE(to_loc.zip_code::text, '')) LIKE :query
-            OR LOWER(COALESCE(to_loc.place_name, '')) LIKE :query
+            OR EXISTS (
+                       SELECT 1
+                       FROM jsonb_array_elements_text(r.from_location_ids_order) AS f(id)
+                       JOIN location l ON l.id = f.id::bigint
+                       WHERE LOWER(COALESCE(l.zip_code::text, '')) LIKE :query
+                       OR LOWER(COALESCE(l.place_name, '')) LIKE :query
+                       )
+            OR EXISTS (
+                       SELECT 1
+                       FROM jsonb_array_elements_text(r.to_location_ids_order) AS t(id)
+                       JOIN location l ON l.id = t.id::bigint
+                       WHERE LOWER(COALESCE(l.zip_code::text, '')) LIKE :query
+                       OR LOWER(COALESCE(l.place_name, '')) LIKE :query
+                       )
             OR CAST(r.id AS TEXT) LIKE :query
-        )
-        AND r.archived = false
+            )
     """);
 
         Map<String, Object> params = new HashMap<>();
