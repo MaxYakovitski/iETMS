@@ -1,5 +1,6 @@
 package com.mayak.ietms.features.statistics.application;
 
+import com.mayak.ietms.features.request.domain.enums.ReasonCode;
 import com.mayak.ietms.features.request.infra.mapping.RefuseReasonMapper;
 import com.mayak.ietms.statistics.DepartmentStatsDto;
 import com.mayak.ietms.statistics.MonthlyCountDto;
@@ -57,7 +58,15 @@ public class DepartmentStatisticsService {
         int spotInProgress = countByRequestTypeAndStatus(
                 SpotRequest.class, departmentId, RequestStatus.IN_PROGRESS, from, toExclusive);
 
-        int spotNotBided = spotNew + spotInProgress;
+        int spotRefusedBidNotProvided = countRefusedByReasonAndType(
+                SpotRequest.class,
+                departmentId,
+                ReasonCode.BID_NOT_PROVIDED,
+                from,
+                toExclusive
+        );
+
+        int spotNotBided = spotNew + spotInProgress + spotRefusedBidNotProvided;
         int spotBided = spotTotal - spotNotBided;
 
         var spotReasons = toReasonDtoList(countRefusedByReason(SpotRequest.class, departmentId, from, toExclusive));
@@ -97,6 +106,23 @@ public class DepartmentStatisticsService {
             Instant toExclusive
     ) {
         return requestRepository.countByTypeAndStatusAndDepartment(type, status, departmentId, from, toExclusive);
+    }
+
+    public int countRefusedByReasonAndType(
+            Class<? extends Request> type,
+            Long departmentId,
+            ReasonCode reasonCode,
+            Instant from,
+            Instant toExclusive
+    ) {
+        return requestRepository.countRefusedByReasonAndType(
+                type,
+                departmentId,
+                RequestStatus.REFUSED,
+                reasonCode.getCode(),
+                from,
+                toExclusive
+        );
     }
 
 
