@@ -257,11 +257,6 @@ public class RequestLifecycleService {
     @Transactional
     public void updateTid(Long requestId, String tid, Long userId) {
         User actor = userQueryService.getEntityById(userId);
-
-        if (tid == null || tid.isBlank()) {
-            throw new RequestStateException(requestId, null, "TID must not be empty");
-        }
-
         Request request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
 
@@ -269,7 +264,7 @@ public class RequestLifecycleService {
             throw new UnauthorizedException("Only author can update TID");
         }
 
-        String newTid = tid.trim();
+        String newTid = (tid == null || tid.isBlank()) ? null : tid.trim();
         if (Objects.equals(request.getTid(), newTid)) {
             return;
         }
