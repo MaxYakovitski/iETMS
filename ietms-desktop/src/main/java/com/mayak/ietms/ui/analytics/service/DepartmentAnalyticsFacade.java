@@ -24,7 +24,10 @@ public class DepartmentAnalyticsFacade {
         return report.department();
     }
 
-    public List<MonthlyCountDto> loadMonthlyCompression(LocalDate start, LocalDate end, Long departmentId) {
+    public List<MonthlyCountDto> loadMonthlyCompression(LocalDate now, Long departmentId) {
+
+        LocalDate start = now.minusMonths(12).withDayOfMonth(1);;
+        LocalDate end = now;
         AnalyticsFilterDto filter = new AnalyticsFilterDto(start, end, departmentId, null, null);
 
         return analyticsClient.getAnalytics(filter)
