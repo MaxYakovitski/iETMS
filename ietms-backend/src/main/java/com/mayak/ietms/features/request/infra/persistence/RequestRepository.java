@@ -127,6 +127,27 @@ ORDER BY
                                           @Param("toExclusive") Instant toExclusive);
 
     @Query("""
+    SELECT COUNT(r)
+    FROM Request r
+    JOIN User u ON u.id = r.authorId
+    JOIN Profile p ON p.id = u.id
+    WHERE TYPE(r) = :type
+      AND r.status = :status
+      AND r.refuseReason = :reasonCode
+      AND p.department.id = :departmentId
+      AND r.issueDate >= :from
+      AND r.issueDate < :toExclusive
+""")
+    int countRefusedByReasonAndType(
+            @Param("type") Class<? extends Request> type,
+            @Param("departmentId") Long departmentId,
+            @Param("status") RequestStatus status,
+            @Param("reasonCode") String reasonCode,
+            @Param("from") Instant from,
+            @Param("toExclusive") Instant toExclusive
+    );
+
+    @Query("""
     SELECT r.refuseReason, COUNT(r)
     FROM Request r
     JOIN User u ON u.id = r.authorId
