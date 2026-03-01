@@ -1,6 +1,7 @@
 package com.mayak.ietms.app;
 
 import com.mayak.ietms.DesktopApplication;
+import com.mayak.ietms.infrastructure.common.SlackErrorReporter;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
 import com.mayak.ietms.infrastructure.window.FxmlLoader;
@@ -36,6 +37,7 @@ public class JavaFxApplication extends Application {
                     .toExternalForm());
 
     private ConfigurableApplicationContext springContext;
+    private SlackErrorReporter slackReporter;
 
     private Stage mainStage;
 
@@ -46,6 +48,7 @@ public class JavaFxApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        slackReporter = new SlackErrorReporter("https://hooks.slack.com/services/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");
         showLogin();
     }
 
@@ -117,6 +120,13 @@ public class JavaFxApplication extends Application {
             }
 
             log.error("Unhandled exception", throwable);
+            if (slackReporter != null) {
+                if (t instanceof Exception e) {
+                    slackReporter.report(e, "Uncaught exception in thread " + thread.getName());
+                } else {
+                    slackReporter.report(new Exception(t), "Uncaught throwable in thread " + thread.getName());
+                }
+            }
         });
 
         WindowService windowService = ctx.getBean(WindowService.class);
