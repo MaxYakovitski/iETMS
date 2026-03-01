@@ -44,7 +44,8 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
     @FXML public VBox reportContainer;
     @FXML public HBox placeholderContainer;
     @FXML public BarChart<Number, String> barChartSpotRefusedReason, barChartContractRefusedReason;
-    @FXML public StackPane allContainer, spotBidedContainer, spotEfficiencyContainer, contractEfficiencyContainer;
+    @FXML public StackPane allContainer, spotBidedContainer, spotEfficiencyContainer, contractEfficiencyContainer,
+            spotEmptyStack, contractEmptyStack;
     @FXML public LineChart <String, Number>lineChartCompression;
     @FXML public ComboBox<DepartmentDto> departmentComboBox;
 
@@ -140,8 +141,8 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
                 DepartmentChartsRenderer.COLOR_EFFICIENCY,
                 contractEfficiencyContainer);
 
-        charts.renderBar(toBarData(stats.spotRefusedByReason()), barChartSpotRefusedReason);
-        charts.renderBar(toBarData(stats.contractRefusedByReason()), barChartContractRefusedReason);
+        charts.renderBar(toBarData(stats.spotRefusedByReason()), barChartSpotRefusedReason, spotEmptyStack);
+        charts.renderBar(toBarData(stats.contractRefusedByReason()), barChartContractRefusedReason, contractEmptyStack);
 
         charts.renderCompression(stats.monthlyCompression(), lineChartCompression);
     }

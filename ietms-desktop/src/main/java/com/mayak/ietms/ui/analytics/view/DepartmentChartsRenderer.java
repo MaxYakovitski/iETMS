@@ -88,7 +88,9 @@ public class DepartmentChartsRenderer {
         timeline.play();
     }
 
-    public void renderBar(Map<String, Integer> data, BarChart<Number, String> chart) {
+    public void renderBar(Map<String, Integer> data, BarChart<Number, String> chart, StackPane container) {
+        if (toggleChartPlaceholder(data, chart, container)) return;
+
         chart.setAnimated(false);
         chart.setLegendVisible(false);
         chart.setVerticalGridLinesVisible(false);
@@ -169,6 +171,24 @@ public class DepartmentChartsRenderer {
 
             chart.setOpacity(1);
         });
+    }
+
+    private boolean toggleChartPlaceholder(Map<String, Integer> data, BarChart<Number, String> chart, StackPane container) {
+        if (data == null || data.isEmpty()) {
+            chart.setManaged(false);
+            chart.setVisible(false);
+            container.setManaged(true);
+            container.setVisible(true);
+            showPlaceholder(container);
+            return true;
+        } else {
+            container.setManaged(false);
+            container.setVisible(false);
+
+            chart.setManaged(true);
+            chart.setVisible(true);
+        }
+        return false;
     }
 
     private double niceTick(double max) {

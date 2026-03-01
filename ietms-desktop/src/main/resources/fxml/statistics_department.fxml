@@ -48,7 +48,7 @@
               managed="false">
 
             <HBox alignment="CENTER_LEFT" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
-                <VBox spacing="10" alignment="CENTER">
+                <VBox spacing="10" prefWidth="350" prefHeight="350" alignment="CENTER">
                     <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
                     <Label text="Requests: spots vs. contracts"/>
                     <StackPane fx:id="allContainer" VBox.vgrow="ALWAYS"/>
@@ -58,37 +58,47 @@
             <Separator HBox.hgrow="ALWAYS"/>
 
             <HBox spacing="100" alignment="CENTER_LEFT" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
-                <VBox spacing="10" alignment="CENTER">
+                <VBox spacing="10" prefWidth="350" prefHeight="350" alignment="CENTER">
                     <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
                     <Label text="Spot"/>
                     <StackPane fx:id="spotBidedContainer" VBox.vgrow="ALWAYS"/>
                 </VBox>
-                <VBox spacing="10" alignment="CENTER">
+                <VBox spacing="10" prefWidth="350" prefHeight="350" alignment="CENTER">
                     <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
                     <Label text="Spot efficiency"/>
                     <StackPane fx:id="spotEfficiencyContainer" VBox.vgrow="ALWAYS"/>
                 </VBox>
-                <BarChart fx:id="barChartSpotRefusedReason" prefWidth="500" prefHeight="350"
-                          styleClass="bar-spot-contract" title="Refused reasons">
-                    <xAxis><NumberAxis minorTickVisible="false"/></xAxis>
-                    <yAxis><CategoryAxis/></yAxis>
-                </BarChart>
+                <VBox spacing="10" alignment="CENTER">
+                    <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
+                    <Label text="Refused reasons"/>
+                    <BarChart fx:id="barChartSpotRefusedReason" prefWidth="500" prefHeight="350"
+                              styleClass="bar-spot-contract">
+                        <xAxis><NumberAxis minorTickVisible="false"/></xAxis>
+                        <yAxis><CategoryAxis/></yAxis>
+                    </BarChart>
+                    <StackPane fx:id="spotEmptyStack" managed="false" visible="false" VBox.vgrow="ALWAYS"/>
+                </VBox>
             </HBox>
 
             <Separator HBox.hgrow="ALWAYS"/>
 
             <HBox spacing="100" alignment="CENTER_LEFT" style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
-                <StackPane prefWidth="310" prefHeight="310"/> <!--empty stackPane-->
-                <VBox spacing="10" alignment="CENTER">
+                <VBox prefWidth="350" prefHeight="350"/>
+                <VBox spacing="10" prefWidth="350" prefHeight="350" alignment="CENTER">
                     <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
                     <Label text="Contract efficiency"/>
                     <StackPane fx:id="contractEfficiencyContainer" VBox.vgrow="ALWAYS"/>
                 </VBox>
-                <BarChart fx:id="barChartContractRefusedReason" prefWidth="500" prefHeight="350"
-                          styleClass="bar-spot-contract" title="Refused reasons">
-                    <xAxis><NumberAxis minorTickVisible="false"/></xAxis>
-                    <yAxis><CategoryAxis/></yAxis>
-                </BarChart>
+                <VBox spacing="10" alignment="CENTER">
+                    <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
+                    <Label text="Refused reasons"/>
+                    <BarChart fx:id="barChartContractRefusedReason" prefWidth="500" prefHeight="350"
+                              styleClass="bar-spot-contract">
+                        <xAxis><NumberAxis minorTickVisible="false"/></xAxis>
+                        <yAxis><CategoryAxis/></yAxis>
+                    </BarChart>
+                    <StackPane fx:id="contractEmptyStack" managed="false" visible="false" VBox.vgrow="ALWAYS"/>
+                </VBox>
             </HBox>
 
             <Separator HBox.hgrow="ALWAYS"/>
