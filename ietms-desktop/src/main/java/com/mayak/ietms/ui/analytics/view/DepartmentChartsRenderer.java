@@ -118,7 +118,7 @@ public class DepartmentChartsRenderer {
 
 
         BarChart.Series<Number, String> series = new BarChart.Series<>();
-        String[] colors = {"#ed7647", "#e74c3c", "#306eed"};
+        String[] colors = {"#ed7647", "#e74c3c", "#306eed", "#81c784"};
 
         int index = 0;
         for (var entry : data.entrySet()) {
@@ -154,14 +154,15 @@ public class DepartmentChartsRenderer {
                 Node node = d.getNode();
                 if (node == null) continue;
 
-                double fullWidth = node.getBoundsInLocal().getWidth();
-                Rectangle clip = new Rectangle(0, node.getBoundsInLocal().getHeight());
+                double width = node.getBoundsInLocal().getWidth();
+                double height = node.getBoundsInLocal().getHeight();
 
+                Rectangle clip = new Rectangle(0, height);
                 node.setClip(clip);
 
                 Timeline timeline = new Timeline(
                         new KeyFrame(Duration.seconds(1.4),
-                                new KeyValue(clip.widthProperty(), fullWidth, Interpolator.EASE_BOTH)));
+                                new KeyValue(clip.widthProperty(), width, Interpolator.EASE_BOTH)));
 
                 timeline.play();
             }
