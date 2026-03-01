@@ -120,7 +120,7 @@ public class DepartmentChartsRenderer {
 
 
         BarChart.Series<Number, String> series = new BarChart.Series<>();
-        String[] colors = {"#ed7647", "#e74c3c", "#306eed", "#81c784"};
+        String[] colors = {"#ed7647", "#81c784", "#306eed", "#e74c3c"};
 
         int index = 0;
         for (var entry : data.entrySet()) {

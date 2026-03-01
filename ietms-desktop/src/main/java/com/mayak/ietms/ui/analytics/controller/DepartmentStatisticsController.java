@@ -3,6 +3,7 @@ package com.mayak.ietms.ui.analytics.controller;
 import com.mayak.ietms.integration.api.DepartmentClient;
 import com.mayak.ietms.department.dto.DepartmentDto;
 import com.mayak.ietms.statistics.DepartmentStatsDto;
+import com.mayak.ietms.statistics.MonthlyCountDto;
 import com.mayak.ietms.statistics.RefuseReasonCountDto;
 import com.mayak.ietms.ui.analytics.service.DepartmentAnalyticsFacade;
 import com.mayak.ietms.ui.analytics.view.DepartmentChartsRenderer;
@@ -29,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,7 +147,11 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
         charts.renderBar(toBarData(stats.spotRefusedByReason()), barChartSpotRefusedReason, spotEmptyStack);
         charts.renderBar(toBarData(stats.contractRefusedByReason()), barChartContractRefusedReason, contractEmptyStack);
 
-        charts.renderCompression(stats.monthlyCompression(), lineChartCompression);
+        List<MonthlyCountDto> monthlyCompression = analytics.loadMonthlyCompression(
+                LocalDate.now(),
+                getEffectiveDepartmentId());
+
+        charts.renderCompression(monthlyCompression, lineChartCompression);
     }
 
     private Map<String, Integer> toBarData(List<RefuseReasonCountDto> list) {
