@@ -48,37 +48,30 @@ ORDER BY
         LEFT JOIN users a ON r.author_id = a.id
         LEFT JOIN company c ON r.customer_company_id = c.id
         WHERE r.archived = false
-        AND EXISTS (
-                    SELECT 1
-                    FROM jsonb_array_elements_text(r.from_location_ids_order) AS f(id)
-                    JOIN location l ON l.id = f.id::bigint
-                    WHERE l.zip_code LIKE :fromZip
-        )
-        AND EXISTS (
-                   SELECT 1
-                   FROM jsonb_array_elements_text(r.to_location_ids_order) AS t(id)
-                   JOIN location l ON l.id = t.id::bigint
-                   WHERE l.zip_code LIKE :toZip
-                   )
     """);
 
         Map<String, Object> params = new HashMap<>();
 
         // ISO / ZIP / PlaceName для from_order
-            sql.append(" AND (1=1"); // пачынаем OR блок
-            if (filter.getFromCountry() != null) {
-                sql.append(" AND from_loc.country_code = :fromIso");
-                params.put("fromIso", filter.getFromCountry().toUpperCase());
+        if (filter.getToCountry() != null || filter.getToZipCode() != null || filter.getToPlace() != null) {
+            sql.append(" AND EXISTS (")
+                    .append("SELECT 1 FROM jsonb_array_elements_text(r.to_location_ids_order) AS t(id) ")
+                    .append("JOIN location l ON l.id = t.id::bigint WHERE 1=1");
+
+            if (filter.getToCountry() != null) {
+                sql.append(" AND l.country_code = :toIso");
+                params.put("toIso", filter.getToCountry().toUpperCase());
             }
-            if (filter.getFromZipCode() != null) {
-                sql.append(" AND from_loc.zip_code LIKE :fromZip");
-                params.put("fromZip", filter.getFromZipCode().toUpperCase() + "%");
+            if (filter.getToZipCode() != null) {
+                sql.append(" AND l.zip_code LIKE :toZip");
+                params.put("toZip", filter.getToZipCode() + "%");
             }
-            if (filter.getFromPlace() != null) {
-                sql.append(" AND COALESCE(from_loc.place_name, '') LIKE :fromPlace");
-                params.put("fromPlace", "%" + filter.getFromPlace().toUpperCase() + "%");
+            if (filter.getToPlace() != null) {
+                sql.append(" AND COALESCE(l.place_name,'') ILIKE :toPlace");
+                params.put("toPlace", "%" + filter.getToPlace() + "%");
             }
             sql.append(")");
+        }
 
         // ISO / ZIP / PlaceName для to_order
             sql.append(" AND (1=1"); // пачынаем OR блок
@@ -216,29 +209,27 @@ ORDER BY
         LEFT JOIN users a ON r.author_id = a.id
         LEFT JOIN company c ON r.customer_company_id = c.id
         WHERE r.archived = false
-          AND (
-                LOWER(COALESCE(r.customer_reference, '')) LIKE :query
+        AND (
+            LOWER(COALESCE(r.customer_reference, '')) LIKE :query
             OR LOWER(COALESCE(r.tid, '')) LIKE :query
             OR LOWER(COALESCE(a.name, '') || ' ' || COALESCE(a.surname, '')) LIKE :query
             OR LOWER(COALESCE(c.name, '')) LIKE :query
             OR LOWER(COALESCE(r.comments, '')) LIKE :query
             OR LOWER(COALESCE(r.temperature, '')) LIKE :query
             OR EXISTS (
-                       SELECT 1
-                       FROM jsonb_array_elements_text(r.from_location_ids_order) AS f(id)
+                       SELECT 1 FROM jsonb_array_elements_text(r.from_location_ids_order) AS f(id)
                        JOIN location l ON l.id = f.id::bigint
                        WHERE LOWER(COALESCE(l.zip_code::text, '')) LIKE :query
                        OR LOWER(COALESCE(l.place_name, '')) LIKE :query
-                       )
+            )
             OR EXISTS (
-                       SELECT 1
-                       FROM jsonb_array_elements_text(r.to_location_ids_order) AS t(id)
+                       SELECT 1 FROM jsonb_array_elements_text(r.to_location_ids_order) AS t(id)
                        JOIN location l ON l.id = t.id::bigint
                        WHERE LOWER(COALESCE(l.zip_code::text, '')) LIKE :query
                        OR LOWER(COALESCE(l.place_name, '')) LIKE :query
-                       )
-            OR CAST(r.id AS TEXT) LIKE :query
             )
+            OR CAST(r.id AS TEXT) LIKE :query
+        )
     """);
 
         Map<String, Object> params = new HashMap<>();
