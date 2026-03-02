@@ -15,7 +15,7 @@ public class BackendPingService {
     private final BackendConnectionMonitor monitor;
     private final SessionManager sessionManager;
 
-    @Scheduled(fixedDelay = 3_000)
+    @Scheduled(fixedRate = 2_000)
     public void ping() {
         try {
             restTemplate.getForEntity("/actuator/health", String.class);
