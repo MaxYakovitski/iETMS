@@ -52,7 +52,28 @@ ORDER BY
 
         Map<String, Object> params = new HashMap<>();
 
-        // ISO / ZIP / PlaceName для from_order
+        // --- From locations ---
+        if (filter.getFromCountry() != null || filter.getFromZipCode() != null || filter.getFromPlace() != null) {
+            sql.append(" AND EXISTS (")
+                    .append("SELECT 1 FROM jsonb_array_elements_text(r.from_location_ids_order) AS f(id) ")
+                    .append("JOIN location l ON l.id = f.id::bigint WHERE 1=1");
+
+            if (filter.getFromCountry() != null) {
+                sql.append(" AND l.country_code = :fromIso");
+                params.put("fromIso", filter.getFromCountry().toUpperCase());
+            }
+            if (filter.getFromZipCode() != null) {
+                sql.append(" AND l.zip_code LIKE :fromZip");
+                params.put("fromZip", filter.getFromZipCode() + "%");
+            }
+            if (filter.getFromPlace() != null) {
+                sql.append(" AND COALESCE(l.place_name,'') ILIKE :fromPlace");
+                params.put("fromPlace", "%" + filter.getFromPlace() + "%");
+            }
+            sql.append(")");
+        }
+
+        // --- To locations ---
         if (filter.getToCountry() != null || filter.getToZipCode() != null || filter.getToPlace() != null) {
             sql.append(" AND EXISTS (")
                     .append("SELECT 1 FROM jsonb_array_elements_text(r.to_location_ids_order) AS t(id) ")
@@ -72,22 +93,6 @@ ORDER BY
             }
             sql.append(")");
         }
-
-        // ISO / ZIP / PlaceName для to_order
-            sql.append(" AND (1=1"); // пачынаем OR блок
-            if (filter.getToCountry() != null) {
-                sql.append(" AND to_loc.country_code = :toIso");
-                params.put("toIso", filter.getToCountry().toUpperCase());
-            }
-            if (filter.getToZipCode() != null) {
-                sql.append(" AND to_loc.zip_code LIKE :toZip");
-                params.put("toZip", filter.getToZipCode().toUpperCase() + "%");
-            }
-            if (filter.getToPlace() != null) {
-                sql.append(" AND COALESCE(to_loc.place_name, '') LIKE :toPlace");
-                params.put("toPlace", "%" + filter.getToPlace().toUpperCase() + "%");
-            }
-            sql.append(")");
 
         // Enum Lists
         if (!filter.getStatuses().isEmpty()) {
