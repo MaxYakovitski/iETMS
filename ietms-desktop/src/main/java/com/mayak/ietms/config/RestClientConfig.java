@@ -2,8 +2,10 @@ package com.mayak.ietms.config;
 
 import com.mayak.ietms.app.BackendProperties;
 import com.mayak.ietms.integration.auth.AuthState;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -16,7 +18,16 @@ public class RestClientConfig {
     @Bean
     public RestTemplate restTemplate(AuthState authState, BackendProperties backendProperties) {
 
-        CloseableHttpClient client = HttpClients.custom().disableAutomaticRetries().build();
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofSeconds(2))
+                .setConnectionRequestTimeout(Timeout.ofSeconds(2))
+                .build();
+
+        CloseableHttpClient client = HttpClients.custom()
+                .setDefaultRequestConfig(requestConfig)
+                .disableAutomaticRetries()
+                .build();
+
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(client);
 
         RestTemplate restTemplate = new RestTemplate(factory);

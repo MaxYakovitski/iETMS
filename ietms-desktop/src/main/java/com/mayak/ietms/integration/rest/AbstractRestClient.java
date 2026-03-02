@@ -56,7 +56,6 @@ public class AbstractRestClient {
             if (e.getStatusCode().value() == 401) {
                 sessionManager.handleSessionExpired();
             }
-
             connectionMonitor.markConnected();
             throw e;
         } catch (ResourceAccessException e) {

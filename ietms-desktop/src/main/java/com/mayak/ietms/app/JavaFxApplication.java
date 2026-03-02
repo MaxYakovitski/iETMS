@@ -2,6 +2,7 @@ package com.mayak.ietms.app;
 
 import com.mayak.ietms.DesktopApplication;
 import com.mayak.ietms.infrastructure.common.SlackErrorReporter;
+import com.mayak.ietms.infrastructure.connection.ui.BackendConnectionUiBinder;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
 import com.mayak.ietms.infrastructure.window.FxmlLoader;
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import java.net.SocketException;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -110,25 +112,6 @@ public class JavaFxApplication extends Application {
     private void showMainStage(ConfigurableApplicationContext ctx) {
         this.springContext = ctx;
 
-        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-            Throwable t = throwable;
-            while (t.getCause() != null) t = t.getCause();
-
-            if (t instanceof SessionExpiredException) {
-                ctx.getBean(SessionManager.class).handleSessionExpired();
-                return;
-            }
-
-            log.error("Unhandled exception", throwable);
-            if (slackReporter != null) {
-                if (t instanceof Exception e) {
-                    slackReporter.report(e, "Uncaught exception in thread " + thread.getName());
-                } else {
-                    slackReporter.report(new Exception(t), "Uncaught throwable in thread " + thread.getName());
-                }
-            }
-        });
-
         WindowService windowService = ctx.getBean(WindowService.class);
         windowService.setLoginCallback(() -> {
             if (mainStage != null) {
@@ -155,6 +138,29 @@ public class JavaFxApplication extends Application {
         windowService.setPrimaryStage(stage);
         this.mainStage = stage;
         stage.show();
+
+        BackendConnectionUiBinder binder = ctx.getBean(BackendConnectionUiBinder.class);
+        binder.bind();
+
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            Throwable t = throwable;
+            while (t.getCause() != null) t = t.getCause();
+
+            if (t instanceof SessionExpiredException) {
+                ctx.getBean(SessionManager.class).handleSessionExpired();
+                return;
+            }
+
+            log.error("Unhandled exception", throwable);
+            if (slackReporter != null) {
+                if (t instanceof Exception e) {
+                    slackReporter.report(e, "Uncaught exception in thread " + thread.getName());
+                } else {
+                    slackReporter.report(new Exception(t), "Uncaught throwable in thread " + thread.getName());
+                }
+            }
+        });
+
     }
 
     private void handleLoginError(LoginController controller, Throwable ex) {
@@ -165,6 +171,8 @@ public class JavaFxApplication extends Application {
 
         if (t instanceof ApiException apiEx) {
             AlertUtils.show(ApiErrorUtils.resolve(apiEx, "Invalid email or password."));
+        } else if (t instanceof SocketException) {
+            AlertUtils.showError("No internet connection or cannot reach server. Please check your network!");
         } else {
             AlertUtils.showError("Login failed. Please try again.");
         }
