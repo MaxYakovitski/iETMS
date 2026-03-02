@@ -9,27 +9,52 @@ import java.util.function.Supplier;
 
 public class DatePickerUtils {
 
-    public static void setupDatePickers(
-            DatePicker start,
-            DatePicker end
-    ) {
+    public static void setupDatePickers(DatePicker start, DatePicker end) {
         setupDatePickers(start, end, () -> null, () -> null);
     }
 
-    public static void setupDatePickers(
-            DatePicker start,
-            DatePicker end,
-            Supplier<LocalDate> minSupplier
-    ) {
-        setupDatePickers(start, end, minSupplier, () -> null);
+    public static void setupLaneDatePickers(
+            DatePicker start, DatePicker end,
+            Supplier<LocalDate> minSupplier, Supplier<LocalDate> maxSupplier) {
+        setupBase(start);
+        setupBase(end);
+
+        start.setDayCellFactory(cell -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) return;
+
+                LocalDate min = minSupplier.get();
+                LocalDate max = maxSupplier.get();
+
+                boolean invalid = (min != null && item.isBefore(min)) ||
+                        (max != null && item.isAfter(max));
+                if (invalid) {
+                    setDisable(true);
+                    setStyle("-fx-background-color: #f8d7da;");
+                }
+            }
+        });
+
+        end.setDayCellFactory(cell -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) return;
+
+                LocalDate startValue = start.getValue();
+                if (startValue != null && item.isBefore(startValue)) {
+                    setDisable(true);
+                    setStyle("-fx-background-color: #f8d7da;");
+                }
+            }
+        });
     }
 
     public static void setupDatePickers(
-            DatePicker start,
-            DatePicker end,
-            Supplier<LocalDate> minSupplier,
-            Supplier<LocalDate> maxSupplier
-    ) {
+            DatePicker start, DatePicker end,
+            Supplier<LocalDate> minSupplier, Supplier<LocalDate> maxSupplier) {
         setupBase(start);
         setupBase(end);
 

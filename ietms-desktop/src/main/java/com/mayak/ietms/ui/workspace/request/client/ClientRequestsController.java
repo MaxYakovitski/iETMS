@@ -176,7 +176,7 @@ public class ClientRequestsController extends AbstractRequestController {
 
         TextUtils.setupEnumComboBox(transportComboBox, TransportTypeDto.values(), TransportTypeDto::getLabel);
         setupListeners();
-        DatePickerUtils.setupDatePickers(startDate, endDate, requestState::getLaneValidFrom);
+        DatePickerUtils.setupLaneDatePickers(startDate, endDate, requestState::getLaneValidFrom, requestState::getLaneValidTo);
     }
 
     private void setupListeners() {
