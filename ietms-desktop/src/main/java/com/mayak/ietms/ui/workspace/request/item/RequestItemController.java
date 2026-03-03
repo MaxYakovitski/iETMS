@@ -65,6 +65,8 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     private static final String UNJOIN_ICON = "/icons/user-leave.png";
     private static final String COMMENTS_ICON = "/icons/comments.png";
     private static final String MORE_ICON = "/icons/more.png";
+    private static final String BID_ICON = "/icons/auction.png";
+    private static final String BID_HISTORY_ICON = "/icons/bid-history.png";
 
     @Setter
     private Stage stage;
@@ -225,7 +227,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
                     controller.setOnSubmit( bid -> parent.invalidateRequest(requestId));
                 },
                 "Bid",
-                null,
+                BID_ICON,
                 this.stage
         );
     }
@@ -396,7 +398,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
                     controller.onShow();
                 },
                 "Bid history",
-                null,
+                BID_HISTORY_ICON,
                 this.stage
         );
     }

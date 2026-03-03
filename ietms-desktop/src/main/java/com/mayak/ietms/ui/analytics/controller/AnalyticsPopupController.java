@@ -53,7 +53,7 @@ public class AnalyticsPopupController extends BasePopupController {
                 View.STATISTICS_REPORT,
                 NavigationType.MODAL,
                 null,
-                new ModalOptions("Statistics report", null));
+                new ModalOptions("Statistics report", "/icons/bar-chart.png"));
     }
 
     private void openSubmenu() {

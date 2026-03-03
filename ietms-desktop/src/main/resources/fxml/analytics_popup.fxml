@@ -43,7 +43,7 @@
             <Insets right="10" left="10"/>
         </padding>
 
-        <Label text="Report"/>
+        <Label text="Reports"/>
     </HBox>
 
 </VBox>

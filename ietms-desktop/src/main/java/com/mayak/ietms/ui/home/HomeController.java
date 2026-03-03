@@ -78,6 +78,7 @@ public class HomeController {
     private static final String FILTER_ICON_DEFAULT = "/icons/filter.png";
     private static final String FILTER_ICON_ACTIVE = "/icons/filter-red.png";
     private static final String SEARCH_ICON = "/icons/search.png";
+    private static final String ABOUT_ICON = "/icons/info.png";
 
     @FXML
     public void initialize() {
@@ -176,7 +177,7 @@ public class HomeController {
                 AboutController.class,
                 controller -> controller.init(windowService.getPrimaryStage()),
                 "About",
-                null
+                ABOUT_ICON
         );
     }
 
