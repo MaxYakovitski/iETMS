@@ -5,6 +5,10 @@ import com.mayak.ietms.features.user.domain.enums.UserType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.Instant;
 
 @Entity
 @Table(name = "users")
@@ -39,6 +43,14 @@ public class User {
     @Builder.Default
     @Column(name = "token_version", nullable = false)
     private Integer tokenVersion = 0;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Instant updatedAt;
 
     public void incrementTokenVersion() {
         this.tokenVersion = (this.tokenVersion == null) ? 1 : (this.tokenVersion + 1);

@@ -7,6 +7,8 @@ import com.mayak.ietms.features.shipment.domain.enums.ShipmentStatus;
 import com.mayak.ietms.shared.exception.business.DeliveryTimeLineException;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -67,6 +69,14 @@ public class Shipment {
 
     @JoinColumn(name = "dispatcher_id")
     private Long dispatcherId;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Instant updatedAt;
 
     public Shipment(Request request) {
         this.request = request;
