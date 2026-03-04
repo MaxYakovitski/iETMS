@@ -160,9 +160,8 @@ public class Shipment {
 
     public void validateStatusChange(ShipmentStatus target, Instant at) {
         if (target == ShipmentStatus.LOADED) {
-
-            LocalDate eventDate = at.atZone(ZoneOffset.UTC).toLocalDate();
-            if (eventDate.isBefore(plannedLoadDate)) {
+            Instant plannedAt = getLastTimestamp(ShipmentStatus.PLANNED);
+            if (plannedAt != null && at.isBefore(plannedAt)) {
                 throw new DeliveryTimeLineException("Actual loading time cannot be before planned loading time!");
             }
         }
