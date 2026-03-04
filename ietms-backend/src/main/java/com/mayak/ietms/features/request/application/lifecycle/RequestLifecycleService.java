@@ -1,6 +1,5 @@
 package com.mayak.ietms.features.request.application.lifecycle;
 
-import com.mayak.ietms.features.request.domain.enums.ReasonCode;
 import com.mayak.ietms.features.request.domain.lifecycle.RequestLifecycle;
 import com.mayak.ietms.features.request.domain.model.RefuseReason;
 import com.mayak.ietms.features.request.infra.mapping.RefuseReasonMapper;
@@ -18,7 +17,6 @@ import com.mayak.ietms.features.bid.domain.model.Bid;
 import com.mayak.ietms.features.request.domain.model.Request;
 import com.mayak.ietms.features.request.domain.enums.RequestStatus;
 import com.mayak.ietms.features.user.domain.model.User;
-import com.mayak.ietms.scheduler.SchedulerMode;
 import com.mayak.ietms.shared.exception.business.*;
 import com.mayak.ietms.shared.exception.validation.ValidationException;
 import com.mayak.ietms.features.location.infra.mapping.LocationMapper;
@@ -41,12 +39,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -175,19 +170,12 @@ public class RequestLifecycleService {
         Request request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
 
-        if (request.getStatus().isFinal()) {
-            throw new RequestStateException(requestId, request.getStatus(), "Cannot accept final request");
-        }
-        if (request.getStatus() != RequestStatus.OFFERED) {
-            throw new RequestStateException(requestId, request.getStatus(), "Request must be OFFERED before acceptance");
-        }
         if (!bidService.hasActiveBids(request)) {
             throw new RequestStateException(requestId, request.getStatus(), "Cannot accept request without bids");
         }
 
         Bid bestBid = getBestBid(request);
-        Long bidderId = bestBid.getUser() != null ? bestBid.getUser().getId() : null;
-        if (bidderId == null) throw new IllegalStateException("Best bid has no user");
+        if (bestBid.getUser() == null) throw new IllegalStateException("Best bid has no user");
 
         lifecycle.accept(request, bestBid, clientPrice);
         requestRepository.save(request);
@@ -269,56 +257,12 @@ public class RequestLifecycleService {
             return;
         }
 
-        request.setTid(tid);
+        request.setTid(newTid);
         requestRepository.save(request);
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
 
         shipmentRepository.findById(requestId).ifPresent(shipment ->
                 shipmentNotificationService.publishEvent(ShipmentEvent.EventType.UPDATED, shipment));
-    }
-
-    @Transactional
-    public void autoRefuseExpiredRequests(SchedulerMode mode) {
-        Instant threshold = Instant.now().minus(3, ChronoUnit.DAYS);
-
-        List<Request> expired = requestRepository.findExpiredRequests(
-                Set.of(RequestStatus.NEW, RequestStatus.IN_PROGRESS),
-                threshold);
-
-        for (Request r : expired) {
-            if (mode == SchedulerMode.DRY_RUN) {
-                log.info("[DRY-RUN] Would auto-refuse request {}", r.getId());
-            } else {
-                lifecycle.refuse(r, ReasonCode.BID_NOT_PROVIDED);
-            }
-        }
-
-        log.info("Auto-refuse processed {} requests (mode={})", expired.size(), mode);
-    }
-
-    @Transactional
-    public void autoArchiveOldRequests(SchedulerMode mode) {
-        Instant threshold = Instant.now().minus(45, ChronoUnit.DAYS);
-
-        List<Request> toArchive = requestRepository.findRequestsForArchiving(
-                Set.of(RequestStatus.ACCEPTED, RequestStatus.REFUSED),
-                threshold);
-
-        for (Request r : toArchive) {
-            if (mode == SchedulerMode.DRY_RUN) {
-                log.info("[DRY-RUN] Would archive request {}", r.getId());
-            } else {
-                lifecycle.archive(r);
-            }
-        }
-
-        log.info("Auto-archive processed {} requests (mode={})", toArchive.size(), mode);
-    }
-
-    @Transactional
-    public void processExpiredRequests(SchedulerMode mode) {
-        autoRefuseExpiredRequests(mode);
-        autoArchiveOldRequests(mode);
     }
 
     private void validate(BaseRequestDto dto) {

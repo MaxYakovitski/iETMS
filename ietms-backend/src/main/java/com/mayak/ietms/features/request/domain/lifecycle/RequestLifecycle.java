@@ -7,6 +7,7 @@ import com.mayak.ietms.features.request.domain.model.ContractRequest;
 import com.mayak.ietms.features.request.domain.model.RefuseReason;
 import com.mayak.ietms.features.request.domain.model.Request;
 import com.mayak.ietms.features.request.domain.model.SpotRequest;
+import com.mayak.ietms.shared.exception.business.RequestStateException;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -39,7 +40,9 @@ public class RequestLifecycle {
 
     public void accept(Request request, Bid bestBid, BigDecimal clientPrice) {
         if (request.getStatus() != RequestStatus.OFFERED) {
-            throw new IllegalStateException("Request must be OFFERED before acceptance");
+            throw new RequestStateException(
+                    request.getId(), request.getStatus(), "Request must be OFFERED before acceptance"
+            );
         }
 
         request.setDispatcherId(bestBid.getUser().getId());

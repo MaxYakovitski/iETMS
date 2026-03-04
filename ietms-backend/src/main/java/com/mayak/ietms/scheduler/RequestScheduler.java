@@ -1,6 +1,6 @@
 package com.mayak.ietms.scheduler;
 
-import com.mayak.ietms.features.request.application.lifecycle.RequestLifecycleService;
+import com.mayak.ietms.features.request.application.scheduler.RequestSchedulerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class RequestScheduler {
 
-    private final RequestLifecycleService lifecycleService;
+    private final RequestSchedulerService schedulerService;
 
     /**
      * Allows running scheduler in "dry-run" mode
@@ -35,7 +35,7 @@ public class RequestScheduler {
         SchedulerMode mode = dryRun ? SchedulerMode.DRY_RUN : SchedulerMode.EXECUTE;
         log.info("RequestScheduler started [mode={}]", mode);
 
-        lifecycleService.processExpiredRequests(mode);
+        schedulerService.processExpiredRequests(mode);
         log.info("RequestScheduler finished");
     }
 }
