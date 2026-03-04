@@ -308,10 +308,11 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         if (updateDto == null) return;
 
         ActiveTab tabBeforeUpdate = state.getActiveTab();
+        Long selectedId = state.getSelectedShipment().id();
 
         try {
             shipmentClient.update(updateDto);
-            reloadAfterMutation(tabBeforeUpdate);
+            reloadAfterMutation(tabBeforeUpdate, selectedId);
         } catch (ApiException e) {
             log.warn("Shipment update rejected by backend", e);
             AlertUtils.show(ApiErrorUtils.resolve(e, "Shipment update failed."));
@@ -383,7 +384,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                             reason -> {
                                 try {
                                     shipmentClient.cancel(state.getSelectedShipment().id(), reason);
-                                    reloadAfterMutation(state.getActiveTab());
+                                    reloadAfterMutation(state.getActiveTab(), null);
                                 } catch (ApiException e) {
                                     log.warn("Failed to cancel shipment {}", state.getSelectedShipment().id(), e);
                                     AlertUtils.show(ApiErrorUtils.resolve(e, "Shipment cancellation failed."));
@@ -448,26 +449,35 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         }
     }
 
-    private void reloadAfterMutation(ActiveTab preferredTab) {
+    private void reloadAfterMutation(ActiveTab preferredTab, Long reSelectId) {
         loadMyShipments();
         loadMyTransports();
 
         if (preferredTab == ActiveTab.MY_TRANSPORTS && state.isHasMyTransports()) {
             switchTab(ActiveTab.MY_TRANSPORTS);
-            return;
-        }
-
-        if (preferredTab == ActiveTab.MY_SHIPMENTS && state.isHasMyShipments()) {
+        } else if (preferredTab == ActiveTab.MY_SHIPMENTS && state.isHasMyShipments()) {
             switchTab(ActiveTab.MY_SHIPMENTS);
-            return;
-        }
-
-        if (state.isHasMyShipments()) {
+        } else if (state.isHasMyShipments()) {
             switchTab(ActiveTab.MY_SHIPMENTS);
         } else if (state.isHasMyTransports()) {
             switchTab(ActiveTab.MY_TRANSPORTS);
         } else {
             showEmptyState();
+            return;
+        }
+
+        if (reSelectId != null) {
+            reSelectInList(toLoadListView, toLoadItems, reSelectId);
+            reSelectInList(toDropListView, toDropItems, reSelectId);
+        }
+    }
+
+    private void reSelectInList(ListView<ShipmentListItemDto> listView, ObservableList<ShipmentListItemDto> items, Long id) {
+        for (int i = 0; i < items.size(); i++) {
+            if (Objects.equals(items.get(i).id(), id)) {
+                listView.getSelectionModel().select(i);
+                return;
+            }
         }
     }
 
@@ -537,9 +547,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     /* ================= Data Loading ================= */
     private void loadMyTransports() {
-        toLoadItems.clear();
-        toDropItems.clear();
-
         var buckets = dataService.loadMyTransports(state.getSelectedDate());
 
         toLoadItems.setAll(buckets.toLoad());
@@ -552,8 +559,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     private void loadMyShipments() {
-        shipmentsItems.clear();
-
         var items = dataService.loadMyShipments(state.getSelectedDate());
         shipmentsItems.setAll(items);
 
