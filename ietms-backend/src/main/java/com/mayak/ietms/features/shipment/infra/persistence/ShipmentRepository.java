@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
@@ -15,8 +16,10 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     SELECT s
     FROM Shipment s
     WHERE s.request.authorId = :userId
+    AND s.plannedLoadDate <= :date
+    AND s.plannedDropDate >= :date
 """)
-    List<Shipment> findMyShipmentsForDate(@Param("userId") Long userId);
+    List<Shipment> findMyShipmentsForDate(@Param("userId") Long userId, @Param("date") LocalDate date);
 
     @EntityGraph(attributePaths = {"request", "request.customer", "carrier", "timestamps"})
     @Query("""

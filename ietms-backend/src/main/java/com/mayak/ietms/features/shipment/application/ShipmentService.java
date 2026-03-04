@@ -61,15 +61,10 @@ public class ShipmentService {
      */
     public List<ShipmentListItemDto> findMyShipmentsForDate(LocalDate date, Long userId) {
         return shipmentRepository
-                .findMyShipmentsForDate(userId)
+                .findMyShipmentsForDate(userId,  date)
                 .stream()
-                .filter(s -> isVisibleForMyShipments(s, date))
                 .map(s -> assembler.assembleForPlanner(s, date))
                 .toList();
-    }
-
-    private boolean isVisibleForMyShipments(Shipment s, LocalDate date) {
-        return !date.isBefore(s.getPlannedLoadDate()) && !date.isAfter(s.getPlannedDropDate());
     }
 
     /**
