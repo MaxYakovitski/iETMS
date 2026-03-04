@@ -10,7 +10,35 @@ import java.util.function.Supplier;
 public class DatePickerUtils {
 
     public static void setupDatePickers(DatePicker start, DatePicker end) {
-        setupDatePickers(start, end, () -> null, () -> null);
+        setupBase(start);
+        setupBase(end);
+
+        start.setOnShowing(e -> start.setDayCellFactory(cell -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) return;
+                LocalDate endValue = end.getValue();
+                if (endValue != null && item.isAfter(endValue)) {
+                    setDisable(true);
+                    setStyle("-fx-background-color: #f8d7da;");
+                }
+            }
+        }));
+
+        end.setOnShowing(e -> end.setDayCellFactory(cell -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) return;
+                LocalDate startValue = start.getValue();
+                if (startValue != null && item.isBefore(startValue)) {
+                    setDisable(true);
+                    setStyle("-fx-background-color: #f8d7da;");
+                }
+            }
+        }));
+
     }
 
     public static void setupLaneDatePickers(
@@ -19,7 +47,7 @@ public class DatePickerUtils {
         setupBase(start);
         setupBase(end);
 
-        start.setDayCellFactory(cell -> new DateCell() {
+        start.setOnShowing(e -> start.setDayCellFactory(cell -> new DateCell() {
             @Override
             public void updateItem(LocalDate item, boolean empty) {
                 super.updateItem(item, empty);
@@ -35,9 +63,9 @@ public class DatePickerUtils {
                     setStyle("-fx-background-color: #f8d7da;");
                 }
             }
-        });
+        }));
 
-        end.setDayCellFactory(cell -> new DateCell() {
+        end.setOnShowing(e -> end.setDayCellFactory(cell -> new DateCell() {
             @Override
             public void updateItem(LocalDate item, boolean empty) {
                 super.updateItem(item, empty);
@@ -49,58 +77,7 @@ public class DatePickerUtils {
                     setStyle("-fx-background-color: #f8d7da;");
                 }
             }
-        });
-    }
-
-    public static void setupDatePickers(
-            DatePicker start, DatePicker end,
-            Supplier<LocalDate> minSupplier, Supplier<LocalDate> maxSupplier) {
-        setupBase(start);
-        setupBase(end);
-
-        start.setDayCellFactory(cell -> new DateCell() {
-            @Override
-            public void updateItem(LocalDate item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) return;
-
-                LocalDate min = minSupplier.get();
-                LocalDate max = maxSupplier.get();
-                LocalDate endValue = end.getValue();
-
-                boolean invalid =
-                        (min != null && item.isBefore(min)) ||
-                                (max != null && item.isAfter(max)) ||
-                                (endValue != null && item.isAfter(endValue));
-
-                if (invalid) {
-                    setDisable(true);
-                    setStyle("-fx-background-color: #f8d7da;");
-                }
-            }
-        });
-
-        end.setDayCellFactory(cell -> new DateCell() {
-            @Override
-            public void updateItem(LocalDate item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) return;
-
-                LocalDate min = minSupplier.get();
-                LocalDate max = maxSupplier.get();
-                LocalDate startValue = start.getValue();
-
-                boolean invalid =
-                        (min != null && item.isBefore(min)) ||
-                                (max != null && item.isAfter(max)) ||
-                                (startValue != null && item.isBefore(startValue));
-
-                if (invalid) {
-                    setDisable(true);
-                    setStyle("-fx-background-color: #f8d7da;");
-                }
-            }
-        });
+        }));
     }
 
     public static void setupDatePicker(DatePicker picker) {
@@ -108,7 +85,6 @@ public class DatePickerUtils {
     }
 
     private static void setupBase(DatePicker picker) {
-
         picker.setConverter(new StringConverter<>() {
             @Override
             public String toString(LocalDate date) {

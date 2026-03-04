@@ -147,6 +147,7 @@ public class ClientRequestsController extends AbstractRequestController {
                 requestState,
                 validationUI,
                 this::render,
+                this::setupDatePickersForCurrentState,
                 () -> allowLaneLookup,
                 () -> companyField.getText()
         );
@@ -176,7 +177,7 @@ public class ClientRequestsController extends AbstractRequestController {
 
         TextUtils.setupEnumComboBox(transportComboBox, TransportTypeDto.values(), TransportTypeDto::getLabel);
         setupListeners();
-        DatePickerUtils.setupLaneDatePickers(startDate, endDate, requestState::getLaneValidFrom, requestState::getLaneValidTo);
+        setupDatePickersForCurrentState();
     }
 
     private void setupListeners() {
@@ -191,6 +192,7 @@ public class ClientRequestsController extends AbstractRequestController {
                 validationUI.clearError("customerName");
                 validationUI.clearError("lane");
             }
+            setupDatePickersForCurrentState();
             render();
         });
 
@@ -227,6 +229,14 @@ public class ClientRequestsController extends AbstractRequestController {
                 render();
             }
         });
+    }
+
+    private void setupDatePickersForCurrentState() {
+        if (requestState.hasLane()) {
+            DatePickerUtils.setupLaneDatePickers(startDate, endDate, requestState::getLaneValidFrom, requestState::getLaneValidTo);
+        } else {
+            DatePickerUtils.setupDatePickers(startDate, endDate);
+        }
     }
 
     private void render() {

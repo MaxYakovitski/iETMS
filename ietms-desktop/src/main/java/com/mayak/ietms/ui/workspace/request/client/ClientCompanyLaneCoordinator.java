@@ -35,6 +35,7 @@ public class ClientCompanyLaneCoordinator {
     private final ClientRequestFormState requestState;
     private final ValidationUIHelper validationUI;
     private final Runnable render;
+    private final Runnable onLaneChanged;
 
     private final Supplier<Boolean> allowLaneLookup;
     private final Supplier<String> companyNameSupplier;
@@ -100,7 +101,10 @@ public class ClientCompanyLaneCoordinator {
         if (lane == null) return;
 
         requestPolicy.onLaneSelected(requestState, lane);
+        requestState.setStartDate(null);
+        requestState.setEndDate(null);
         validationUI.clearError("lane");
+        onLaneChanged.run();
         render.run();
     }
 }
