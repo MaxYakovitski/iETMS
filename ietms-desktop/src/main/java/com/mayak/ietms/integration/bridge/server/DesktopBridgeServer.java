@@ -2,7 +2,6 @@ package com.mayak.ietms.integration.bridge.server;
 
 import com.mayak.ietms.integration.auth.AuthState;
 import com.sun.net.httpserver.HttpServer;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,21 +14,18 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class DesktopBridgeServer {
 
+    private static final int MAX_RETRIES = 3;
     private static final int PORT = 38123;
     private final AuthState authState;
     private HttpServer server;
+
 
     public DesktopBridgeServer(AuthState authState) {
         this.authState = authState;
     }
 
-    @PostConstruct
     public void start() {
-        tryStart(3);
-    }
-
-    private void tryStart(int retries) {
-        for (int i = 1; i <= retries; i++) {
+        for (int i = 1; i <= MAX_RETRIES; i++) {
             try {
                 server = HttpServer.create(
                         new InetSocketAddress("127.0.0.1", PORT), 0);
@@ -58,7 +54,7 @@ public class DesktopBridgeServer {
                 return;
 
             } catch (BindException e) {
-                log.warn("[bridge] Port busy, retry {}/{}", i, retries);
+                log.warn("[bridge] Port busy, retry {}/{}", i, MAX_RETRIES);
                 sleep(1500);
             } catch (Exception e) {
                 log.error("[bridge] Unexpected error", e);
@@ -78,6 +74,10 @@ public class DesktopBridgeServer {
     }
 
     private void sleep(long ms) {
-        try { Thread.sleep(ms); } catch (InterruptedException ignored) {}
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException ignored) {
+            //ignore
+        }
     }
 }

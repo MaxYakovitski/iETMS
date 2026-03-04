@@ -9,6 +9,7 @@ import com.mayak.ietms.infrastructure.window.FxmlLoader;
 import com.mayak.ietms.infrastructure.window.WindowService;
 import com.mayak.ietms.integration.auth.AuthClient;
 import com.mayak.ietms.integration.auth.AuthState;
+import com.mayak.ietms.integration.bridge.server.DesktopBridgeServer;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.integration.exception.SessionExpiredException;
 import com.mayak.ietms.support.enums.View;
@@ -102,6 +103,7 @@ public class JavaFxApplication extends Application {
         try {
             var response = authClient.login(req.email(), req.password());
             authState.setToken(response.token());
+            ctx.getBean(DesktopBridgeServer.class).start();
             return ctx;
         } catch (ApiException ex) {
             ctx.close();

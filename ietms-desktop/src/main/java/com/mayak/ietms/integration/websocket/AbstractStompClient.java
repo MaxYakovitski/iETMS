@@ -16,7 +16,13 @@ public class AbstractStompClient {
 
     protected volatile boolean desiredConnected;
 
-    protected final ScheduledExecutorService reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
+    protected final ScheduledExecutorService reconnectExecutor =
+        Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r);
+        t.setDaemon(true);
+        t.setName(getClass().getSimpleName() + "-reconnect");
+        return t;
+    });
 
     /**
      * Request WS to stay connected for the lifetime of the session.
