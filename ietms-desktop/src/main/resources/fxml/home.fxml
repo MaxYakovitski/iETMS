@@ -42,7 +42,7 @@
                         style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;" onAction="#handleFilter">
                     <graphic>
                         <ImageView fx:id="filterImageView" fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
-                            <Image url="@/icons/filter.png"/>
+                            <Image url="@/icons/filter-default.png"/>
                         </ImageView>
                     </graphic>
                 </Button>

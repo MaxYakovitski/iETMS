@@ -40,6 +40,8 @@ public class ClientCompanyLaneCoordinator {
     private final Supplier<Boolean> allowLaneLookup;
     private final Supplier<String> companyNameSupplier;
 
+    private static final String CONTACT_LANE = "/icons/contract-lanes.png";
+
     public void onCompanyConfirmed() {
         if (!allowLaneLookup.get()) return;
         if (!requestState.isContract()) return;
@@ -94,7 +96,7 @@ public class ClientCompanyLaneCoordinator {
                     controller.onShown();
                 },
                 "Actual contract lanes",
-                null
+                CONTACT_LANE
         );
 
         LaneViewDto lane = ctrl.getSelectedLane();
