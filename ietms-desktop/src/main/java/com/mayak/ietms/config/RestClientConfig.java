@@ -5,6 +5,7 @@ import com.mayak.ietms.integration.auth.AuthState;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,8 @@ public class RestClientConfig {
         CloseableHttpClient client = HttpClients.custom()
                 .setDefaultRequestConfig(requestConfig)
                 .disableAutomaticRetries()
+                .evictExpiredConnections()
+                .evictIdleConnections(TimeValue.ofSeconds(30))
                 .build();
 
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(client);
