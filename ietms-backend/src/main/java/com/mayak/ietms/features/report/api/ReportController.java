@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 
@@ -50,11 +51,21 @@ public class ReportController {
 
     private void exportRequests(HttpServletResponse response, LocalDate start, LocalDate end, Long userId) throws IOException {
         var data = requestQueryService.findRequestsForReport(start, end,  userId);
-        reportExportService.exportRequestsToExcel(data, response.getOutputStream());
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        reportExportService.exportRequestsToExcel(data, buffer);
+
+        byte[] bytes = buffer.toByteArray();
+        response.setContentLength(bytes.length);
+        response.getOutputStream().write(bytes);
     }
 
     private void exportByEmployees(HttpServletResponse response, LocalDate start, LocalDate end, Long userId) throws IOException {
         var stats = userStatisticsService.getUserStats(start, end, userId);
-        reportExportService.exportUserStatsToExcel(stats, response.getOutputStream());
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        reportExportService.exportUserStatsToExcel(stats, buffer);
+
+        byte[] bytes = buffer.toByteArray();
+        response.setContentLength(bytes.length);
+        response.getOutputStream().write(bytes);
     }
 }
