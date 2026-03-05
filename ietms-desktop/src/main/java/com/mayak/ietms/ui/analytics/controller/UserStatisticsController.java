@@ -35,7 +35,7 @@ import java.util.Objects;
 @Controller
 @Scope("prototype")
 @RequiredArgsConstructor
-public class EmployeeStatisticsController extends BaseStatisticsController {
+public class UserStatisticsController extends BaseStatisticsController {
 
     @FXML public Label departmentFullNameLabel;
     @FXML public ComboBox <DepartmentDto> departmentComboBox;
@@ -50,7 +50,7 @@ public class EmployeeStatisticsController extends BaseStatisticsController {
     private final UserReportRenderer userReportRenderer;
 
     private static final String USER_SELECTED = "employee";
-    private static final UserLookupDto ALL = new UserLookupDto(-1L, new UserNameDto("All", ""));
+    private static final UserLookupDto ALL = new UserLookupDto(-1L, new UserNameDto("all", ""));
 
     @Getter @Setter
     private HomeController homeController;
