@@ -129,7 +129,7 @@
             <Label fx:id="carrierPriceLabel" style="-fx-font-weight: bold" textAlignment="CENTER"/>
         </VBox>
 
-        <Label fx:id="statusLabel"/>
+        <Label fx:id="statusLabel" prefWidth="70" textAlignment="CENTER"/>
 
     </HBox>
 </AnchorPane>

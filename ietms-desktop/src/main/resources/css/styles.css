@@ -54,6 +54,19 @@
     -fx-opacity: 1;
 }
 
+.scroll-minimal .scroll-bar .increment-button,
+.scroll-minimal .scroll-bar .decrement-button {
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
+}
+
+.scroll-minimal .scroll-bar .increment-arrow,
+.scroll-minimal .scroll-bar .decrement-arrow {
+    -fx-shape: "";
+    -fx-padding: 0;
+}
+
 .text-field {
     -fx-border-color: #c8c8c8;
     -fx-border-radius: 5;
