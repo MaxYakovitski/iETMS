@@ -26,7 +26,7 @@ public enum MetricType {
         @Override
         public int count(RequestRepository repo, Long userId,
                          Instant from, Instant to) {
-            return repo.countDistinctByBidsUser(userId, from, to);
+            return repo.countRequestsWithBidByUser(userId, from, to);
         }
     },
 

@@ -74,14 +74,14 @@ ORDER BY
                                    @Param("end") Instant end);
 
     @Query("""
-        SELECT COUNT(DISTINCT b)
+        SELECT COUNT(DISTINCT b.request.id)
         FROM Bid b
         WHERE b.user.id = :userId
           AND b.time BETWEEN :start AND :end
     """)
-    int countDistinctByBidsUser(@Param("userId") Long userId,
-                                @Param("start") Instant start,
-                                @Param("end") Instant end);
+    int countRequestsWithBidByUser(@Param("userId") Long userId,
+                                   @Param("start") Instant start,
+                                   @Param("end") Instant end);
 
     @Query("""
         SELECT COUNT(r)
