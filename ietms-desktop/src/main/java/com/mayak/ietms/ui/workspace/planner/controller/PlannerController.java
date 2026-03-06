@@ -242,10 +242,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         list.getSelectionModel()
                 .selectedItemProperty()
                 .addListener((obs, oldItem, newItem) -> {
-                    if (newItem == null) {
-                        clearSelection();
-                        return;
-                    }
+                    if (newItem == null) return;
                     selectShipment(newItem);
                 });
     }
@@ -482,9 +479,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     /* ================= Async Data Apply ================= */
-    private void applyDayData(
-            List<ShipmentListItemDto> shipments,
-            PlannerDataService.TransportBuckets buckets) {
+    private void applyDayData(List<ShipmentListItemDto> shipments, PlannerDataService.TransportBuckets buckets) {
         // shipments
         shipmentsItems.setAll(shipments);
         state.setHasMyShipments(!shipments.isEmpty());
