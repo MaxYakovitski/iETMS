@@ -349,8 +349,10 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
             requestId = null;
             dto = null;
 
-        } catch (Exception e) {
-            AlertUtils.showWarning("Request not found or already deleted.");
+        } catch (ApiException ex) {
+            UiError error = ApiErrorUtils.resolve(ex, "Failed to delete request.");
+            AlertUtils.show(error);
+            log.warn("Delete request failed on renew", ex);
         }
     }
 
