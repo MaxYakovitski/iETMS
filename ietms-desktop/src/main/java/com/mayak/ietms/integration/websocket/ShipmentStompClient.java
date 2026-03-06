@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.mayak.ietms.ws.WsDestinations.QUEUE_SHIPMENTS;
-import static com.mayak.ietms.ws.WsDestinations.TOPIC_SHIPMENTS;
 
 @Component
 @Slf4j
@@ -38,8 +37,7 @@ public class ShipmentStompClient extends AbstractStompClient {
     private final String wsUrl;
     private final AuthState authState;
 
-    private Consumer<ShipmentEvent<ShipmentEventDto>> lastTopicHandler;
-    private Consumer<ShipmentEvent<ShipmentEventDto>> lastUserHandler;
+    private Consumer<ShipmentEvent<ShipmentEventDto>> onEventHandler;
 
     public ShipmentStompClient(AuthState authState, BackendProperties backendProperties) {
         this.authState = authState;
@@ -53,12 +51,8 @@ public class ShipmentStompClient extends AbstractStompClient {
      * Public API.
      * Declares intent that WS must stay connected.
      */
-    public void connect(
-            Consumer<ShipmentEvent<ShipmentEventDto>> onTopicEvent,
-            Consumer<ShipmentEvent<ShipmentEventDto>> onUserEvent
-    ) {
-        this.lastTopicHandler = onTopicEvent;
-        this.lastUserHandler = onUserEvent;
+    public void connect(Consumer<ShipmentEvent<ShipmentEventDto>> onEvent) {
+        this.onEventHandler = onEvent;
 
         requestConnect();
 
@@ -85,8 +79,7 @@ public class ShipmentStompClient extends AbstractStompClient {
                 ShipmentStompClient.this.session = session;
                 connected = true;
 
-                session.subscribe(TOPIC_SHIPMENTS, frameHandler(lastTopicHandler));
-                session.subscribe("/user" + QUEUE_SHIPMENTS, frameHandler(lastUserHandler));
+                session.subscribe("/user" + QUEUE_SHIPMENTS, frameHandler(onEventHandler));
             }
 
             @Override
@@ -103,9 +96,7 @@ public class ShipmentStompClient extends AbstractStompClient {
         reconnectExecutor.schedule(this::doConnect, 3, TimeUnit.SECONDS);
     }
 
-    private StompFrameHandler frameHandler(
-            Consumer<ShipmentEvent<ShipmentEventDto>> consumer
-    ) {
+    private StompFrameHandler frameHandler(Consumer<ShipmentEvent<ShipmentEventDto>> consumer) {
         return new StompFrameHandler() {
 
             @Override

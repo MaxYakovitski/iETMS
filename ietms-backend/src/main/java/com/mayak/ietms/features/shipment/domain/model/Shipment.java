@@ -14,7 +14,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -208,5 +210,16 @@ public class Shipment {
 
     public boolean isOwnedBy(Long userId) {
         return request != null && request.getAuthorId().equals(userId);
+    }
+
+    public Set<Long> collectParticipantIds() {
+        Set<Long> ids = new HashSet<>();
+        if (request != null && request.getAuthorId() != null) {
+            ids.add(request.getAuthorId());
+        }
+        if (dispatcherId != null) {
+            ids.add(dispatcherId);
+        }
+        return ids;
     }
 }

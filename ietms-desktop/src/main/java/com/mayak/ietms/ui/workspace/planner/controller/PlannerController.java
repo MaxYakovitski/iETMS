@@ -139,10 +139,10 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     /* ================= Realtime Updates ================= */
     private void initShipmentRealtimeUpdates() {
-        shipmentWsClient.connect(
-                event -> Platform.runLater(() -> handleShipmentEvent(event)),
-                event -> Platform.runLater(() -> handleShipmentUserEvent(event))
-        );
+        shipmentWsClient.connect(event -> Platform.runLater(() -> {
+            handleShipmentEvent(event);
+            handleShipmentUserEvent(event);
+        }));
     }
 
     private void handleShipmentEvent(ShipmentEvent<ShipmentEventDto> event) {

@@ -211,10 +211,9 @@ public class ShipmentService {
         applyComments(dto, shipment);
 
         if (statusChanged) {
-            shipmentNotificationService.publishEvent(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
-            shipmentNotificationService.publishToDispatcher(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
+            shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
         } else if (carrierChanged) {
-            shipmentNotificationService.publishEvent(ShipmentEvent.EventType.UPDATED, shipment);
+            shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.UPDATED, shipment);
         }
 
         return assembler.assembleCurrent(shipment);
@@ -339,8 +338,7 @@ public class ShipmentService {
 
         shipment.cancel(reason);
 
-        shipmentNotificationService.publishEvent(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
-        shipmentNotificationService.publishToDispatcher(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
+        shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
     }
 
 }
