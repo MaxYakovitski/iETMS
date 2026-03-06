@@ -182,7 +182,7 @@ public class RequestLifecycleService {
 
         Shipment shipment = shipmentRepository.findById(request.getId())
                 .orElseGet(() -> createShipment(request));
-        shipmentNotificationService.publishEvent(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
+        shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
 
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
         Long dispatcherId = request.getDispatcherId();
@@ -262,7 +262,7 @@ public class RequestLifecycleService {
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
 
         shipmentRepository.findById(requestId).ifPresent(shipment ->
-                shipmentNotificationService.publishEvent(ShipmentEvent.EventType.UPDATED, shipment));
+                shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.UPDATED, shipment));
     }
 
     private void validate(BaseRequestDto dto) {
