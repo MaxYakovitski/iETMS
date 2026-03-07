@@ -35,6 +35,8 @@ public class ClientRequestFormState {
 
     private LaneViewDto lane;
     private Long inheritedLaneId;
+    private LocalDate laneValidFrom;
+    private LocalDate laneValidTo;
 
     /* ========= invariants ========= */
 
@@ -48,10 +50,16 @@ public class ClientRequestFormState {
             this.shipmentType = lane.shipmentType();
             this.transportType = lane.transportType();
             this.from = LocationTextFormatter.format(lane.fromLocation());
-            this.to   = LocationTextFormatter.format(lane.toLocation());
+            this.to = LocationTextFormatter.format(lane.toLocation());
             this.weight = lane.weight().toString();
             this.temperature = lane.temperature();
         }
+    }
+
+    public void resolveLane(Long laneId, LocalDate validFrom, LocalDate validTo) {
+        this.inheritedLaneId = laneId;
+        this.laneValidFrom = validFrom;
+        this.laneValidTo = validTo;
     }
 
     public boolean hasLane() {
@@ -88,22 +96,20 @@ public class ClientRequestFormState {
     }
 
     public LocalDate getLaneValidFrom() {
-        if (lane != null) {
-            return lane.validFrom();
-        }
-        return null;
+        if (lane != null) return lane.validFrom();
+        return laneValidFrom;
     }
 
     public LocalDate getLaneValidTo() {
-        if (lane != null) {
-            return lane.validTo();
-        }
-        return null;
+        if (lane != null) return lane.validTo();
+        return laneValidTo;
     }
 
     public void clearLane() {
         this.lane = null;
         this.inheritedLaneId = null;
+        this.laneValidFrom = null;
+        this.laneValidTo = null;
     }
 
     public void reset() {
@@ -123,5 +129,7 @@ public class ClientRequestFormState {
         comments = null;
         lane = null;
         inheritedLaneId = null;
+        laneValidFrom = null;
+        laneValidTo = null;
     }
 }

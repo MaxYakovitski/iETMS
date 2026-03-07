@@ -13,6 +13,7 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +24,8 @@ public record RequestDetailsDto (
         Long id,
         RequestTypeDto requestType,
         Long laneId,
+        LocalDate laneValidFrom,
+        LocalDate laneValidTo,
 
         boolean canBid,
         boolean canJoin,

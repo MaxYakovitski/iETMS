@@ -98,6 +98,8 @@ public class RequestDetailsAssembler {
 
                 // -------- LANE --------
                 .laneId(request instanceof ContractRequest c && c.getLane() != null ? c.getLane().getId() : null)
+                .laneValidFrom(request instanceof ContractRequest c && c.getLane() != null ? c.getLane().getValidFrom() : null)
+                .laneValidTo(request instanceof ContractRequest c && c.getLane() != null ? c.getLane().getValidTo() : null)
 
                 .build();
     }

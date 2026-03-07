@@ -370,6 +370,7 @@ public class ClientRequestsController extends AbstractRequestController {
             requestPolicy.applyRequest(requestState, request);
             renewedRequest = null;
             render();
+            setupDatePickersForCurrentState();
         } finally {
             allowLaneLookup = true;
         }

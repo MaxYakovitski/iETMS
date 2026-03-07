@@ -76,7 +76,9 @@ public class ClientRequestPolicy {
         state.setComments(r.comments());
 
         if (r.requestType() == RequestTypeDto.CONTRACT) {
-            state.setInheritedLaneId(r.laneId());
+            state.setStartDate(null);
+            state.setEndDate(null);
+            state.resolveLane(r.laneId(), r.laneValidFrom(), r.laneValidTo());
         }
 
     }
