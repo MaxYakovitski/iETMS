@@ -6,10 +6,12 @@ import com.mayak.ietms.integration.exception.ApiValidationException;
 import com.mayak.ietms.integration.exception.SessionExpiredException;
 import com.mayak.ietms.ui.core.SessionManager;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.*;
 
 import java.util.function.Supplier;
 
+@Slf4j
 @AllArgsConstructor
 public class AbstractRestClient {
 
@@ -24,6 +26,7 @@ public class AbstractRestClient {
         } catch (HttpStatusCodeException ex) {
             throw mapHttpException(ex);
         } catch (RestClientException ex) {
+            log.warn("Remote service unavailable: {}", ex.getMessage());
             throw new ApiException("Remote service unavailable", ex);
         } catch (Exception ex) {
             throw new ApiException("Unexpected client error", ex);

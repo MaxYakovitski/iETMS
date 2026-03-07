@@ -2,6 +2,7 @@ package com.mayak.ietms.ui.workspace.planner.controller;
 
 import com.mayak.ietms.domain.planner.service.PlannerDataService;
 import com.mayak.ietms.domain.planner.service.PlannerSelectionService;
+import com.mayak.ietms.domain.planner.service.ShipmentSortingService;
 import com.mayak.ietms.request.dto.event.ShipmentEventDto;
 import com.mayak.ietms.shipment.dto.enums.TransportEventType;
 import com.mayak.ietms.shipment.event.ShipmentEvent;
@@ -87,6 +88,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     private final PlannerDataService dataService;
     private final PlannerSelectionService selectionService;
     private final PlannerDetailsPresenter detailsPresenter;
+    private final ShipmentSortingService sortingService;
 
     private final CompanyClient companyClient;
     private final ShipmentClient shipmentClient;
@@ -304,12 +306,9 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         ShipmentUpdateDto updateDto = buildUpdateDto();
         if (updateDto == null) return;
 
-        ActiveTab tabBeforeUpdate = state.getActiveTab();
-        Long selectedId = state.getSelectedShipment().id();
-
         try {
-            shipmentClient.update(updateDto);
-            reloadAfterMutation(tabBeforeUpdate, selectedId);
+            ShipmentListItemDto fresh = shipmentClient.update(updateDto);
+            applyShipmentUpdate(fresh);
         } catch (ApiException e) {
             log.warn("Shipment update rejected by backend", e);
             AlertUtils.show(ApiErrorUtils.resolve(e, "Shipment update failed."));
@@ -317,6 +316,25 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     /* ================= Update / Mutation ================= */
+    private void applyShipmentUpdate(ShipmentListItemDto fresh) {
+        if (fresh == null) return;
+
+        replaceIn(shipmentsItems, fresh);
+        replaceIn(toLoadItems, fresh);
+        replaceIn(toDropItems, fresh);
+
+        resortByStatus(shipmentsItems);
+        resortByStatus(toLoadItems);
+        resortByStatus(toDropItems);
+
+        if (state.getSelectedShipment() != null
+                && Objects.equals(state.getSelectedShipment().id(), fresh.id())) {
+            state.setSelectedShipment(fresh);
+            if (selectionService.isShipmentTab(state)) showMyShipmentDetails(fresh);
+            else showMyTransportDetails(fresh);
+        }
+    }
+
     private ShipmentUpdateDto buildUpdateDto() {
         if (state.getSelectedShipment() == null) return null;
 
@@ -381,7 +399,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                             reason -> {
                                 try {
                                     shipmentClient.cancel(state.getSelectedShipment().id(), reason);
-                                    reloadAfterMutation(state.getActiveTab(), null);
+                                    reloadAfterMutation();
                                 } catch (ApiException e) {
                                     log.warn("Failed to cancel shipment {}", state.getSelectedShipment().id(), e);
                                     AlertUtils.show(ApiErrorUtils.resolve(e, "Shipment cancellation failed."));
@@ -398,14 +416,20 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     /* ================= Core Orchestration ================= */
     private void reloadForDate(LocalDate date) {
         state.setSelectedDate(date);
-        clearSelection();
 
         CompletableFuture
                 .supplyAsync(() -> dataService.loadMyShipments(date))
                 .thenCombine(CompletableFuture.supplyAsync(() -> dataService.loadMyTransports(date)), Map::entry)
                 .thenAccept(result ->
-                        Platform.runLater(() -> applyDayData(result.getKey(), result.getValue()))
-                );
+                        Platform.runLater(() -> {
+                            clearSelection();
+                            applyDayData(result.getKey(), result.getValue());
+                        })
+                )
+                .exceptionally(ex -> {
+                    log.warn("Failed to reload planner for date {}", date, ex);
+                    return null;
+                });
     }
 
     private void invalidateShipment(Long shipmentId) {
@@ -433,6 +457,11 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                 });
     }
 
+    private void resortByStatus(ObservableList<ShipmentListItemDto> list) {
+        if (list.size() < 2) return;
+        FXCollections.sort(list, sortingService.byStatus());
+    }
+
     private static void replaceIn(ObservableList<ShipmentListItemDto> list, ShipmentListItemDto fresh) {
         Long id = fresh.id();
         if (id == null) return;
@@ -446,9 +475,11 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         }
     }
 
-    private void reloadAfterMutation(ActiveTab preferredTab, Long reSelectId) {
+    private void reloadAfterMutation() {
         loadMyShipments();
         loadMyTransports();
+
+        ActiveTab preferredTab = state.getActiveTab();
 
         if (preferredTab == ActiveTab.MY_TRANSPORTS && state.isHasMyTransports()) {
             switchTab(ActiveTab.MY_TRANSPORTS);
@@ -460,21 +491,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
             switchTab(ActiveTab.MY_TRANSPORTS);
         } else {
             showEmptyState();
-            return;
-        }
-
-        if (reSelectId != null) {
-            reSelectInList(toLoadListView, toLoadItems, reSelectId);
-            reSelectInList(toDropListView, toDropItems, reSelectId);
-        }
-    }
-
-    private void reSelectInList(ListView<ShipmentListItemDto> listView, ObservableList<ShipmentListItemDto> items, Long id) {
-        for (int i = 0; i < items.size(); i++) {
-            if (Objects.equals(items.get(i).id(), id)) {
-                listView.getSelectionModel().select(i);
-                return;
-            }
         }
     }
 
