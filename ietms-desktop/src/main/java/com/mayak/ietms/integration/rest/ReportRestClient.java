@@ -18,12 +18,12 @@ public class ReportRestClient extends AbstractRestClient implements ReportClient
 
     private static final String API = "/api/reports/requests.xlsx?type={type}&from={from}&to={to}";
 
-    public ReportRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
+    public ReportRestClient(@Qualifier("reportRestTemplate") RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
         super(restTemplate, connectionMonitor, sessionManager);
     }
 
     @Override
-    public void downloadRequestsReport(@Qualifier("reportRestTemplate") ReportType type, LocalDate from, LocalDate to, File targetFile) {
+    public void downloadRequestsReport(ReportType type, LocalDate from, LocalDate to, File targetFile) {
         exchangeSafely(() -> {
 
             byte[] bytes = restTemplate.getForObject(API, byte[].class, type.name(), from.toString(), to.toString());
