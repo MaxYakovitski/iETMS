@@ -18,10 +18,19 @@ public class RestClientConfig {
 
     @Bean
     public RestTemplate restTemplate(AuthState authState, BackendProperties backendProperties) {
+        return buildRestTemplate(authState, backendProperties, 2, 2);
+    }
 
+    @Bean("reportRestTemplate")
+    public RestTemplate reportRestTemplate(AuthState authState, BackendProperties backendProperties) {
+        return buildRestTemplate(authState, backendProperties, 30, 10);
+    }
+
+    private RestTemplate buildRestTemplate(AuthState authState, BackendProperties backendProperties,
+                                           int responseTimeoutSec, int connectionTimeoutSec) {
         RequestConfig requestConfig = RequestConfig.custom()
-                .setResponseTimeout(Timeout.ofSeconds(2))
-                .setConnectionRequestTimeout(Timeout.ofSeconds(2))
+                .setResponseTimeout(Timeout.ofSeconds(responseTimeoutSec))
+                .setConnectionRequestTimeout(Timeout.ofSeconds(connectionTimeoutSec))
                 .build();
 
         CloseableHttpClient client = HttpClients.custom()

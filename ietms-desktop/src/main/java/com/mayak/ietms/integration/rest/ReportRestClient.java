@@ -4,6 +4,7 @@ import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.api.ReportClient;
 import com.mayak.ietms.statistics.ReportType;
 import com.mayak.ietms.ui.core.SessionManager;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,7 +23,7 @@ public class ReportRestClient extends AbstractRestClient implements ReportClient
     }
 
     @Override
-    public void downloadRequestsReport(ReportType type, LocalDate from, LocalDate to, File targetFile) {
+    public void downloadRequestsReport(@Qualifier("reportRestTemplate") ReportType type, LocalDate from, LocalDate to, File targetFile) {
         exchangeSafely(() -> {
 
             byte[] bytes = restTemplate.getForObject(API, byte[].class, type.name(), from.toString(), to.toString());
