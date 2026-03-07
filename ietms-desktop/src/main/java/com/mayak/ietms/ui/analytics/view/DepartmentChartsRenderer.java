@@ -211,7 +211,7 @@ public class DepartmentChartsRenderer {
         container.getChildren().setAll(lbl);
     }
 
-    public void renderCompression(List<MonthlyCountDto> data, LineChart<String, Number> chart) {
+    public void renderCompression(List<MonthlyCountDto> data, MonthlyCountDto currentMonth, LineChart<String, Number> chart) {
         chart.getData().clear();
         chart.setAnimated(false);
 
@@ -226,7 +226,39 @@ public class DepartmentChartsRenderer {
             contractSeries.getData().add(new LineChart.Data<>(m.month(), m.contract()));
         }
 
+        var currentSpotSeries = new LineChart.Series<String, Number>();
+        currentSpotSeries.setName("Spot " + currentMonth.month());
+
+        var currentContractSeries = new LineChart.Series<String, Number>();
+        currentContractSeries.setName("Contract " + currentMonth.month());
+
+        for (var m : data) {
+            currentSpotSeries.getData().add(new LineChart.Data<>(m.month(), currentMonth.spot()));
+            currentContractSeries.getData().add(new LineChart.Data<>(m.month(), currentMonth.contract()));
+        }
+
         chart.getData().add(spotSeries);
         chart.getData().add(contractSeries);
+        chart.getData().add(currentSpotSeries);
+        chart.getData().add(currentContractSeries);
+
+        Platform.runLater(() -> {
+            applyCurrentMonthLineStyle(currentSpotSeries);
+            applyCurrentMonthLineStyle(currentContractSeries);
+        });
+    }
+
+    private void applyCurrentMonthLineStyle(LineChart.Series<String, Number> series) {
+        Node line = series.getNode();
+        if (line != null) {
+            line.setStyle("-fx-stroke-width: 2; -fx-opacity: 0.5;");
+        }
+        for (var d : series.getData()) {
+            Node symbol = d.getNode();
+            if (symbol != null) {
+                symbol.setVisible(false);
+                symbol.setManaged(false);
+            }
+        }
     }
 }

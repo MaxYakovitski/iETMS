@@ -60,6 +60,7 @@ public class UserStatisticsService {
                         nz(r.getCreated()),
                         nz(r.getJoined()),
                         nz(r.getBided()),
+                        nz(r.getAccepted()),
                         nz(r.getDispatched()),
                         nzMoney(r.getAvgResponseMinutes())
                 ))

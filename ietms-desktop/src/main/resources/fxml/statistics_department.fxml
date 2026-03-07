@@ -65,8 +65,8 @@
                 </VBox>
                 <VBox spacing="10" prefWidth="350" prefHeight="350" alignment="CENTER">
                     <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
-                    <Label text="Spot efficiency"/>
-                    <StackPane fx:id="spotEfficiencyContainer" VBox.vgrow="ALWAYS"/>
+                    <Label text="Spot conversion"/>
+                    <StackPane fx:id="spotConversionContainer" VBox.vgrow="ALWAYS"/>
                 </VBox>
                 <VBox spacing="10" alignment="CENTER">
                     <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
@@ -86,8 +86,8 @@
                 <VBox prefWidth="350" prefHeight="350"/>
                 <VBox spacing="10" prefWidth="350" prefHeight="350" alignment="CENTER">
                     <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>
-                    <Label text="Contract efficiency"/>
-                    <StackPane fx:id="contractEfficiencyContainer" VBox.vgrow="ALWAYS"/>
+                    <Label text="Contract conversion"/>
+                    <StackPane fx:id="contractConversionContainer" VBox.vgrow="ALWAYS"/>
                 </VBox>
                 <VBox spacing="10" alignment="CENTER">
                     <padding><Insets top="10" left="10" right="10" bottom="10"/></padding>

@@ -1,5 +1,6 @@
 package com.mayak.ietms.shared.statistics;
 
+import com.mayak.ietms.features.request.domain.enums.RequestStatus;
 import com.mayak.ietms.features.request.infra.persistence.RequestRepository;
 
 import java.time.Instant;
@@ -27,6 +28,14 @@ public enum MetricType {
         public int count(RequestRepository repo, Long userId,
                          Instant from, Instant to) {
             return repo.countRequestsWithBidByUser(userId, from, to);
+        }
+    },
+
+    ACCEPTED {
+        @Override
+        public int count(RequestRepository repo, Long userId,
+                         Instant from, Instant to) {
+            return repo.countByAuthorIdAndStatus(userId, RequestStatus.ACCEPTED, from, to);
         }
     },
 

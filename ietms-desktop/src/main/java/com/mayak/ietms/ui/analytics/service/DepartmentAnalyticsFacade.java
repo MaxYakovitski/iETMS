@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,18 @@ public class DepartmentAnalyticsFacade {
 
         AnalyticsReportDto report = analyticsClient.getAnalytics(filter);
         return report.department();
+    }
+
+    public MonthlyCountDto loadCurrentMonthStats(LocalDate now, Long departmentId) {
+        LocalDate start = now.withDayOfMonth(1);
+        DepartmentStatsDto stats = loadDepartmentStats(start, now, departmentId);
+
+        String label = now.getMonth()
+                .getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+                .toUpperCase()
+                + " '" + (now.getYear() % 100);
+
+        return new MonthlyCountDto(label, stats.spotTotal(), stats.contractTotal());
     }
 
     public List<MonthlyCountDto> loadMonthlyCompression(LocalDate now, Long departmentId) {

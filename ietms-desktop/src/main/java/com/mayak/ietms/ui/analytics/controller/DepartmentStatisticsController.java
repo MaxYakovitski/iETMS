@@ -47,7 +47,7 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
     @FXML public VBox reportContainer;
     @FXML public HBox placeholderContainer;
     @FXML public BarChart<Number, String> barChartSpotRefusedReason, barChartContractRefusedReason;
-    @FXML public StackPane allContainer, spotBidedContainer, spotEfficiencyContainer, contractEfficiencyContainer,
+    @FXML public StackPane allContainer, spotBidedContainer, spotConversionContainer, contractConversionContainer,
             spotEmptyStack, contractEmptyStack;
     @FXML public LineChart <String, Number>lineChartCompression;
     @FXML public ComboBox<DepartmentDto> departmentComboBox;
@@ -136,13 +136,13 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
                 stats.spotAccepted(), stats.spotRefused(),
                 "Accepted", "Refused",
                 DepartmentChartsRenderer.COLOR_EFFICIENCY,
-                spotEfficiencyContainer);
+                spotConversionContainer);
 
         charts.renderProgressRing(
                 stats.contractAccepted(), stats.contractRefused(),
                 "Accepted", "Refused",
                 DepartmentChartsRenderer.COLOR_EFFICIENCY,
-                contractEfficiencyContainer);
+                contractConversionContainer);
 
         charts.renderBar(toBarData(stats.spotRefusedByReason()), barChartSpotRefusedReason, spotEmptyStack);
         charts.renderBar(toBarData(stats.contractRefusedByReason()), barChartContractRefusedReason, contractEmptyStack);
@@ -151,7 +151,11 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
                 LocalDate.now(),
                 getEffectiveDepartmentId());
 
-        charts.renderCompression(monthlyCompression, lineChartCompression);
+        MonthlyCountDto currentMonth = analytics.loadCurrentMonthStats(
+                LocalDate.now(),
+                getEffectiveDepartmentId());
+
+        charts.renderCompression(monthlyCompression, currentMonth, lineChartCompression);
     }
 
     private Map<String, Integer> toBarData(List<RefuseReasonCountDto> list) {

@@ -10,6 +10,7 @@ public record UserStatsDto(
         int placed,
         int joined,
         int bided,
+        int accepted,
         int dispatched,
         BigDecimal avgResponseMinutes) {
 }

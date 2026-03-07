@@ -64,6 +64,18 @@ ORDER BY
                         @Param("end") Instant end);
 
     @Query("""
+    SELECT COUNT(r)
+    FROM Request r
+    WHERE r.authorId = :userId
+      AND r.status = :status
+      AND r.issueDate BETWEEN :from AND :to
+""")
+    int countByAuthorIdAndStatus(@Param("userId") Long userId,
+                                 @Param("status") RequestStatus status,
+                                 @Param("from") Instant from,
+                                 @Param("to") Instant to);
+
+    @Query("""
         SELECT COUNT(DISTINCT r)
         FROM Request r
         WHERE :userId MEMBER OF r.competitorsId

@@ -22,7 +22,7 @@ import java.time.LocalDate;
 public class UserController {
 
     @FXML public Label userLabel, userTypeLabel, userRoleLabel, departmentLabel,
-            monthLabel, placedLabel, joinedLabel, bidedLabel, dispatchedLabel;
+            monthLabel, placedLabel, joinedLabel, bidedLabel, acceptedLabel, dispatchedLabel;
     @FXML public HBox roleContainer, departmentContainer;
 
     @Getter private Stage stage;
@@ -52,6 +52,7 @@ public class UserController {
         placedLabel.setText("...");
         joinedLabel.setText("...");
         bidedLabel.setText("...");
+        acceptedLabel.setText("...");
         dispatchedLabel.setText("...");
 
         applyDepartmentView();
@@ -85,6 +86,7 @@ public class UserController {
             placedLabel.setText(String.valueOf(stats.placed()));
             joinedLabel.setText(String.valueOf(stats.joined()));
             bidedLabel.setText(String.valueOf(stats.bided()));
+            acceptedLabel.setText(String.valueOf(stats.accepted()));
             dispatchedLabel.setText(String.valueOf(stats.dispatched()));
 
         } catch (Exception e) {
@@ -93,6 +95,7 @@ public class UserController {
             placedLabel.setText("–");
             joinedLabel.setText("–");
             bidedLabel.setText("–");
+            acceptedLabel.setText("-");
             dispatchedLabel.setText("–");
         }
     }

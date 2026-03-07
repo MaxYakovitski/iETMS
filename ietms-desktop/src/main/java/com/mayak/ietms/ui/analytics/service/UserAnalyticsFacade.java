@@ -34,6 +34,7 @@ public class UserAnalyticsFacade {
                         dto.placed(),
                         dto.joined(),
                         dto.bided(),
+                        dto.accepted(),
                         dto.dispatched(),
                         dto.avgResponseMinutes()
                 ))
