@@ -476,6 +476,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     private void reloadAfterMutation() {
+        clearSelection();
         loadMyShipments();
         loadMyTransports();
 
