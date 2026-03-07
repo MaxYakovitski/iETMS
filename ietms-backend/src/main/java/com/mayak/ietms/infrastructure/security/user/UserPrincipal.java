@@ -24,14 +24,10 @@ public class UserPrincipal implements UserDetails {
         Set<GrantedAuthority> authorities = new HashSet<>();
 
         // 1. ROLE з UserType (тэхнічна для Spring)
-        authorities.add(
-                new SimpleGrantedAuthority("ROLE_" + user.getUserType().name())
-        );
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getUserType().name()));
 
         // 2. Permissions (бізнес-узровень)
-        permissions.forEach(p ->
-                authorities.add(new SimpleGrantedAuthority(p.name()))
-        );
+        permissions.forEach(p -> authorities.add(new SimpleGrantedAuthority(p.name())));
 
         return authorities;
     }
@@ -43,7 +39,7 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return String.valueOf(user.getId());
     }
 
     @Override public boolean isAccountNonExpired() { return true; }
