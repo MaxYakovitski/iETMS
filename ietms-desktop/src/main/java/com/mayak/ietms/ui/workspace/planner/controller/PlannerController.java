@@ -476,7 +476,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     private void reloadAfterMutation() {
-        clearSelection();
         loadMyShipments();
         loadMyTransports();
 
@@ -485,6 +484,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         if (preferredTab == ActiveTab.MY_TRANSPORTS && state.isHasMyTransports()) {
             switchTab(ActiveTab.MY_TRANSPORTS);
         } else if (preferredTab == ActiveTab.MY_SHIPMENTS && state.isHasMyShipments()) {
+            clearSelection();
             switchTab(ActiveTab.MY_SHIPMENTS);
         } else if (state.isHasMyShipments()) {
             switchTab(ActiveTab.MY_SHIPMENTS);
