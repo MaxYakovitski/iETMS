@@ -76,6 +76,8 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     @Getter @Setter
     protected Stage stage;
 
+    private Runnable wsUnsubscribe;
+
     protected static final int PAGE_SIZE = 100;
 
     protected int currentPage = 0;
@@ -118,7 +120,6 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     public void onShow() {
         setupListView();
         this.active = true;
-        wsClient.requestConnect();
         if (!hotkeysRegistered) {
             Scene scene = requestsListView.getScene();
             if (scene != null) {
@@ -134,7 +135,11 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     @Override
     public void onHide() {
         active = false;
-        wsClient.requestDisconnect();
+
+        if (wsUnsubscribe != null) {
+            wsUnsubscribe.run();
+            wsUnsubscribe = null;
+        }
 
         if (pendingReload != null) {
             pendingReload.cancel(true);
@@ -422,7 +427,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
 
     // ==================== WEB SOCKET EVENT HANDLING ====================
     protected void initRealtimeUpdates() {
-        wsClient.connect(event -> handleEventReceived(List.of(event)), this::handleUserEvent);
+        wsUnsubscribe = wsClient.connect(event -> handleEventReceived(List.of(event)), this::handleUserEvent);
     }
 
     private void handleEventReceived(List<RequestEvent<RequestEventDto>> events) {
@@ -460,7 +465,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
                 })
                 .thenAccept(result -> Platform.runLater(() -> {
                     requestItems.setAll(result.getContent());
-                    showEmptyMessage(false);
+                    showEmptyMessage(result.getContent().isEmpty());
                 }));
     }
 

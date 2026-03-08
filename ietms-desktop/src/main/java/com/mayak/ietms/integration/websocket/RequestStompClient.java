@@ -17,6 +17,8 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -35,8 +37,9 @@ public class RequestStompClient extends AbstractStompClient{
     private final String wsUrl;
     private final AuthState authState;
 
-    private Consumer<RequestEvent<RequestEventDto>> lastTopicHandler;
-    private Consumer<RequestEvent<RequestEventDto>> lastUserHandler;
+    private final List<Consumer<RequestEvent<RequestEventDto>>> topicHandlers = new CopyOnWriteArrayList<>();
+    private final List<Consumer<RequestEvent<RequestEventDto>>> userHandlers  = new CopyOnWriteArrayList<>();
+
 
     public RequestStompClient(AuthState authState, BackendProperties backendProperties) {
         this.authState = authState;
@@ -50,18 +53,26 @@ public class RequestStompClient extends AbstractStompClient{
      * Public API.
      * Declares intent that WS must stay connected.
      */
-    public void connect(
+    public Runnable connect(
             Consumer<RequestEvent<RequestEventDto>> onTopicEvent,
             Consumer<RequestEvent<RequestEventDto>> onUserEvent) {
 
-        this.lastTopicHandler = onTopicEvent;
-        this.lastUserHandler = onUserEvent;
+        topicHandlers.add(onTopicEvent);
+        userHandlers.add(onUserEvent);
 
         requestConnect();
 
         if (!connected && !shuttingDown) {
             doConnect();
         }
+
+        return () -> {
+            topicHandlers.remove(onTopicEvent);
+            userHandlers.remove(onUserEvent);
+            if (topicHandlers.isEmpty() && userHandlers.isEmpty()) {
+                requestDisconnect();
+            }
+        };
     }
 
     /**
@@ -85,8 +96,8 @@ public class RequestStompClient extends AbstractStompClient{
                     public void afterConnected(@NotNull StompSession session, @NotNull StompHeaders headers) {
                         RequestStompClient.this.session = session;
                         connected = true;
-                        session.subscribe(TOPIC_REQUESTS, frameHandler(lastTopicHandler));
-                        session.subscribe("/user" + QUEUE_REQUESTS, frameHandler(lastUserHandler));
+                        session.subscribe(TOPIC_REQUESTS, frameHandler(e -> topicHandlers.forEach(h -> h.accept(e))));
+                        session.subscribe("/user" + QUEUE_REQUESTS, frameHandler(e -> userHandlers.forEach(h -> h.accept(e))));
                     }
 
                     @Override
