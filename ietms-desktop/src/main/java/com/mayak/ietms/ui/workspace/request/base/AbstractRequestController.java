@@ -460,6 +460,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
                 })
                 .thenAccept(result -> Platform.runLater(() -> {
                     requestItems.setAll(result.getContent());
+                    showEmptyMessage(false);
                 }));
     }
 
@@ -476,35 +477,6 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
                 "Request #" + event.getRequestId() + " has been dispatched to you!"
         );
 
-    }
-
-    private synchronized void scheduleReload() {
-        if (pendingReload != null && !pendingReload.isDone()) {
-            pendingReload.cancel(false);
-        }
-
-        pendingReload = wsDebouncer.schedule(this::reloadCurrentPageFromServer, 150, TimeUnit.MILLISECONDS);
-    }
-
-    private void reloadCurrentPageFromServer() {
-        RequestFilterDto filterSnapshot = activeFilter;
-        String searchSnapshot = activeSearchQuery;
-        int page = 0;
-
-        CompletableFuture.supplyAsync(() -> {
-            if (searchSnapshot != null) return requestClient.search(searchSnapshot, page, PAGE_SIZE);
-            if (filterSnapshot != null) return requestClient.filter(filterSnapshot, page,  PAGE_SIZE);
-            return requestClient.findPage(page, PAGE_SIZE, requestType);
-        }).thenAccept(items -> Platform.runLater(() -> {
-            if (!requestItems.isEmpty()) {
-                return;
-            }
-            showEmptyMessage(items.getContent().isEmpty());
-        })).exceptionally(ex -> {
-            log.error("ValidationError reloading current page from DB", ex);
-            Platform.runLater(() -> showEmptyMessage(false));
-            return null;
-        });
     }
 
     // ==================== Hotkeys ====================
