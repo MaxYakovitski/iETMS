@@ -46,7 +46,7 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
             u.surname AS lastName,
 
             COUNT(DISTINCT r_created.id) AS created,
-            COUNT(DISTINCT rc.request_id) AS joined,
+            COUNT(DISTINCT r_joined.id) AS joined,
             COUNT(DISTINCT fb.request_id) AS bided,
             COUNT(DISTINCT r_accepted.id) AS accepted,
             COUNT(DISTINCT r_dispatched.id) AS dispatched,
@@ -72,6 +72,10 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
 
         LEFT JOIN request_competitors rc
             ON rc.user_id = u.id
+        LEFT JOIN requests r_joined
+            ON r_joined.id = rc.request_id
+           AND r_joined.issue_date >= :from
+           AND r_joined.issue_date < :toExclusive
 
         LEFT JOIN first_bids fb
             ON fb.user_id = u.id
