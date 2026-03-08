@@ -35,7 +35,7 @@ public class DepartmentAnalyticsFacade {
                 .toUpperCase()
                 + " '" + (now.getYear() % 100);
 
-        return new MonthlyCountDto(label, stats.spotTotal(), stats.contractTotal());
+        return new MonthlyCountDto(label, stats.spotAccepted(), stats.contractAccepted());
     }
 
     public List<MonthlyCountDto> loadMonthlyCompression(LocalDate now, Long departmentId) {
