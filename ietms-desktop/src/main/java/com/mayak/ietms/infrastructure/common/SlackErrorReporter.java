@@ -1,6 +1,8 @@
 package com.mayak.ietms.infrastructure.common;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -12,18 +14,28 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Slf4j
+@Component
 public class SlackErrorReporter {
 
     private final String webhookUrl;
     private final HttpClient httpClient;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yyyy");
 
-    public SlackErrorReporter(String webhookUrl) {
+    public SlackErrorReporter(@Value("${slack.webhook-url:}") String webhookUrl) {
         this.webhookUrl = webhookUrl;
         this.httpClient = HttpClient.newHttpClient();
     }
 
+    public boolean isConfigured() {
+        return webhookUrl != null && !webhookUrl.isBlank();
+    }
+
     public void report(Exception e, String contextInfo) {
+        if (!isConfigured()) {
+            log.warn("Slack webhook not configured, skipping error report");
+            return;
+        }
+
         String timestamp = LocalDateTime.now().format(formatter);
         String stackTrace = getStackTrace(e);
 
@@ -54,7 +66,7 @@ public class SlackErrorReporter {
             httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                     .thenAccept(response -> {
                         if (response.statusCode() != 200) {
-                            System.err.println("Slack webhook failed: " + response.body());
+                            log.warn("Slack webhook failed: {}", response.body());
                         }
                     });
         } catch (Exception ex) {
