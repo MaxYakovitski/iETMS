@@ -55,7 +55,7 @@ public class TransportRequestController extends AbstractRequestController {
 
     @Override
     public void setStage(Stage stage) {
-        this.stage = stage;
+        super.setStage(stage);
         stage.focusedProperty().addListener((foc, oldFoc, newFoc) -> {
             if (newFoc && getHomeController() != null) {
                 getHomeController().setRequestsParent(this);

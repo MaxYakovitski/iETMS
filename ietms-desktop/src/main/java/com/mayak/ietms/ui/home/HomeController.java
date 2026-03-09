@@ -58,7 +58,7 @@ public class HomeController {
 
     private final UserClient userClient;
     private final WindowService windowService;
-    private NavigationService navigation;
+    @Getter private NavigationService navigation;
 
     private final PauseTransition searchDebounce = new PauseTransition(Duration.millis(300));
 

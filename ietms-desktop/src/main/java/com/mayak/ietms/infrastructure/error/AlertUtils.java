@@ -3,19 +3,21 @@ package com.mayak.ietms.infrastructure.error;
 import com.mayak.ietms.infrastructure.window.WindowService;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.image.Image;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
 @NoArgsConstructor
 public class AlertUtils {
-    @Setter
-    private static WindowService windowService;
+
+    @Setter private static WindowService windowService;
 
     // =========================================================
     // PUBLIC API — SIMPLE ALERTS (old API, backward compatible)
@@ -33,7 +35,7 @@ public class AlertUtils {
     }
 
     public static boolean showConfirmation(String title, String message) {
-        return showConfirmationInternal(title, message, null);
+        return showConfirmationInternal(title, message);
     }
 
 
@@ -52,15 +54,11 @@ public class AlertUtils {
         showAlert(Alert.AlertType.ERROR, "Error", message, owner);
     }
 
-    public static boolean showConfirmation(String title, String message, Stage owner) {
-        return showConfirmationInternal(title, message, owner);
-    }
-
 
     // =========================================================
     // INTERNAL: CONFIRMATION HANDLER
     // =========================================================
-    private static boolean showConfirmationInternal(String title, String message, Stage owner) {
+    private static boolean showConfirmationInternal(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
@@ -70,7 +68,7 @@ public class AlertUtils {
         ButtonType no = new ButtonType("no");
         alert.getButtonTypes().setAll(yes, no);
 
-        initOwner(alert, owner);
+        initOwner(alert, null);
 
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == yes;
@@ -89,7 +87,6 @@ public class AlertUtils {
         initOwner(alert, owner);
 
         alert.getDialogPane().setStyle("-fx-background-color: #ffffff;");
-
         alert.showAndWait();
     }
 
@@ -112,6 +109,15 @@ public class AlertUtils {
         }
 
         alert.initModality(Modality.APPLICATION_MODAL);
+        alert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (isShowing) {
+                Stage alertStage = (Stage) alert.getDialogPane().getScene().getWindow();
+                try {
+                    Image icon = new Image(Objects.requireNonNull(AlertUtils.class.getResourceAsStream("/icons/icon-red.png")));
+                    alertStage.getIcons().setAll(icon);
+                } catch (Exception ignored) {}
+            }
+        });
     }
 
     // =========================================================

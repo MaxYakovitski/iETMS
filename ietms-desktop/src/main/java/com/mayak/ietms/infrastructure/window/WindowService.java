@@ -43,8 +43,13 @@ public class WindowService {
     private Parent connectionOverlay;
     private ConnectionOverlayController connectionOverlayController;
 
-    @Getter @Setter
+    @Getter
     private Stage primaryStage;
+
+    public void setPrimaryStage(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+        primaryStage.setOnCloseRequest(e -> closeAllDetachedWindows());
+    }
 
     @Setter
     private Runnable loginCallback;
@@ -121,8 +126,12 @@ public class WindowService {
                 Stage existing = detachedRegistry.get(windowKey);
                 if (existing != null) {
                     log.info("Detached window already open: {}", windowKey);
-                    existing.toFront();
-                    existing.requestFocus();
+                    Platform.runLater(() -> {
+                        if (existing.isIconified()) existing.setIconified(false);
+                        existing.show();
+                        existing.toFront();
+                        existing.requestFocus();
+                    });
                     return;
                 }
             }
@@ -135,31 +144,24 @@ public class WindowService {
 
             Stage stage = new Stage();
             stage.initModality(Modality.NONE);
-            stage.initOwner(primaryStage);
             stage.setTitle(title);
             stage.setScene(new Scene(root));
             stage.setResizable(true);
+            stage.setMinWidth(1520);
+            stage.setMinHeight(540);
+
+            stage.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+                if (isFocused) {
+                    stage.toFront();
+                }
+            });
 
             applyDefaultIcon(iconPath, stage, primaryStage);
-
-            double fixedWidth = 1520;
-            stage.setWidth(fixedWidth);
-            stage.setMinWidth(fixedWidth);
-            stage.setMaxWidth(fixedWidth);
-
-            double minHeight = 520;
-            double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
-            stage.setMinHeight(minHeight);
-            stage.setMaxHeight(screenHeight);
-            stage.setHeight(screenHeight);
-
-            stage.fullScreenProperty().addListener((value, oldValue, newValue) -> {
-                if (newValue) stage.setFullScreen(false);
-            });
 
             injectStageIfSupported(controller, stage);
             if (initializer != null) initializer.accept(controller);
 
+            root.setOpacity(0);
             stage.setOnShown(event -> {
                 stage.centerOnScreen();
                 fadeIn(stage, 180);

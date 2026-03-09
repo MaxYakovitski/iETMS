@@ -9,7 +9,9 @@ import com.mayak.ietms.ui.workspace.request.transport.TransportRequestController
 import com.mayak.ietms.infrastructure.window.WindowKey;
 import com.mayak.ietms.infrastructure.window.WindowService;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 @RequiredArgsConstructor
 public class NavigationService {
@@ -18,6 +20,13 @@ public class NavigationService {
     private final HomeController homeController;
     private ViewLifecycle currentInlineView;
     private final UserResponseDto loggedInUser;
+
+    @Setter
+    private Stage ownerStage;
+
+    public Stage resolveOwner() {
+        return ownerStage != null ? ownerStage : windowService.getPrimaryStage();
+    }
 
     public void navigate(View view, NavigationType type) {
         navigate(view, type, null, ModalOptions.empty());
@@ -55,12 +64,14 @@ public class NavigationService {
     }
 
     private void openModal(View view, ModalOptions options) {
+        Stage owner = options.ownerStage() != null ? options.ownerStage() : resolveOwner();
         windowService.openModalWindow(
                 view.getPath(),
                 Object.class,
                 c -> {},
                 options.title() != null ? options.title() : view.name(),
-                options.iconPath()
+                options.iconPath(),
+                owner
         );
     }
 
