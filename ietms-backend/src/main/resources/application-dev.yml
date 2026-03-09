@@ -34,6 +34,9 @@ logging:
     org.springframework.security: DEBUG
 
 app:
+  jwt:
+    # DEV ONLY — never use this value in production
+    secret: ${JWT_SECRET:dev-only-jwt-secret-replace-in-production-env}
   admin:
     first-name: system
     last-name: administrator
