@@ -34,6 +34,8 @@ logging:
     org.springframework.security: DEBUG
 
 app:
+  ws:
+    allowed-origins: http://localhost:*,http://127.0.0.1:*
   jwt:
     # DEV ONLY — never use this value in production
     secret: ${JWT_SECRET:dev-only-jwt-secret-replace-in-production-env}
