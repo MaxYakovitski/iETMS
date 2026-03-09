@@ -78,7 +78,6 @@ public class JwtService {
         if (value instanceof Number n) {
             return n.intValue();
         }
-
         return null;
     }
 }
