@@ -14,10 +14,13 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.*;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 import org.springframework.stereotype.Component;
 
@@ -227,10 +230,7 @@ public class DepartmentChartsRenderer {
         }
 
         var currentSpotSeries = new LineChart.Series<String, Number>();
-        currentSpotSeries.setName("Spot " + currentMonth.month());
-
         var currentContractSeries = new LineChart.Series<String, Number>();
-        currentContractSeries.setName("Contract " + currentMonth.month());
 
         for (var m : data) {
             currentSpotSeries.getData().add(new LineChart.Data<>(m.month(), currentMonth.spot()));
@@ -243,15 +243,29 @@ public class DepartmentChartsRenderer {
         chart.getData().add(currentContractSeries);
 
         Platform.runLater(() -> {
-            applyCurrentMonthLineStyle(currentSpotSeries);
-            applyCurrentMonthLineStyle(currentContractSeries);
+            applyCurrentMonthLineStyle(currentSpotSeries, currentMonth.month(), chart);
+            applyCurrentMonthLineStyle(currentContractSeries, currentMonth.month(), chart);
+
+            matchSeriesColorClass(currentSpotSeries,     "default-color2", "default-color0");
+            matchSeriesColorClass(currentContractSeries, "default-color3", "default-color1");
+
         });
+
+        new Timeline(new KeyFrame(Duration.millis(100), e -> {
+            for (Node item : chart.lookupAll(".chart-legend-item")) {
+                if (item instanceof Label label
+                        && (label.getText() == null || label.getText().isBlank())) {
+                    label.setVisible(false);
+                    label.setManaged(false);
+                }
+            }
+        })).play();
     }
 
-    private void applyCurrentMonthLineStyle(LineChart.Series<String, Number> series) {
+    private void applyCurrentMonthLineStyle(LineChart.Series<String, Number> series, String monthLabel,LineChart<String, Number> chart) {
         Node line = series.getNode();
         if (line != null) {
-            line.setStyle("-fx-stroke-width: 2; -fx-opacity: 0.5;");
+            line.setStyle("-fx-stroke-width: 2; -fx-opacity: 0.5; -fx-stroke-dash-array: 8 8;");
         }
         for (var d : series.getData()) {
             Node symbol = d.getNode();
@@ -259,6 +273,46 @@ public class DepartmentChartsRenderer {
                 symbol.setVisible(false);
                 symbol.setManaged(false);
             }
+        }
+
+        new Timeline(new KeyFrame(Duration.millis(200), e -> {
+            if (series.getData().isEmpty()) return;
+
+            NumberAxis yAxis = (NumberAxis) chart.getYAxis();
+            Node plotBg = chart.lookup(".chart-plot-background");
+            if (plotBg == null) return;
+
+            Pane plotArea = (Pane) plotBg.getParent();
+
+            double yValue = series.getData().getFirst().getYValue().doubleValue();
+            double yPixel = yAxis.getDisplayPosition(yValue);
+
+            double xRight = plotBg.getBoundsInParent().getMaxX();
+
+            var label = new Text(monthLabel);
+            label.setStyle("-fx-font-size: 11; -fx-opacity: 0.5");
+            if (line != null) {
+                label.getStyleClass().add(
+                        line.getStyleClass().stream()
+                                .filter(c -> c.startsWith("default-color"))
+                                .findFirst().orElse(""));
+            }
+
+            label.setManaged(false);
+            label.setLayoutX(xRight - 60);
+            label.setLayoutY(plotBg.getBoundsInParent().getMinY() + yPixel - 4);
+
+            plotArea.getChildren().add(label);
+        })).play();
+    }
+
+    private void matchSeriesColorClass(LineChart.Series<String, Number> series,
+                                       String removeColor, String addColor) {
+        Node line = series.getNode();
+        if (line == null) return;
+        line.getStyleClass().remove(removeColor);
+        if (!line.getStyleClass().contains(addColor)) {
+            line.getStyleClass().add(addColor);
         }
     }
 }
