@@ -55,7 +55,7 @@
 
             <graphic>
                 <ImageView fitHeight="18.0" fitWidth="18.0" preserveRatio="true">
-                    <Image url="@/icons/filter-red.png"/>
+                    <Image url="@/icons/filter-active.png"/>
                 </ImageView>
             </graphic>
         </Button>

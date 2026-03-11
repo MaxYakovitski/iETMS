@@ -75,7 +75,7 @@ public class HomeController {
 
     private static final String USER_ICON = "/icons/user.png";
     private static final String FILTER_ICON_DEFAULT = "/icons/filter-default.png";
-    private static final String FILTER_ICON_ACTIVE = "/icons/filter-red.png";
+    private static final String FILTER_ICON_ACTIVE = "/icons/filter-active.png";
     private static final String SEARCH_ICON = "/icons/search.png";
     private static final String ABOUT_ICON = "/icons/info.png";
 
