@@ -40,9 +40,9 @@ public class UserReportRenderer {
         grid.add(new Label("placed"), 0, 0);
         grid.add(new Label("joined"), 1, 0);
         grid.add(new Label("bided"), 2, 0);
-        grid.add(new Label("accepted"), 3, 0);
+        grid.add(new Label("accepted spot/contract"), 3, 0);
         grid.add(new Label("dispatched"), 4, 0);
-        grid.add(new Label("avg bid time, min"), 5, 0);
+        grid.add(new Label("spots avg.bid time(min)"), 5, 0);
 
         grid.add(new Separator(), 0, 1, 6, 1);
     }
@@ -51,7 +51,7 @@ public class UserReportRenderer {
         grid.add(new Label(String.valueOf(item.placed())), 0, row);
         grid.add(new Label(String.valueOf(item.joined())), 1, row);
         grid.add(new Label(String.valueOf(item.bided())), 2, row);
-        grid.add(new Label(String.valueOf(item.accepted())), 3, row);
+        grid.add(new Label(item.acceptedSpot() + "/" + item.acceptedContract()), 3, row);
         grid.add(new Label(String.valueOf(item.dispatched())), 4, row);
         grid.add(new Label(item.avgResponse().toString()), 5, row);
     }

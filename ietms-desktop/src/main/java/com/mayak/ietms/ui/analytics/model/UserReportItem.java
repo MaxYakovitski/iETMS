@@ -6,7 +6,8 @@ public record UserReportItem(
         int placed,
         int joined,
         int bided,
-        int accepted,
+        int acceptedSpot,
+        int acceptedContract,
         int dispatched,
         BigDecimal avgResponse) {
 }

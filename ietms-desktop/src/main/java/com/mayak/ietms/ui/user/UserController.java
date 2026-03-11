@@ -86,7 +86,7 @@ public class UserController {
             placedLabel.setText(String.valueOf(stats.placed()));
             joinedLabel.setText(String.valueOf(stats.joined()));
             bidedLabel.setText(String.valueOf(stats.bided()));
-            acceptedLabel.setText(String.valueOf(stats.accepted()));
+            acceptedLabel.setText(stats.acceptedSpot() + "/" + stats.acceptedContract());
             dispatchedLabel.setText(String.valueOf(stats.dispatched()));
 
         } catch (Exception e) {

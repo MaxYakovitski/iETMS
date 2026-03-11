@@ -14,7 +14,7 @@ public class UserStatsExcelRowMapper {
         row.createCell(c++).setCellValue(dto.placed());
         row.createCell(c++).setCellValue(dto.joined());
         row.createCell(c++).setCellValue(dto.bided());
-        row.createCell(c++).setCellValue(dto.accepted());
+        row.createCell(c++).setCellValue(dto.acceptedSpot() + "/" + dto.acceptedContract());
         row.createCell(c++).setCellValue(dto.dispatched());
         row.createCell(c).setCellValue(dto.avgResponseMinutes().doubleValue());
     }

@@ -68,12 +68,14 @@ ORDER BY
     FROM Request r
     WHERE r.authorId = :userId
       AND r.status = :status
+      AND TYPE(r) = :type
       AND r.issueDate BETWEEN :from AND :to
 """)
-    int countByAuthorIdAndStatus(@Param("userId") Long userId,
-                                 @Param("status") RequestStatus status,
-                                 @Param("from") Instant from,
-                                 @Param("to") Instant to);
+    int countByAuthorIdAndStatusAndType(@Param("userId") Long userId,
+                                        @Param("status") RequestStatus status,
+                                        @Param("type") Class<? extends Request> type,
+                                        @Param("from") Instant from,
+                                        @Param("to") Instant to);
 
     @Query("""
         SELECT COUNT(DISTINCT r)

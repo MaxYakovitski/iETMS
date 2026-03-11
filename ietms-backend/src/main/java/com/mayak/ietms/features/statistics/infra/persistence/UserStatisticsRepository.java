@@ -19,7 +19,8 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
         Integer getCreated();
         Integer getJoined();
         Integer getBided();
-        Integer getAccepted();
+        Integer getAcceptedSpot();
+        Integer getAcceptedContract();
         Integer getDispatched();
 
         BigDecimal getAvgResponseMinutes();
@@ -48,7 +49,8 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
             COUNT(DISTINCT r_created.id) AS created,
             COUNT(DISTINCT r_joined.id) AS joined,
             COUNT(DISTINCT fb.request_id) AS bided,
-            COUNT(DISTINCT r_accepted.id) AS accepted,
+            COUNT(DISTINCT r_accepted_spot.id) AS acceptedSpot,
+            COUNT(DISTINCT r_accepted_contract.id) AS acceptedContract,
             COUNT(DISTINCT r_dispatched.id) AS dispatched,
 
             COALESCE(
@@ -67,15 +69,15 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
         FROM users u
         LEFT JOIN requests r_created
             ON r_created.author_id = u.id
-           AND r_created.issue_date >= :from
-           AND r_created.issue_date < :toExclusive
+               AND r_created.issue_date >= :from
+               AND r_created.issue_date < :toExclusive
 
         LEFT JOIN request_competitors rc
             ON rc.user_id = u.id
         LEFT JOIN requests r_joined
             ON r_joined.id = rc.request_id
-           AND r_joined.issue_date >= :from
-           AND r_joined.issue_date < :toExclusive
+               AND r_joined.issue_date >= :from
+               AND r_joined.issue_date < :toExclusive
 
         LEFT JOIN first_bids fb
             ON fb.user_id = u.id
@@ -83,16 +85,24 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
         LEFT JOIN requests r
             ON r.id = fb.request_id
         
-        LEFT JOIN requests r_accepted
-            ON r_accepted.author_id = u.id
-            AND r_accepted.status = 'ACCEPTED'
-            AND r_accepted.issue_date >= :from
-            AND r_accepted.issue_date < :toExclusive
+        LEFT JOIN requests r_accepted_spot
+            ON r_accepted_spot.author_id = u.id
+               AND r_accepted_spot.status = 'ACCEPTED'
+               AND r_accepted_spot.request_type = 'SPOT'
+               AND r_accepted_spot.issue_date >= :from
+               AND r_accepted_spot.issue_date < :toExclusive
+        
+        LEFT JOIN requests r_accepted_contract
+            ON r_accepted_contract.author_id = u.id
+               AND r_accepted_contract.status = 'ACCEPTED'
+               AND r_accepted_contract.request_type = 'CONTRACT'
+               AND r_accepted_contract.issue_date >= :from
+               AND r_accepted_contract.issue_date < :toExclusive
         
         LEFT JOIN requests r_dispatched
             ON r_dispatched.dispatcher_id = u.id
-           AND r_dispatched.issue_date >= :from
-           AND r_dispatched.issue_date < :toExclusive
+               AND r_dispatched.issue_date >= :from
+               AND r_dispatched.issue_date < :toExclusive
 
         WHERE u.id = ANY(:userIds)
         GROUP BY u.id, u.name, u.surname
