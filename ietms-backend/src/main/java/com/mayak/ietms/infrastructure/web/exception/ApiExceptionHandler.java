@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 
 import java.net.InetAddress;
 import java.util.Arrays;
@@ -88,6 +89,11 @@ public class ApiExceptionHandler {
                         (a, b) -> a));
 
         return new ErrorResponseDto("Validation failed", errors);
+    }
+
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void handleAsyncRequestNotUsable(AsyncRequestNotUsableException ex) {
+        log.debug("Client disconnected before response was sent: {}", ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
