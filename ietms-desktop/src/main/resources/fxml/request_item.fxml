@@ -146,10 +146,10 @@
                 </Button>
 
                 <Button fx:id="refuseButton" visible="false" contentDisplay="GRAPHIC_ONLY"
-                        layoutX="3.0" layoutY="35" prefWidth="18" prefHeight="18"
+                        layoutX="2.5" layoutY="35" prefWidth="20" prefHeight="20"
                         style="-fx-background-color: transparent; -fx-padding: 0;" onAction="#handleRefuse">
                     <graphic>
-                        <ImageView fitHeight="18" fitWidth="18" opacity="0.65" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fitHeight="20" fitWidth="20" opacity="0.65" pickOnBounds="true" preserveRatio="true">
                             <Image url="@../icons/refuse.png"/>
                         </ImageView>
                     </graphic>
