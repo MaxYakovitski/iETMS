@@ -64,7 +64,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     private static final String JOIN_ICON = "/icons/user_join.png";
     private static final String UNJOIN_ICON = "/icons/user-leave.png";
     private static final String COMMENTS_ICON = "/icons/comments.png";
-    private static final String MORE_ICON = "/icons/more.png";
+    private static final String MORE_ICON = "/icons/more_item.png";
     private static final String BID_ICON = "/icons/auction.png";
     private static final String BID_HISTORY_ICON = "/icons/bid-history.png";
 
