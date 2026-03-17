@@ -11,6 +11,7 @@ import com.mayak.ietms.request.dto.create.BaseRequestDto;
 import com.mayak.ietms.shared.exception.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,21 +29,23 @@ public class ExtensionRequestDraftController {
     private final ExtensionNotificationService extensionNotificationService;
 
     @PostMapping("/request")
-    public ExtensionDraftResponse create(@RequestBody ExtensionRequestDraftDto draft, @CurrentUserId Long userId) {
+    public ResponseEntity <ExtensionDraftResponse> create(@RequestBody ExtensionRequestDraftDto draft, @CurrentUserId Long userId) {
         ExtensionDraftIntent intent = ExtensionDraftIntent.from(draft);
 
         try {
             BaseRequestDto requestDto = assembler.build(draft);
             requestLifecycleService.create(requestDto, userId);
-            return new DraftAcceptedResponse();
+            return ResponseEntity.ok(new DraftAcceptedResponse());
 
         } catch (ValidationException ex) {
-            DraftValidationErrorResponse response =
-                    new DraftValidationErrorResponse(intent, toErrorMap(ex.getResult().getErrors()));
+            Map<String, List<String>> errors = toErrorMap(ex.getResult().getErrors());
 
+            DraftValidationErrorResponse response = new DraftValidationErrorResponse(intent, errors);
             extensionNotificationService.publishDraftInvalid(ExtensionDraftInvalidEvent.of(userId, response));
 
-            return response;
+            return ResponseEntity
+                    .unprocessableEntity()
+                    .body(new DraftValidationErrorResponse(null, errors));
         }
 
     }
