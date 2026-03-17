@@ -6,7 +6,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 public class UserStatsExcelHeader {
 
     private static final String[] HEADERS = {
-            "user", "placed", "joined", "spots bided", "accepted spot/contract", "dispatched", "spots avg.bid time(min)"
+            "user", "placed", "joined", "bided spot", "accepted spot/contract", "dispatched", "spot avg.bid time(min)"
     };
 
     public void writeHeader(Sheet sheet) {

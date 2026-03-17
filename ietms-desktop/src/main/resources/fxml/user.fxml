@@ -59,7 +59,7 @@
         <Label fx:id="joinedLabel"/>
     </HBox>
     <HBox spacing="5">
-        <Label text="spots bided:"/>
+        <Label text="bided spot:"/>
         <Label fx:id="bidedLabel"/>
     </HBox>
     <HBox spacing="5">

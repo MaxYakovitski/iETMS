@@ -42,7 +42,7 @@ public class UserReportRenderer {
         grid.add(new Label("bided"), 2, 0);
         grid.add(new Label("accepted spot/contract"), 3, 0);
         grid.add(new Label("dispatched"), 4, 0);
-        grid.add(new Label("spots avg.bid time(min)"), 5, 0);
+        grid.add(new Label("spot avg.bid time(min)"), 5, 0);
 
         grid.add(new Separator(), 0, 1, 6, 1);
     }
