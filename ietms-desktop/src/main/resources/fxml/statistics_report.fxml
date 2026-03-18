@@ -6,6 +6,7 @@
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.geometry.Insets?>
 
+<?import javafx.scene.control.ProgressBar?>
 <VBox xmlns="http://javafx.com/javafx/21.0.7"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.mayak.ietms.ui.analytics.controller.ReportController"
@@ -16,11 +17,13 @@
     <padding>
         <Insets top="20" bottom="20"/>
     </padding>
-    <ComboBox fx:id="reportChoiceBox" promptText="report type" prefWidth="150.0"
-              styleClass="combo-box"/>
-    <DatePicker fx:id="startDatePicker" maxWidth="150" styleClass="date-picker"
-                promptText="dd.mm.yyyy"/>
-    <DatePicker fx:id="endDatePicker" maxWidth="150" styleClass="date-picker"
-                promptText="dd.mm.yyyy"/>
-    <Button fx:id="downloadButton" mnemonicParsing="false" text="download" styleClass="report-outline" onAction="#handleDownload"/>
+
+    <VBox fx:id="formContainer" alignment="CENTER" spacing="10">
+        <ComboBox fx:id="reportChoiceBox" promptText="report type" prefWidth="150.0" styleClass="combo-box"/>
+        <DatePicker fx:id="startDatePicker" maxWidth="150" styleClass="date-picker" promptText="dd.mm.yyyy"/>
+        <DatePicker fx:id="endDatePicker" maxWidth="150" styleClass="date-picker" promptText="dd.mm.yyyy"/>
+        <Button fx:id="downloadButton" mnemonicParsing="false" text="download" styleClass="report-outline" onAction="#handleDownload"/>
+    </VBox>
+
+    <ProgressBar fx:id="progressBar" prefWidth="180" managed="false" visible="false" progress="0" styleClass="update-progress"/>
 </VBox>

@@ -5,13 +5,15 @@ import com.mayak.ietms.integration.api.ReportClient;
 import com.mayak.ietms.statistics.ReportType;
 import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
+import java.util.function.Consumer;
 
 @Service
 public class ReportRestClient extends AbstractRestClient implements ReportClient {
@@ -23,21 +25,34 @@ public class ReportRestClient extends AbstractRestClient implements ReportClient
     }
 
     @Override
-    public void downloadRequestsReport(ReportType type, LocalDate from, LocalDate to, File targetFile) {
+    public void downloadRequestsReport(ReportType type, LocalDate from, LocalDate to, File targetFile, Consumer<Double> onProgress) {
         exchangeSafely(() -> {
+            restTemplate.execute(
+                    API,
+                    HttpMethod.GET,
+                    null,
+                    response -> {
+                        long contentLength = response.getHeaders().getContentLength();
+                        try (InputStream in = response.getBody();
+                             FileOutputStream out = new FileOutputStream(targetFile)) {
 
-            byte[] bytes = restTemplate.getForObject(API, byte[].class, type.name(), from.toString(), to.toString());
+                            byte[] buffer = new byte[8192];
+                            long totalRead = 0;
+                            int bytesRead;
 
-            if (bytes == null) {
-                throw new RuntimeException("Empty report");
-            }
+                            while ((bytesRead = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, bytesRead);
+                                totalRead += bytesRead;
 
-            try (var out = new FileOutputStream(targetFile)) {
-                out.write(bytes);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to save report file", e);
-            }
-
+                                if (contentLength > 0 && onProgress != null) {
+                                    onProgress.accept((double) totalRead / contentLength);
+                                }
+                            }
+                        }
+                        return null;
+                    },
+                    type.name(), from.toString(), to.toString()
+            );
             return null;
         });
     }
