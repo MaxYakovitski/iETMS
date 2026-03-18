@@ -4,12 +4,14 @@ import com.mayak.ietms.integration.api.CompanyClient;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.company.dto.CompanyCreateDto;
 import com.mayak.ietms.company.dto.CompanyDto;
+import com.mayak.ietms.integration.websocket.CompanyStompClient;
 import com.mayak.ietms.ui.administration.AbstractSettingsController;
 import com.mayak.ietms.ui.home.HomeController;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
 import com.mayak.ietms.infrastructure.common.ResetUtils;
 import com.mayak.ietms.infrastructure.common.TextUtils;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -34,6 +36,7 @@ public class CompanyController extends AbstractSettingsController<CompanyDto, Co
     @FXML public TableColumn<CompanyDto, String> companyNameColumn;
 
     private final CompanyClient companyClient;
+    private final CompanyStompClient companyStompClient;
 
     @Getter @Setter
     private HomeController homeController;
@@ -45,6 +48,34 @@ public class CompanyController extends AbstractSettingsController<CompanyDto, Co
         companyNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().name()));
 
         initValidation();
+    }
+
+    @Override
+    public void onShow() {
+        super.onShow();
+        companyStompClient.connect(event -> Platform.runLater(() -> {
+            if (event == null || event.getType() == null || event.getPayload() == null) return;
+
+            switch (event.getType()) {
+                case CREATED -> {
+                    var items = getTable().getItems();
+                    boolean exists = items.stream()
+                            .anyMatch(c -> c.id().equals(event.getPayload().id()));
+                    if (!exists) items.add(event.getPayload());
+                }
+                case UPDATED -> {
+                    var items = getTable().getItems();
+                    for (int i = 0; i < items.size(); i++) {
+                        if (items.get(i).id().equals(event.getPayload().id())) {
+                            items.set(i, event.getPayload());
+                            break;
+                        }
+                    }
+                }
+                case DELETED -> getTable().getItems()
+                        .removeIf(c -> c.id().equals(event.getPayload().id()));
+            }
+        }));
     }
 
     @Override
