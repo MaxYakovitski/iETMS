@@ -46,6 +46,11 @@ public class RequestContractValidator implements Validator<BaseRequestDto> {
             validationResult.add("endDate", "End date is required");
         }
 
+        if (object.getStartDate() != null && object.getEndDate() != null
+                && object.getEndDate().isBefore(object.getStartDate())) {
+            validationResult.add("endDate", "End date must be after start date");
+        }
+
         if (object.getShipmentType() == null) {
             validationResult.add("shipmentType", "Please select shipment type");
         }
