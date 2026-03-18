@@ -46,25 +46,10 @@ public class ShipmentTransportFormState {
     public ShipmentUpdateDto toUpdateDto(Long shipmentId, LocalDateTime statusAt) {
         if (original == null || current == null) return null;
 
-        String carrierToSend =
-                Objects.equals(TextUtils.safeTrim(original.carrier()), TextUtils.safeTrim(current.carrier()))
-                        ? null
-                        : TextUtils.safeTrim(current.carrier());
-
-        String commentsToSend =
-                Objects.equals(TextUtils.safeTrim(original.comments()), TextUtils.safeTrim(current.comments()))
-                        ? null
-                        : TextUtils.safeTrim(current.comments());
-
-        String licenseToSend =
-                Objects.equals(TextUtils.safeTrim(original.licensePlate()), TextUtils.safeTrim(current.licensePlate()))
-                        ? null
-                        : TextUtils.safeTrim(current.licensePlate());
-
-        String orderToSend =
-                Objects.equals(TextUtils.safeTrim(original.transportOrder()), TextUtils.safeTrim(current.transportOrder()))
-                        ? null
-                        : TextUtils.safeTrim(current.transportOrder());
+        String carrierToSend = resolveField(original.carrier(), current.carrier());
+        String commentsToSend = resolveField(original.comments(), current.comments());
+        String licenseToSend = resolveField(original.licensePlate(), current.licensePlate());
+        String orderToSend = resolveField(original.transportOrder(), current.transportOrder());
 
         ShipmentStatusDto statusToSend =
                 original.status() == current.status()
@@ -103,6 +88,15 @@ public class ShipmentTransportFormState {
                 TextUtils.safeTrim(dto.transportOrder()),
                 dto.status()
         );
+    }
+
+    private String resolveField(String original, String current) {
+        String trimmedOriginal = TextUtils.safeTrim(original);
+        String trimmedCurrent = TextUtils.safeTrim(current);
+
+        if (Objects.equals(trimmedOriginal, trimmedCurrent)) return null;
+        if (trimmedCurrent == null) return "";
+        return trimmedCurrent;
     }
 
     public void reset() {
