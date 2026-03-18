@@ -58,6 +58,7 @@ import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Controller
@@ -98,6 +99,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     /* ================= State ================= */
     private final PlannerState state = new PlannerState();
     private final ShipmentTransportFormState formState = new ShipmentTransportFormState();
+    private final Set<String> companies = ConcurrentHashMap.newKeySet();
     private ValidationUIHelper validationUI;
     private UserPermissions permissions;
     private boolean initializingForm = false;
@@ -199,10 +201,10 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
         setupDirtyListeners();
 
-        Set<String> companies = companyClient.findAll()
+        companies.addAll(companyClient.findAll()
                 .stream()
                 .map(CompanyDto::name)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toSet()));
 
         AutoCompleteUtils.setupAutoCompletion(carrierField, companies);
         DatePickerUtils.setupDatePicker(dateAndTime);
@@ -308,6 +310,9 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
         try {
             ShipmentListItemDto fresh = shipmentClient.update(updateDto);
+            if (fresh.carrierName() != null && !fresh.carrierName().isBlank()) {
+                companies.add(fresh.carrierName());
+            }
             applyShipmentUpdate(fresh);
         } catch (ApiException e) {
             log.warn("Shipment update rejected by backend", e);

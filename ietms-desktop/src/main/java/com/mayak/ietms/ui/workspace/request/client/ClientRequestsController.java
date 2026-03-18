@@ -56,6 +56,8 @@ public class ClientRequestsController extends AbstractRequestController {
     private final ToggleGroup requestTypeGroup = new ToggleGroup();
     private final ToggleGroup shipmentTypeGroup = new ToggleGroup();
 
+    private final Set<String> companySuggestions = ConcurrentHashMap.newKeySet();
+
     private final CompanyClient companyClient;
     private final LaneClient laneClient;
     private ValidationUIHelper validationUI;
@@ -104,7 +106,6 @@ public class ClientRequestsController extends AbstractRequestController {
         setupFormFields();
         bindState();
 
-        Set<String> companySuggestions = ConcurrentHashMap.newKeySet();
         AutoCompleteUtils.setupAutoCompletion(companyField, companySuggestions);
 
         CompletableFuture.supplyAsync(() ->
@@ -336,8 +337,12 @@ public class ClientRequestsController extends AbstractRequestController {
         BaseRequestDto dto = result.dto();
 
         try {
-            requestClient.create(dto);
+            RequestDetailsDto created = requestClient.create(dto);
             showEmptyMessage(false);
+
+            if (created.customer() != null && created.customer().name() != null) {
+                companySuggestions.add(created.customer().name());
+            }
 
             Optional.ofNullable(renewedRequest).ifPresent(r -> {
                 try {
