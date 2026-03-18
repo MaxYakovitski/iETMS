@@ -3,6 +3,8 @@ package com.mayak.ietms.ui.workspace.planner.controller;
 import com.mayak.ietms.domain.planner.service.PlannerDataService;
 import com.mayak.ietms.domain.planner.service.PlannerSelectionService;
 import com.mayak.ietms.domain.planner.service.ShipmentSortingService;
+import com.mayak.ietms.infrastructure.fx.CompanyEventHandler;
+import com.mayak.ietms.integration.websocket.CompanyStompClient;
 import com.mayak.ietms.request.dto.event.ShipmentEventDto;
 import com.mayak.ietms.shipment.dto.enums.TransportEventType;
 import com.mayak.ietms.shipment.event.ShipmentEvent;
@@ -93,13 +95,14 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     private final CompanyClient companyClient;
     private final ShipmentClient shipmentClient;
-    private final ShipmentStompClient shipmentWsClient;
+    private final CompanyStompClient companyStompClient;
+    private final ShipmentStompClient shipmentStompClient;
     private final WindowService windowService;
 
     /* ================= State ================= */
     private final PlannerState state = new PlannerState();
     private final ShipmentTransportFormState formState = new ShipmentTransportFormState();
-    private final Set<String> companies = ConcurrentHashMap.newKeySet();
+    private final Set<String> companySuggestions = ConcurrentHashMap.newKeySet();
     private ValidationUIHelper validationUI;
     private UserPermissions permissions;
     private boolean initializingForm = false;
@@ -143,10 +146,11 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     /* ================= Realtime Updates ================= */
     private void initShipmentRealtimeUpdates() {
-        shipmentWsClient.connect(event -> Platform.runLater(() -> {
+        shipmentStompClient.connect(event -> Platform.runLater(() -> {
             handleShipmentEvent(event);
             handleShipmentUserEvent(event);
         }));
+        companyStompClient.connect(event -> Platform.runLater(() -> CompanyEventHandler.apply(event, companySuggestions)));
     }
 
     private void handleShipmentEvent(ShipmentEvent<ShipmentEventDto> event) {
@@ -201,12 +205,12 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
         setupDirtyListeners();
 
-        companies.addAll(companyClient.findAll()
+        companySuggestions.addAll(companyClient.findAll()
                 .stream()
                 .map(CompanyDto::name)
                 .collect(Collectors.toSet()));
 
-        AutoCompleteUtils.setupAutoCompletion(carrierField, companies);
+        AutoCompleteUtils.setupAutoCompletion(carrierField, companySuggestions);
         DatePickerUtils.setupDatePicker(dateAndTime);
         TimeSpinnerUtils.setupTimeSpinner(timeSpinner, 15);
     }
@@ -310,9 +314,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
         try {
             ShipmentListItemDto fresh = shipmentClient.update(updateDto);
-            if (fresh.carrierName() != null && !fresh.carrierName().isBlank()) {
-                companies.add(fresh.carrierName());
-            }
             applyShipmentUpdate(fresh);
         } catch (ApiException e) {
             log.warn("Shipment update rejected by backend", e);

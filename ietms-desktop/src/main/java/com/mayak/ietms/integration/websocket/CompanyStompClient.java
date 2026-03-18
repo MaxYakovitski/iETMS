@@ -1,4 +1,109 @@
 package com.mayak.ietms.integration.websocket;
 
-public class CompanyStompClient {
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mayak.ietms.app.BackendProperties;
+import com.mayak.ietms.company.dto.CompanyDto;
+import com.mayak.ietms.company.event.CompanyEvent;
+import com.mayak.ietms.integration.auth.AuthState;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.simp.stomp.StompFrameHandler;
+import org.springframework.messaging.simp.stomp.StompHeaders;
+import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.WebSocketHttpHeaders;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.messaging.WebSocketStompClient;
+
+import java.lang.reflect.Type;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+import static com.mayak.ietms.ws.WsDestinations.TOPIC_COMPANIES;
+
+@Component
+@Slf4j
+public class CompanyStompClient extends AbstractStompClient{
+
+    private static final TypeReference<CompanyEvent<CompanyDto>> EVENT_TYPE =
+            new TypeReference<>() {};
+
+    private final WebSocketStompClient stompClient;
+    private final ObjectMapper mapper;
+    private final String wsUrl;
+    private final AuthState authState;
+
+    private Consumer<CompanyEvent<CompanyDto>> onEventHandler;
+
+    public CompanyStompClient(AuthState authState, BackendProperties backendProperties) {
+        this.authState = authState;
+        this.wsUrl = backendProperties.getWsUrl();
+        this.stompClient = new WebSocketStompClient(new StandardWebSocketClient());
+        this.stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    }
+
+    public void connect(Consumer<CompanyEvent<CompanyDto>> onEvent) {
+        this.onEventHandler = onEvent;
+        requestConnect();
+        if (!connected && !shuttingDown) {
+            doConnect();
+        }
+    }
+
+    private synchronized void doConnect() {
+        if (connected || shuttingDown || !desiredConnected) return;
+        WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
+        if (authState.isAuthenticated()) {
+            headers.setBearerAuth(authState.getToken());
+        }
+
+        stompClient.connectAsync(wsUrl, headers, new StompSessionHandlerAdapter() {
+
+            @Override
+            public void afterConnected(@NotNull StompSession session, @NotNull StompHeaders headers) {
+                CompanyStompClient.this.session = session;
+                connected = true;
+                session.subscribe(TOPIC_COMPANIES, frameHandler(onEventHandler));
+            }
+
+            @Override
+            public void handleTransportError(@NotNull StompSession session, @NotNull Throwable exception) {
+                connected = false;
+                log.warn("WS transport error", exception);
+                if (!shuttingDown) scheduleReconnect();
+            }
+        });
+    }
+
+    private void scheduleReconnect() {
+        if (!desiredConnected || shuttingDown) return;
+        reconnectExecutor.schedule(this::doConnect, 3, TimeUnit.SECONDS);
+    }
+
+    private StompFrameHandler frameHandler(Consumer<CompanyEvent<CompanyDto>> consumer) {
+        return new StompFrameHandler() {
+
+            @Override
+            public @NotNull Type getPayloadType(@NotNull StompHeaders headers) {
+                return byte[].class;
+            }
+
+            @Override
+            public void handleFrame(@NotNull StompHeaders headers, Object payload) {
+                if (!(payload instanceof byte[] bytes)) return;
+                try {
+                    CompanyEvent<CompanyDto> event = mapper.readValue(bytes, EVENT_TYPE);
+                    consumer.accept(event);
+                } catch (Exception e) {
+                    log.error("Company WS deserialize failed", e);
+                }
+            }
+        };
+    }
+
 }

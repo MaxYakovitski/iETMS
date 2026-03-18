@@ -3,6 +3,8 @@ package com.mayak.ietms.ui.workspace.request.client;
 import com.mayak.ietms.domain.request.client.ClientRequestPolicy;
 import com.mayak.ietms.company.dto.CompanyDto;
 import com.mayak.ietms.extension.event.ExtensionDraftInvalidEvent;
+import com.mayak.ietms.infrastructure.fx.CompanyEventHandler;
+import com.mayak.ietms.integration.websocket.CompanyStompClient;
 import com.mayak.ietms.integration.websocket.ExtensionStompClient;
 import com.mayak.ietms.request.dto.create.BaseRequestDto;
 import com.mayak.ietms.request.dto.enums.ShipmentTypeDto;
@@ -62,6 +64,7 @@ public class ClientRequestsController extends AbstractRequestController {
     private final LaneClient laneClient;
     private ValidationUIHelper validationUI;
 
+    private final CompanyStompClient companyStompClient;
     private final ExtensionStompClient extensionStompClient;
 
     @Setter
@@ -87,12 +90,14 @@ public class ClientRequestsController extends AbstractRequestController {
             RequestStompClient wsClient,
             CompanyClient companyClient,
             LaneClient laneClient,
-            ExtensionStompClient extensionStompClient)
+            ExtensionStompClient extensionStompClient,
+            CompanyStompClient companyStompClient)
     {
         super(requestClient, windowService, filterState,  wsClient);
         this.companyClient = companyClient;
         this.laneClient = laneClient;
         this.extensionStompClient = extensionStompClient;
+        this.companyStompClient = companyStompClient;
     }
 
     @FXML
@@ -163,7 +168,8 @@ public class ClientRequestsController extends AbstractRequestController {
         extensionActive = true;
         extensionStompClient.connect(event ->
                 Platform.runLater(() -> handleExtensionEvent(event)));
-
+        companyStompClient.connect(event ->
+                Platform.runLater(() -> CompanyEventHandler.apply(event, companySuggestions)));
     }
 
     @Override
@@ -337,12 +343,8 @@ public class ClientRequestsController extends AbstractRequestController {
         BaseRequestDto dto = result.dto();
 
         try {
-            RequestDetailsDto created = requestClient.create(dto);
+            requestClient.create(dto);
             showEmptyMessage(false);
-
-            if (created.customer() != null && created.customer().name() != null) {
-                companySuggestions.add(created.customer().name());
-            }
 
             Optional.ofNullable(renewedRequest).ifPresent(r -> {
                 try {

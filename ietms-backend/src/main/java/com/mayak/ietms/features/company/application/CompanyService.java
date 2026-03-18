@@ -2,6 +2,7 @@ package com.mayak.ietms.features.company.application;
 
 import com.mayak.ietms.company.dto.CompanyCreateDto;
 import com.mayak.ietms.company.dto.CompanyDto;
+import com.mayak.ietms.features.company.application.notify.CompanyNotificationService;
 import com.mayak.ietms.features.company.domain.model.Company;
 import com.mayak.ietms.shared.exception.business.CompanyInUseException;
 import com.mayak.ietms.shared.exception.business.CompanyNotFoundException;
@@ -32,6 +33,7 @@ public class CompanyService {
     private final CompanyMapper companyMapper;
     private final CompanyCreateBackendValidator companyCreateBackendValidator;
     private final CompanyUpdateBackendValidator companyUpdateBackendValidator;
+    private final CompanyNotificationService companyNotificationService;
 
     // --- CREATE ---
     @Transactional
@@ -42,6 +44,8 @@ public class CompanyService {
         Company saved = companyRepository.save(company);
 
         log.info("Company placed with ID: {}", saved.getId());
+        CompanyDto result = companyMapper.toDto(saved);
+        companyNotificationService.publishCreated(result);
         return companyMapper.toDto(saved);
     }
 
@@ -73,6 +77,7 @@ public class CompanyService {
         Company company = getOrThrow(id);
         companyMapper.updateEntityFromDto(dto, company);
         companyRepository.save(company);
+        companyNotificationService.publishUpdated(companyMapper.toDto(company));
     }
 
     // --- DELETE ---
@@ -85,6 +90,7 @@ public class CompanyService {
         }
         companyRepository.delete(company);
         log.info("Company {} deleted", id);
+        companyNotificationService.publishDeleted(id);
     }
 
     private boolean isCompanyUsed(Long companyId) {
@@ -105,6 +111,7 @@ public class CompanyService {
                     Company saved = companyRepository.save(created);
 
                     log.info("Company auto-placed: id={}, name='{}'", saved.getId(), saved.getName());
+                    companyNotificationService.publishCreated(companyMapper.toDto(saved));
 
                     return saved;
                 });
