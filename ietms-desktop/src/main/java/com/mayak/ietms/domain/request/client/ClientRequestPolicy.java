@@ -1,6 +1,7 @@
 package com.mayak.ietms.domain.request.client;
 
 import com.mayak.ietms.extension.dto.ExtensionDraftIntent;
+import com.mayak.ietms.extension.util.ExtensionDateParser;
 import com.mayak.ietms.lane.dto.LaneViewDto;
 import com.mayak.ietms.request.dto.enums.RequestTypeDto;
 import com.mayak.ietms.request.dto.enums.ShipmentTypeDto;
@@ -94,8 +95,8 @@ public class ClientRequestPolicy {
         state.setCustomerReference(intent.customerReference());
         state.setCompanyName(intent.customerName());
 
-        state.setStartDate(null);
-        state.setEndDate(null);
+        state.setStartDate(ExtensionDateParser.parseFirst(intent.startDate()));
+        state.setEndDate(ExtensionDateParser.parseLast(intent.endDate()));
 
         state.setShipmentType(parseShipmentType(intent.shipmentType()));
         state.setTransportType(parseTransportType(intent.transportType()));

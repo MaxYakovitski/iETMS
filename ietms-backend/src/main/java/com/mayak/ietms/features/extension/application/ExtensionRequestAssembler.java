@@ -3,6 +3,7 @@ package com.mayak.ietms.features.extension.application;
 import com.mayak.ietms.common.util.TextSanitizer;
 import com.mayak.ietms.common.util.formatting.LocationTextParser;
 import com.mayak.ietms.extension.dto.ExtensionRequestDraftDto;
+import com.mayak.ietms.extension.util.ExtensionDateParser;
 import com.mayak.ietms.request.dto.create.BaseRequestDto;
 import com.mayak.ietms.request.dto.create.SpotRequestDto;
 import com.mayak.ietms.request.dto.enums.RequestTypeDto;
@@ -23,15 +24,6 @@ import java.util.regex.Pattern;
 @Slf4j
 public class ExtensionRequestAssembler {
 
-    private static final Pattern DATE_TOKEN = Pattern.compile(
-            "\\b(\\d{2}[./-]\\d{2}[./-]\\d{4}|\\d{4}-\\d{2}-\\d{2})\\b");
-
-    private static final List<DateTimeFormatter> DATE_FORMATS = List.of(
-            DateTimeFormatter.ofPattern("dd.MM.yyyy"),
-            DateTimeFormatter.ofPattern("dd-MM-yyyy"),
-            DateTimeFormatter.ofPattern("dd/MM/yyyy"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
     public BaseRequestDto build(ExtensionRequestDraftDto dto) {
 
         SpotRequestDto req = new SpotRequestDto();
@@ -44,13 +36,13 @@ public class ExtensionRequestAssembler {
         req.setCustomerReference(TextSanitizer.safeTrim(dto.customerReference()));
 
         req.setStartDate(
-                Optional.ofNullable(parseDateLoose(dto.startDate(), false))
+                Optional.ofNullable(ExtensionDateParser.parseFirst(dto.startDate()))
                         .map(LocalDate::atStartOfDay)
                         .orElse(null)
         );
 
         req.setEndDate(
-                Optional.ofNullable(parseDateLoose(dto.endDate(), true))
+                Optional.ofNullable(ExtensionDateParser.parseLast(dto.endDate()))
                         .map(LocalDate::atStartOfDay)
                         .orElse(null)
         );
@@ -96,33 +88,5 @@ public class ExtensionRequestAssembler {
 
     private TransportTypeDto parseTransportType(String raw) {
         return TransportTypeDto.fromLabel(raw);
-    }
-
-    private LocalDate parseDateLoose(String raw, boolean takeLast) {
-        if (raw == null || raw.isBlank()) return null;
-
-        Matcher matcher = DATE_TOKEN.matcher(raw);
-
-        List<LocalDate> dates = new ArrayList<>();
-
-        while (matcher.find()) {
-            String token = matcher.group();
-            LocalDate d = tryParseDate(token);
-            if (d != null) {
-                dates.add(d);
-            }
-        }
-
-        if (dates.isEmpty()) return null;
-        return takeLast ? dates.getLast() : dates.getFirst();
-    }
-
-    private LocalDate tryParseDate(String token) {
-        for (DateTimeFormatter f : DATE_FORMATS) {
-            try {
-                return LocalDate.parse(token, f);
-            } catch (Exception ignored) {}
-        }
-        return null;
     }
 }
