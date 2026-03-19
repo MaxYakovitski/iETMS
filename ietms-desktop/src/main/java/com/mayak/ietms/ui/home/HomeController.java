@@ -182,6 +182,10 @@ public class HomeController {
 
     @FXML
     public void handleFilter() {
+        handleFilter(null);
+    }
+
+    public void handleFilter(Stage owner) {
         windowService.openModalWindow(
                 View.FILTER.getPath(),
                 RequestFilterController.class,
@@ -193,19 +197,20 @@ public class HomeController {
                     controller.onShow();
                 },
                 "Filter",
-                FILTER_ICON_DEFAULT
+                FILTER_ICON_DEFAULT,
+                owner
         );
     }
 
-    public void handleSearchHotkey() {
+    public void handleSearchHotkey(Stage owner) {
         if (requestsParent instanceof TransportRequestController trc) {
-            openSearchWindow(trc);
+            openSearchWindow(trc, owner);
             return;
         }
         searchField.requestFocus();
     }
 
-    private void openSearchWindow(TransportRequestController trc) {
+    private void openSearchWindow(TransportRequestController trc, Stage owner) {
         if (searchWindow != null && searchWindow.isShowing()) {
             searchWindow.requestFocus();
             return;
@@ -219,7 +224,8 @@ public class HomeController {
                     this.searchWindow = controller.getStage();
                 },
                 "Search",
-                SEARCH_ICON
+                SEARCH_ICON,
+                owner
         );
     }
 

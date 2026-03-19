@@ -81,16 +81,9 @@ public class TransportRequestController extends AbstractRequestController {
     protected boolean supportsSearchHotkey() { return true; }
 
     @Override
-    protected void onFilterHotkey() {
-        if (getHomeController() != null) {
-            getHomeController().handleFilter();
-        }
-    }
-
-    @Override
     protected void onSearchHotkey() {
         if (getHomeController() != null) {
-            getHomeController().handleSearchHotkey();
+            getHomeController().handleSearchHotkey(getStage());
         }
     }
 

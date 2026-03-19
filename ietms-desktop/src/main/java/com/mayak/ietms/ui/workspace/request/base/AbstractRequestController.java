@@ -524,9 +524,10 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
 
     protected void onFilterHotkey() {
         if (homeController != null) {
-            homeController.handleFilter();
+            homeController.handleFilter(getStage());
         }
     }
+
     protected void onSearchHotkey() {}
 
     protected boolean supportsFilterHotkey() {return false;}
