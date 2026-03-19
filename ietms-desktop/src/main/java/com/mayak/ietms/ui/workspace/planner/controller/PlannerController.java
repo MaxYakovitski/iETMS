@@ -64,16 +64,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Controller
-@Scope("prototype")
 @RequiredArgsConstructor
 @Slf4j
 public class PlannerController implements SecuredView, ViewLifecycle {
 
     @FXML public Label yearLabel, monthLabel, shipmentNumber, shipmentNumberTransport, dispatcher, emptyMessageLabel;
     @FXML public Button leftButton, rightButton, myShipments, myTransports, cancelButton, submitButton;
-    @FXML public VBox shipmentDetailsContainer, timelineContainer, transportDetailsContainer, myShipmentsContainer, myTransportsContainer,
+    @FXML public VBox contentContainer, shipmentDetailsContainer, timelineContainer, transportDetailsContainer, myShipmentsContainer, myTransportsContainer,
                       toLoadContainer, toDropContainer;
     @FXML public HBox buttonsContainer;
+    @FXML public StackPane loadingOverlay;
 
     @Getter
     @FXML public DatePicker dateAndTime;
@@ -98,6 +98,8 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     private final CompanyStompClient companyStompClient;
     private final ShipmentStompClient shipmentStompClient;
     private final WindowService windowService;
+
+    private Runnable companyWsUnsubscribe;
 
     /* ================= State ================= */
     private final PlannerState state = new PlannerState();
@@ -126,21 +128,15 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     @Override
     public void onShow() {
         applyPermissions();
-        initInitialView();
+        loadForDate(state.getSelectedDate());
         initShipmentRealtimeUpdates();
     }
 
-    /* ================= Initial View ================= */
-    private void initInitialView() {
-        loadMyShipments();
-        loadMyTransports();
-
-        if (state.isHasMyShipments()) {
-            switchTab(ActiveTab.MY_SHIPMENTS);
-        } else if (state.isHasMyTransports()) {
-            switchTab(ActiveTab.MY_TRANSPORTS);
-        } else {
-            showEmptyState();
+    @Override
+    public void onHide() {
+        if (companyWsUnsubscribe != null) {
+            companyWsUnsubscribe.run();
+            companyWsUnsubscribe = null;
         }
     }
 
@@ -150,14 +146,15 @@ public class PlannerController implements SecuredView, ViewLifecycle {
             handleShipmentEvent(event);
             handleShipmentUserEvent(event);
         }));
-        companyStompClient.connect(event -> Platform.runLater(() -> CompanyEventHandler.apply(event, companySuggestions)));
+        companyWsUnsubscribe = companyStompClient.connect(event ->
+                Platform.runLater(() -> CompanyEventHandler.apply(event, companySuggestions)));
     }
 
     private void handleShipmentEvent(ShipmentEvent<ShipmentEventDto> event) {
         if (event == null) return;
 
         switch (event.getType()) {
-            case STATUS_CHANGED -> reloadForDate(state.getSelectedDate());
+            case STATUS_CHANGED -> loadForDate(state.getSelectedDate());
             case UPDATED -> invalidateShipment(event.getShipmentId());
         }
     }
@@ -191,7 +188,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         updateHeader(calendarView.getMonth());
 
         calendarView.selectedDateProperty().addListener((obs, oldD, newD) ->
-                reloadForDate(newD));
+                loadForDate(newD));
 
         statusEditPolicy.configure(shipmentStatusComboBox);
 
@@ -205,10 +202,12 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
         setupDirtyListeners();
 
-        companySuggestions.addAll(companyClient.findAll()
-                .stream()
-                .map(CompanyDto::name)
-                .collect(Collectors.toSet()));
+        CompletableFuture.supplyAsync(() ->
+                        companyClient.findAll().stream()
+                                .map(CompanyDto::name)
+                                .collect(Collectors.toSet()))
+                .thenAccept(result -> Platform.runLater(() -> companySuggestions.addAll(result)))
+                .exceptionally(ex -> { log.warn("Company preload failed", ex); return null; });
 
         AutoCompleteUtils.setupAutoCompletion(carrierField, companySuggestions);
         DatePickerUtils.setupDatePicker(dateAndTime);
@@ -420,7 +419,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     /* ================= Core Orchestration ================= */
-    private void reloadForDate(LocalDate date) {
+    private void loadForDate(LocalDate date) {
         state.setSelectedDate(date);
 
         CompletableFuture
@@ -503,6 +502,11 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     /* ================= Async Data Apply ================= */
     private void applyDayData(List<ShipmentListItemDto> shipments, PlannerDataService.TransportBuckets buckets) {
+        loadingOverlay.setVisible(false);
+        loadingOverlay.setManaged(false);
+        contentContainer.setVisible(true);
+        contentContainer.setManaged(true);
+
         // shipments
         shipmentsItems.setAll(shipments);
         state.setHasMyShipments(!shipments.isEmpty());

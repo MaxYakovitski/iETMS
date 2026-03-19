@@ -74,6 +74,8 @@ public class ClientRequestsController extends AbstractRequestController {
     private ClientRequestExtensionHandler extensionHandler;
     private ClientRequestSubmitService submitService;
 
+    private Runnable companyWsUnsubscribe;
+
     private boolean isRendering = false;
     private boolean allowLaneLookup = true;
     private volatile boolean extensionActive = false;
@@ -168,7 +170,7 @@ public class ClientRequestsController extends AbstractRequestController {
         extensionActive = true;
         extensionStompClient.connect(event ->
                 Platform.runLater(() -> handleExtensionEvent(event)));
-        companyStompClient.connect(event ->
+        companyWsUnsubscribe = companyStompClient.connect(event ->
                 Platform.runLater(() -> CompanyEventHandler.apply(event, companySuggestions)));
     }
 
@@ -176,6 +178,10 @@ public class ClientRequestsController extends AbstractRequestController {
     public void onHide() {
         super.onHide();
         extensionActive = false;
+        if (companyWsUnsubscribe != null) {
+            companyWsUnsubscribe.run();
+            companyWsUnsubscribe = null;
+        }
     }
 
     private void setupFormFields() {
