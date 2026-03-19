@@ -281,7 +281,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         String searchSnapshot = activeSearchQuery;
 
         CompletableFuture.supplyAsync(() -> {
-            if (searchSnapshot != null) return requestClient.search(searchSnapshot, pageToLoad, PAGE_SIZE);
+            if (searchSnapshot != null) return requestClient.search(searchSnapshot, pageToLoad, PAGE_SIZE, requestType);
             if (filterSnapshot != null) return requestClient.filter(filterSnapshot, pageToLoad, PAGE_SIZE);
             return requestClient.findPage(pageToLoad, PAGE_SIZE, requestType);
         }).thenAccept(result -> Platform.runLater(() -> {
@@ -470,7 +470,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         CompletableFuture
                 .supplyAsync(() -> {
                     if (searchSnapshot != null)
-                        return requestClient.search(searchSnapshot, 0, PAGE_SIZE);
+                        return requestClient.search(searchSnapshot, 0, PAGE_SIZE, requestType);
                     if (filterSnapshot != null)
                         return requestClient.filter(filterSnapshot, 0, PAGE_SIZE);
                     return requestClient.findPage(0, PAGE_SIZE, requestType);

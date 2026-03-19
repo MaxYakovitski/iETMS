@@ -33,9 +33,10 @@ public class RequestQueryController {
     public PageDto<RequestListItemDto> search(
             @RequestParam("q") String query,
             @RequestParam("page") int page,
-            @RequestParam("size") int size
+            @RequestParam("size") int size,
+            @RequestParam(value = "type", required = false) RequestTypeDto type
     ) {
-        return service.search(query, page, size);
+        return service.search(query, page, size, type);
     }
 
     @PostMapping("/filter")

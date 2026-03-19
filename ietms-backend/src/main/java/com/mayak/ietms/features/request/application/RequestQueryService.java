@@ -62,10 +62,10 @@ public class RequestQueryService {
         return toPageDto(entityPage, content);
     }
 
-    public PageDto<RequestListItemDto> search(String query, int page, int size) {
+    public PageDto<RequestListItemDto> search(String query, int page, int size,  RequestTypeDto type) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<Request> result = requestRepository.searchByQuery(query, pageable);
+        Page<Request> result = requestRepository.searchByQuery(query, type, pageable);
 
         List<RequestListItemDto> content =
                 result.getContent().stream()

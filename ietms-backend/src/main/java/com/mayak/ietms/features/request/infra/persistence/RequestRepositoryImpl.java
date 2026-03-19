@@ -1,5 +1,6 @@
 package com.mayak.ietms.features.request.infra.persistence;
 
+import com.mayak.ietms.request.dto.enums.RequestTypeDto;
 import com.mayak.ietms.request.dto.filter.RequestFilterDto;
 import com.mayak.ietms.features.request.domain.model.Request;
 import jakarta.persistence.EntityManager;
@@ -202,18 +203,29 @@ ORDER BY
 
     @Override
     @SuppressWarnings("unchecked")
-    public Page<Request> searchByQuery(String query, Pageable pageable) {
+    public Page<Request> searchByQuery(String query, RequestTypeDto type, Pageable pageable) {
         if (pageable == null) pageable = Pageable.unpaged();
         if (query == null || query.isBlank()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
         String likeQuery = "%" + query.toLowerCase() + "%";
 
+        Map<String, Object> params = new HashMap<>();
+        params.put("query", likeQuery);
+
         StringBuilder sql = new StringBuilder("""
         FROM requests r
         LEFT JOIN users a ON r.author_id = a.id
         LEFT JOIN company c ON r.customer_company_id = c.id
         WHERE r.archived = false
+        """);
+
+        if (type != null) {
+            sql.append(" AND r.request_type = :requestType");
+            params.put("requestType", type.name());
+        }
+
+        sql.append("""
         AND (
             LOWER(COALESCE(r.customer_reference, '')) LIKE :query
             OR LOWER(COALESCE(r.tid, '')) LIKE :query
@@ -236,9 +248,6 @@ ORDER BY
             OR CAST(r.id AS TEXT) LIKE :query
         )
     """);
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("query", likeQuery);
 
         // --- Count query ---
         Query countQuery = entityManager.createNativeQuery("SELECT COUNT(*) " + sql);

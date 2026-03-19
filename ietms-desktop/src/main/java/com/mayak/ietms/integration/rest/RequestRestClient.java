@@ -46,14 +46,16 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
     }
 
     @Override
-    public PageDto<RequestListItemDto> search(String query, int page, int size) {
+    public PageDto<RequestListItemDto> search(String query, int page, int size,  RequestTypeDto type) {
         return exchangeSafely(() -> {
 
-            String url = API + "/search?q={q}&page={page}&size={size}";
+            String url = type != null
+                    ? API + "/search?q={q}&page={page}&size={size}&type={type}"
+                    : API + "/search?q={q}&page={page}&size={size}";
 
-            RequestEntity<Void> request = RequestEntity
-                    .get(url, query, page, size)
-                    .build();
+            RequestEntity<Void> request = type != null
+                    ? RequestEntity.get(url, query, page, size, type).build()
+                    : RequestEntity.get(url, query, page, size).build();
 
             return restTemplate.exchange(
                     request,

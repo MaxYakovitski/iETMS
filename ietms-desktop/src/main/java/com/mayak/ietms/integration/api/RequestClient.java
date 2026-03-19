@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 
 public interface RequestClient {
     PageDto<RequestListItemDto> findPage(int page, int size, RequestTypeDto type);
-    PageDto<RequestListItemDto> search(String query, int page, int size);
+    PageDto<RequestListItemDto> search(String query, int page, int size, RequestTypeDto type);
     PageDto<RequestListItemDto> filter(RequestFilterDto filter, int page, int size);
 
     RequestDetailsDto getDetails(long requestId);
