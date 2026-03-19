@@ -63,10 +63,7 @@ public class WindowService {
             Loaded<T> loaded = loadView(fxmlPath, controllerClass);
             Stage owner = primaryStage;
 
-            configureAndShowModalStage(
-                    loaded, initializer, title, iconPath,
-                    owner, false
-            );
+            configureAndShowModalStage(loaded, initializer, title, iconPath, owner, false);
 
         } catch (Exception e) {
             log.error("Problem with window {}: {}", fxmlPath, e.getMessage(), e);
@@ -210,7 +207,6 @@ public class WindowService {
         applyDefaultIcon(iconPath, stage, owner);
         injectStageIfSupported(controller, stage);
         if (initializer != null) initializer.accept(controller);
-        fadeIn(stage, 180);
 
         if (wait) {
             stage.showAndWait();
@@ -225,6 +221,7 @@ public class WindowService {
             stage.setHeight(usableHeight - 50);
         }
         stage.centerOnScreen();
+        fadeIn(stage, 180);
 
         return controller;
     }
@@ -256,7 +253,7 @@ public class WindowService {
 
     public <T> Loaded<T> loadControllerWithNode(String fxmlPath) {
         Loaded<T> loaded = getLoaded(fxmlPath);
-        fadeIn(loaded.node(), 360);
+        fadeIn(loaded.node(), 180);
         return loaded;
     }
 
