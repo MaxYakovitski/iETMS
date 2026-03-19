@@ -329,6 +329,12 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     public void applyFilter(RequestFilterDto filter) {
         safeUpdate(() -> {
             if (!active) return;
+
+            if (requestType != null
+                    && (filter.getRequestTypes() == null || filter.getRequestTypes().isEmpty())) {
+                filter.setRequestTypes(List.of(requestType.name()));
+            }
+
             showEmptyMessage(false);
             showLoading(true);
 
