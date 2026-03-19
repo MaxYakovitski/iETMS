@@ -42,6 +42,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -98,10 +99,6 @@ public class RequestFilterController implements SecuredView, ViewLifecycle {
     @Override
     public void onShow() {
 
-        setupAuthorsAndCompetitors();
-        setupLocationAutoComplete();
-        setupCompanyAutoComplete();
-
         if (!permissions.canViewClientRequests()) {
             requestLabel.setVisible(false);
             requestLabel.setManaged(false);
@@ -111,10 +108,14 @@ public class RequestFilterController implements SecuredView, ViewLifecycle {
             collapseRow(1);
         }
 
-        requestsParent.getLastAppliedFilter()
-                .ifPresent(filter ->
-                        Platform.runLater(() -> restorePreviousFilter(filter))
-                );
+        setupLocationAutoComplete();
+        setupCompanyAutoComplete();
+
+        setupAuthorsAndCompetitors().thenRun(() ->
+                Platform.runLater(() ->
+                        requestsParent.getLastAppliedFilter().ifPresent(this::restorePreviousFilter)
+                )
+        );
     }
 
 
@@ -265,65 +266,55 @@ public class RequestFilterController implements SecuredView, ViewLifecycle {
     }
 
     private void setupCompanyAutoComplete() {
-        Set<String> companies = companyClient.findAll()
-                .stream().map(CompanyDto::name).collect(Collectors.toSet());
-
-        AutoCompleteUtils.setupAutoCompletion(companyField, companies);
+        CompletableFuture.supplyAsync(() ->
+                        companyClient.findAll().stream()
+                                .map(CompanyDto::name)
+                                .collect(Collectors.toSet()))
+                .thenAccept(result -> Platform.runLater(() ->
+                        AutoCompleteUtils.setupAutoCompletion(companyField, result)));
     }
 
     private void setupLocationAutoComplete() {
-        var locations = locationClient.findAll();
-        Set<String> isoCodes = locations.stream().map(LocationDto::countryCode).collect(Collectors.toSet());
-        Set<String> zipCodes = locations.stream().map(LocationDto::zipCode).collect(Collectors.toSet());
-        Set<String> placeNames = locations.stream().map(LocationDto::placeName).collect(Collectors.toSet());
+        CompletableFuture.supplyAsync(locationClient::findAll)
+                .thenAccept(locs -> Platform.runLater(() -> {
+                    Set<String> iso = locs.stream().map(LocationDto::countryCode).collect(Collectors.toSet());
+                    Set<String> zip = locs.stream().map(LocationDto::zipCode).collect(Collectors.toSet());
+                    Set<String> place = locs.stream().map(LocationDto::placeName).collect(Collectors.toSet());
 
-        AutoCompleteUtils.setupAutoCompletion(fromIsoField, isoCodes);
-        AutoCompleteUtils.setupAutoCompletion(fromZipField, zipCodes);
-        AutoCompleteUtils.setupAutoCompletion(fromPlaceField, placeNames);
-
-        AutoCompleteUtils.setupAutoCompletion(toIsoField, isoCodes);
-        AutoCompleteUtils.setupAutoCompletion(toZipField, zipCodes);
-        AutoCompleteUtils.setupAutoCompletion(toPlaceField, placeNames);
-
+                    AutoCompleteUtils.setupAutoCompletion(fromIsoField, iso);
+                    AutoCompleteUtils.setupAutoCompletion(fromZipField, zip);
+                    AutoCompleteUtils.setupAutoCompletion(fromPlaceField, place);
+                    AutoCompleteUtils.setupAutoCompletion(toIsoField, iso);
+                    AutoCompleteUtils.setupAutoCompletion(toZipField, zip);
+                    AutoCompleteUtils.setupAutoCompletion(toPlaceField, place);
+                }));
     }
 
-    private void setupAuthorsAndCompetitors() {
-        List<UserResponseDto> authors;
+    private CompletableFuture<Void> setupAuthorsAndCompetitors() {
+        return CompletableFuture.supplyAsync(() -> {
+            List<UserResponseDto> authors = permissions.isAdmin()
+                    ? userClient.findClientSpecialists()
+                    : userClient.findClientSpecialistsByDepartment(getUserDepartmentId());
 
-        if (permissions.isAdmin()) {
-            authors = userClient.findClientSpecialists();
-        } else {
-            authors = userClient.findClientSpecialistsByDepartment(getUserDepartmentId());
-        }
+            List<UserResponseDto> competitors = permissions.isAdmin()
+                    ? userClient.findColleagues()
+                    : userClient.findColleaguesByDepartment(getUserDepartmentId());
 
-        MultiSelectComboBoxUtils.setupMultiSelect(
-                authorsMultiSelectComboBox,
-                authors,
-                REQUESTS_BY_COLLEAGUES,
-                u -> u.name() + " " + u.surname()
-        );
-
-        List<UserResponseDto> competitors;
-
-        if (permissions.isAdmin()) {
-            competitors = userClient.findColleagues();
-        } else {
-            competitors = userClient.findColleaguesByDepartment(getUserDepartmentId());
-        }
-
-        MultiSelectComboBoxUtils.setupMultiSelect(
-                competitorsMultiSelectComboBox,
-                competitors,
-                JOINED_TO_REQUESTS,
-                u -> u.name() + " " + u.surname()
-        );
-
-        MultiSelectComboBoxUtils.setupMultiSelect(
-                dispatcherMultiSelectComboBox,
-                competitors,
-                DISPATCHED_TO,
-                u -> u.name() + " " + u.surname()
-        );
+            return Map.entry(authors, competitors);
+        }).thenAccept(result -> Platform.runLater(() -> {
+            MultiSelectComboBoxUtils.setupMultiSelect(
+                    authorsMultiSelectComboBox,
+                    result.getKey(), REQUESTS_BY_COLLEAGUES,
+                    u -> u.name() + " " + u.surname());
+            MultiSelectComboBoxUtils.setupMultiSelect(
+                    competitorsMultiSelectComboBox,
+                    result.getValue(), JOINED_TO_REQUESTS,
+                    u -> u.name() + " " + u.surname());
+            MultiSelectComboBoxUtils.setupMultiSelect(
+                    dispatcherMultiSelectComboBox,
+                    result.getValue(), DISPATCHED_TO,
+                    u -> u.name() + " " + u.surname());
+        }));
     }
 
     private Long getUserDepartmentId() {

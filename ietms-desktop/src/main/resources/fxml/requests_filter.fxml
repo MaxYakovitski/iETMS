@@ -125,12 +125,15 @@
 
                 <!-- users -->
             <CheckComboBox fx:id="authorsMultiSelectComboBox" prefWidth="150" focusTraversable="false"
+                           title="requests by"
                            GridPane.rowIndex="13" GridPane.columnIndex="1"/>
 
             <CheckComboBox fx:id="competitorsMultiSelectComboBox" prefWidth="150" focusTraversable="false"
+                           title="joined"
                            GridPane.rowIndex="14" GridPane.columnIndex="1"/>
 
             <CheckComboBox fx:id="dispatcherMultiSelectComboBox" prefWidth="150" focusTraversable="false"
+                           title="dispatched to"
                            GridPane.rowIndex="15" GridPane.columnIndex="1"/>
         </GridPane>
 
