@@ -50,7 +50,6 @@ import javafx.scene.layout.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.time.LocalDate;

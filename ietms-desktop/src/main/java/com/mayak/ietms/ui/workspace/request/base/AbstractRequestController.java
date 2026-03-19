@@ -384,6 +384,12 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     }
 
     // ==================== UI ====================
+    protected Stage getOwnerStage() {
+        Stage s = getStage();
+        if (s != null && s.isShowing()) return s;
+        return windowService.getPrimaryStage();
+    }
+
     private void showLoading(boolean show) {
         if (loadingOverlay == null) return;
         if (show == overlayVisible) return;
@@ -477,7 +483,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         if (dto.status() != RequestStatusDto.ACCEPTED) return;
 
         ToastService.showInfo(
-                windowService.getPrimaryStage(),
+                getOwnerStage(),
                 "Request dispatched",
                 "Request #" + event.getRequestId() + " has been dispatched to you!"
         );
