@@ -14,7 +14,6 @@
 <?import javafx.scene.control.Spinner?>
 <?import java.lang.String?>
 
-<?import javafx.scene.control.ProgressIndicator?>
 <HBox xmlns="http://javafx.com/javafx/21.0.7"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.mayak.ietms.ui.workspace.planner.controller.PlannerController"
@@ -117,9 +116,7 @@
     <Region minWidth="1" prefWidth="1" maxWidth="1"
             style="-fx-background-color: #c8c8c8;"/>
 
-    <StackPane HBox.hgrow="ALWAYS">
-
-    <VBox fx:id="contentContainer" spacing="10" HBox.hgrow="ALWAYS" visible="false" managed="false">
+    <VBox spacing="10" HBox.hgrow="ALWAYS">
         <HBox fx:id="buttonsContainer" spacing="10" alignment="CENTER" StackPane.alignment="TOP_CENTER">
             <Button fx:id="myShipments" text="My shipments" prefWidth="100" styleClass="tab" onAction="#onMyShipmentsHandle"/>
             <Button fx:id="myTransports" text="My transports" prefWidth="100" styleClass="tab" onAction="#onMyTransportsHandle"/>
@@ -173,14 +170,5 @@
         </StackPane>
 
     </VBox>
-
-        <StackPane fx:id="loadingOverlay">
-            <VBox alignment="CENTER" spacing="10">
-                <ProgressIndicator/>
-                <Label text="loading..."/>
-            </VBox>
-        </StackPane>
-
-    </StackPane>
 
 </HBox>
