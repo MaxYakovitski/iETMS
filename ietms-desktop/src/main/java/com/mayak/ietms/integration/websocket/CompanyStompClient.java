@@ -20,6 +20,8 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -37,7 +39,7 @@ public class CompanyStompClient extends AbstractStompClient{
     private final String wsUrl;
     private final AuthState authState;
 
-    private Consumer<CompanyEvent<CompanyDto>> onEventHandler;
+    private final List<Consumer<CompanyEvent<CompanyDto>>> handlers = new CopyOnWriteArrayList<>();
 
     public CompanyStompClient(AuthState authState, BackendProperties backendProperties) {
         this.authState = authState;
@@ -47,12 +49,17 @@ public class CompanyStompClient extends AbstractStompClient{
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
-    public void connect(Consumer<CompanyEvent<CompanyDto>> onEvent) {
-        this.onEventHandler = onEvent;
+    public Runnable connect(Consumer<CompanyEvent<CompanyDto>> onEvent) {
+        handlers.add(onEvent);
         requestConnect();
         if (!connected && !shuttingDown) {
             doConnect();
         }
+
+        return () -> {
+            handlers.remove(onEvent);
+            if (handlers.isEmpty()) requestDisconnect();
+        };
     }
 
     private synchronized void doConnect() {
@@ -68,7 +75,7 @@ public class CompanyStompClient extends AbstractStompClient{
             public void afterConnected(@NotNull StompSession session, @NotNull StompHeaders headers) {
                 CompanyStompClient.this.session = session;
                 connected = true;
-                session.subscribe(TOPIC_COMPANIES, frameHandler(onEventHandler));
+                session.subscribe(TOPIC_COMPANIES, frameHandler(e -> handlers.forEach(h -> h.accept(e))));
             }
 
             @Override

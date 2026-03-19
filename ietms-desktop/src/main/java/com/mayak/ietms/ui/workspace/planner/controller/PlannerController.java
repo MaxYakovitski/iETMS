@@ -64,7 +64,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Controller
-@Scope("prototype")
 @RequiredArgsConstructor
 @Slf4j
 public class PlannerController implements SecuredView, ViewLifecycle {
@@ -100,6 +99,8 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     private final ShipmentStompClient shipmentStompClient;
     private final WindowService windowService;
 
+    private Runnable companyWsUnsubscribe;
+
     /* ================= State ================= */
     private final PlannerState state = new PlannerState();
     private final ShipmentTransportFormState formState = new ShipmentTransportFormState();
@@ -131,13 +132,22 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         initShipmentRealtimeUpdates();
     }
 
+    @Override
+    public void onHide() {
+        if (companyWsUnsubscribe != null) {
+            companyWsUnsubscribe.run();
+            companyWsUnsubscribe = null;
+        }
+    }
+
     /* ================= Realtime Updates ================= */
     private void initShipmentRealtimeUpdates() {
         shipmentStompClient.connect(event -> Platform.runLater(() -> {
             handleShipmentEvent(event);
             handleShipmentUserEvent(event);
         }));
-        companyStompClient.connect(event -> Platform.runLater(() -> CompanyEventHandler.apply(event, companySuggestions)));
+        companyWsUnsubscribe = companyStompClient.connect(event ->
+                Platform.runLater(() -> CompanyEventHandler.apply(event, companySuggestions)));
     }
 
     private void handleShipmentEvent(ShipmentEvent<ShipmentEventDto> event) {
