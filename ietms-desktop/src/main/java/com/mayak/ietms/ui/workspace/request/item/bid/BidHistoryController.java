@@ -112,6 +112,7 @@ public class BidHistoryController implements ViewLifecycle, SecuredView, BidItem
         if (stage != null) {
             stage.sizeToScene();
             windowService.centerOnScreen((Stage) stage.getOwner(), stage);
+            windowService.fadeIn(stage, 180);
         }
     }
 

@@ -199,6 +199,7 @@ public class WindowService {
         stage.setScene(new Scene(root));
         stage.setTitle(title);
         stage.setResizable(false);
+        stage.sizeToScene();
 
         applyDefaultIcon(iconPath, stage, owner);
         injectStageIfSupported(controller, stage);
@@ -206,7 +207,6 @@ public class WindowService {
 
         stage.setOnShown(e -> {
             centerOnScreen(owner, stage);
-            stage.sizeToScene();
             fadeIn(stage, 180);
         });
 
