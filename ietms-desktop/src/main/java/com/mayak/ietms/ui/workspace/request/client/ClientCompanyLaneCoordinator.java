@@ -1,5 +1,6 @@
 package com.mayak.ietms.ui.workspace.request.client;
 
+import com.mayak.ietms.common.validation.ValidationError;
 import com.mayak.ietms.company.dto.CompanyDto;
 import com.mayak.ietms.domain.request.client.ClientRequestPolicy;
 import com.mayak.ietms.infrastructure.common.TextUtils;
@@ -47,7 +48,10 @@ public class ClientCompanyLaneCoordinator {
         if (!requestState.isContract()) return;
 
         String value = TextUtils.safeTrim(companyNameSupplier.get());
-        if (value == null) return;
+        if (value == null) {
+            validationUI.showClientErrors(List.of(new ValidationError("customerName", "Customer must be selected for contract request")));
+            return;
+        };
         CompletableFuture.runAsync(() -> {
             try {
                 Optional<CompanyDto> company = companyClient.findByName(value);

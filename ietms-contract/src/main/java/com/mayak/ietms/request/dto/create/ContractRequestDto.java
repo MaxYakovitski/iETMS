@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,4 +15,6 @@ import lombok.NoArgsConstructor;
 public class ContractRequestDto extends BaseRequestDto {
     Long laneId;
     ContractReasonCodeDto reasonCode;
+    LocalDate laneValidFrom;
+    LocalDate laneValidTo;
 }

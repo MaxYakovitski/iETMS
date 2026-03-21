@@ -21,6 +21,8 @@ public class ClientRequestAssembler {
             case CONTRACT -> {
                 ContractRequestDto c = new ContractRequestDto();
                 c.setLaneId(s.effectiveLaneId());
+                c.setLaneValidFrom(s.getLaneValidFrom());
+                c.setLaneValidTo(s.getLaneValidTo());
                 yield c;
             }
             case SPOT -> new SpotRequestDto();

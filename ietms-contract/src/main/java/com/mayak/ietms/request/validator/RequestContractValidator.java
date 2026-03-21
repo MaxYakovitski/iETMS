@@ -27,6 +27,15 @@ public class RequestContractValidator implements Validator<BaseRequestDto> {
             if (contract.getLaneId() == null) {
                 validationResult.add("lane", "Lane must be selected for contract request");
             }
+
+            if (contract.getLaneValidFrom() != null && contract.getLaneValidTo() != null
+                    && object.getStartDate() != null) {
+                var startDate = object.getStartDate().toLocalDate();
+                if (startDate.isBefore(contract.getLaneValidFrom()) || startDate.isAfter(contract.getLaneValidTo())) {
+                    validationResult.add("startDate", "Start date must be within the lane validity period ("
+                            + contract.getLaneValidFrom() + " – " + contract.getLaneValidTo() + ")");
+                }
+            }
         }
 
         if (object.getFromLocations() == null || object.getFromLocations().isEmpty() ||
