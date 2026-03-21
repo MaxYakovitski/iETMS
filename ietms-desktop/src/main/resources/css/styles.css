@@ -499,7 +499,11 @@
 
 .autocomplete-list .list-cell:selected {
     -fx-background-color: #306eed;
-    -fx-text-fill: #313131;
+    -fx-text-fill: #ffffff;
+}
+
+.autocomplete-list .corner {
+    -fx-background-color: transparent;
 }
 
 .bar-spot-contract .chart-title {

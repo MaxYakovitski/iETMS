@@ -23,6 +23,7 @@ public class AutoCompleteUtils {
 
         ListView<String> listView = new ListView<>();
         listView.getStyleClass().add("autocomplete-list");
+        listView.getStyleClass().add("scroll-minimal");
         listView.setMaxHeight(MAX_HEIGHT);
         listView.setFocusTraversable(true);
 
