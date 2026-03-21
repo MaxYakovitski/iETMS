@@ -10,7 +10,6 @@ import com.mayak.ietms.ui.core.BidItemHost;
 import com.mayak.ietms.ui.core.SecuredView;
 import com.mayak.ietms.ui.core.ViewLifecycle;
 import com.mayak.ietms.infrastructure.window.WindowService;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -110,13 +109,10 @@ public class BidHistoryController implements ViewLifecycle, SecuredView, BidItem
             scrollPane.setPrefHeight(BID_ITEM_HEIGHT * visibleCount);
         }
 
-        Platform.runLater(() -> {
-            if (stage != null) {
-                stage.sizeToScene();
-                stage.centerOnScreen();
-//                windowService.centerOnScreen(stage);
-            }
-        });
+        if (stage != null) {
+            stage.sizeToScene();
+            windowService.centerOnScreen((Stage) stage.getOwner(), stage);
+        }
     }
 
     private Parent createBidNode(BidViewDto bid, RequestStatusDto status) {

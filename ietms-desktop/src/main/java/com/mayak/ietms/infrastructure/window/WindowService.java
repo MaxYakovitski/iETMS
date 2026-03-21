@@ -5,14 +5,12 @@ import com.mayak.ietms.ui.core.ViewLifecycle;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
@@ -187,10 +185,8 @@ public class WindowService {
 
     // ------------------ CORE REFACTORED METHOD ------------------
     private <T> T configureAndShowModalStage(
-            Loaded<T> loaded,
-            Consumer<T> initializer,
-            String title,
-            String iconPath,
+            Loaded<T> loaded, Consumer<T> initializer,
+            String title, String iconPath,
             Stage owner,
             boolean wait) {
         Parent root = loaded.node();
@@ -208,22 +204,23 @@ public class WindowService {
         injectStageIfSupported(controller, stage);
         if (initializer != null) initializer.accept(controller);
 
-        if (wait) {
-            stage.showAndWait();
-        } else {
-            stage.show();
-        }
+        stage.setOnShown(e -> {
+            centerOnScreen(owner, stage);
+            stage.sizeToScene();
+            fadeIn(stage, 180);
+        });
 
-        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-        double usableHeight = bounds.getHeight();
-
-        if (stage.getHeight() > usableHeight) {
-            stage.setHeight(usableHeight - 50);
-        }
-        stage.centerOnScreen();
-        fadeIn(stage, 180);
+        if (wait) stage.showAndWait();
+        else stage.show();
 
         return controller;
+    }
+
+    public void centerOnScreen(Stage owner, Stage stage) {
+        if (owner != null) {
+            stage.setX(owner.getX() + (owner.getWidth()  - stage.getWidth())  / 2.0);
+            stage.setY(owner.getY() + (owner.getHeight() - stage.getHeight()) / 2.0);
+        }
     }
 
     // ------------------ STAGE INJECTION ------------------
