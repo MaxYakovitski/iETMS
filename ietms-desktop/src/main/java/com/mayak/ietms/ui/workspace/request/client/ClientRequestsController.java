@@ -2,10 +2,8 @@ package com.mayak.ietms.ui.workspace.request.client;
 
 import com.mayak.ietms.domain.request.client.ClientRequestPolicy;
 import com.mayak.ietms.company.dto.CompanyDto;
-import com.mayak.ietms.extension.event.ExtensionDraftInvalidEvent;
 import com.mayak.ietms.infrastructure.fx.CompanyEventHandler;
 import com.mayak.ietms.integration.websocket.CompanyStompClient;
-import com.mayak.ietms.integration.websocket.ExtensionStompClient;
 import com.mayak.ietms.request.dto.create.BaseRequestDto;
 import com.mayak.ietms.request.dto.enums.ShipmentTypeDto;
 import com.mayak.ietms.request.dto.enums.TransportTypeDto;
@@ -65,20 +63,17 @@ public class ClientRequestsController extends AbstractRequestController {
     private ValidationUIHelper validationUI;
 
     private final CompanyStompClient companyStompClient;
-    private final ExtensionStompClient extensionStompClient;
 
     @Setter
     private Long renewedRequest;
 
     private ClientCompanyLaneCoordinator laneCoordinator;
-    private ClientRequestExtensionHandler extensionHandler;
     private ClientRequestSubmitService submitService;
 
     private Runnable companyWsUnsubscribe;
 
     private boolean isRendering = false;
     private boolean allowLaneLookup = true;
-    private volatile boolean extensionActive = false;
 
     @Override
     public ParentType getParentType() {
@@ -92,13 +87,11 @@ public class ClientRequestsController extends AbstractRequestController {
             RequestStompClient wsClient,
             CompanyClient companyClient,
             LaneClient laneClient,
-            ExtensionStompClient extensionStompClient,
             CompanyStompClient companyStompClient)
     {
         super(requestClient, windowService, filterState,  wsClient);
         this.companyClient = companyClient;
         this.laneClient = laneClient;
-        this.extensionStompClient = extensionStompClient;
         this.companyStompClient = companyStompClient;
     }
 
@@ -160,16 +153,12 @@ public class ClientRequestsController extends AbstractRequestController {
                 () -> companyField.getText()
         );
 
-        extensionHandler = new ClientRequestExtensionHandler(requestPolicy, requestState);
         submitService = new ClientRequestSubmitService();
     }
 
     @Override
     public void onShow() {
         super.onShow();
-        extensionActive = true;
-        extensionStompClient.connect(event ->
-                Platform.runLater(() -> handleExtensionEvent(event)));
         companyWsUnsubscribe = companyStompClient.connect(event ->
                 Platform.runLater(() -> CompanyEventHandler.apply(event, companySuggestions)));
     }
@@ -177,7 +166,6 @@ public class ClientRequestsController extends AbstractRequestController {
     @Override
     public void onHide() {
         super.onHide();
-        extensionActive = false;
         if (companyWsUnsubscribe != null) {
             companyWsUnsubscribe.run();
             companyWsUnsubscribe = null;
@@ -458,11 +446,6 @@ public class ClientRequestsController extends AbstractRequestController {
             requestState.setComments(n);
         });
 
-    }
-
-    private void handleExtensionEvent(ExtensionDraftInvalidEvent event) {
-        if (!extensionActive) return;
-        extensionHandler.handle(event, this::render, validationUI::showClientErrors);
     }
 
     @FXML

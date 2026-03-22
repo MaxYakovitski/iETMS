@@ -1,7 +1,5 @@
 package com.mayak.ietms.domain.request.client;
 
-import com.mayak.ietms.extension.dto.ExtensionDraftIntent;
-import com.mayak.ietms.extension.util.ExtensionDateParser;
 import com.mayak.ietms.lane.dto.LaneViewDto;
 import com.mayak.ietms.request.dto.enums.RequestTypeDto;
 import com.mayak.ietms.request.dto.enums.ShipmentTypeDto;
@@ -82,48 +80,5 @@ public class ClientRequestPolicy {
             state.resolveLane(r.laneId(), r.laneValidFrom(), r.laneValidTo());
         }
 
-    }
-
-    public void applyDraft(ClientRequestFormState state, ExtensionDraftIntent intent) {
-        state.reset();
-
-        state.setContract(false);
-
-        state.setFrom(String.join(" + ", intent.from()));
-        state.setTo(String.join(" + ", intent.to()));
-
-        state.setCustomerReference(intent.customerReference());
-        state.setCompanyName(intent.customerName());
-
-        state.setStartDate(ExtensionDateParser.parseFirst(intent.startDate()));
-        state.setEndDate(ExtensionDateParser.parseLast(intent.endDate()));
-
-        state.setShipmentType(parseShipmentType(intent.shipmentType()));
-        state.setTransportType(parseTransportType(intent.transportType()));
-
-        state.setTemperature(intent.temperature());
-        state.setDangerous(Boolean.TRUE.equals(intent.dangerous()));
-
-        state.setWeight(intent.weight());
-        state.setLoadingMeter(intent.loadingMeter());
-
-        state.setComments(intent.comments());
-
-        log.info("APPLY INTENT company={}", intent.customerName());
-        log.info("STATE after apply company={}", state.getCompanyName());
-    }
-
-    private static ShipmentTypeDto parseShipmentType(String raw) {
-        if (raw == null) return null;
-
-        try {
-            return ShipmentTypeDto.valueOf(raw.trim().toUpperCase());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private static TransportTypeDto parseTransportType(String raw) {
-        return TransportTypeDto.fromLabel(raw);
     }
 }

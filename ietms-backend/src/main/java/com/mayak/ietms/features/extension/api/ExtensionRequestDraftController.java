@@ -2,9 +2,7 @@ package com.mayak.ietms.features.extension.api;
 
 import com.mayak.ietms.common.validation.ValidationError;
 import com.mayak.ietms.extension.dto.*;
-import com.mayak.ietms.extension.event.ExtensionDraftInvalidEvent;
 import com.mayak.ietms.features.extension.application.ExtensionRequestAssembler;
-import com.mayak.ietms.features.extension.notify.ExtensionNotificationService;
 import com.mayak.ietms.features.request.application.lifecycle.RequestLifecycleService;
 import com.mayak.ietms.infrastructure.security.current.CurrentUserId;
 import com.mayak.ietms.request.dto.create.BaseRequestDto;
@@ -26,12 +24,9 @@ public class ExtensionRequestDraftController {
 
     private final ExtensionRequestAssembler assembler;
     private final RequestLifecycleService requestLifecycleService;
-    private final ExtensionNotificationService extensionNotificationService;
 
     @PostMapping("/request")
     public ResponseEntity <ExtensionDraftResponse> create(@RequestBody ExtensionRequestDraftDto draft, @CurrentUserId Long userId) {
-        ExtensionDraftIntent intent = ExtensionDraftIntent.from(draft);
-
         try {
             BaseRequestDto requestDto = assembler.build(draft);
             requestLifecycleService.create(requestDto, userId);
@@ -40,12 +35,9 @@ public class ExtensionRequestDraftController {
         } catch (ValidationException ex) {
             Map<String, List<String>> errors = toErrorMap(ex.getResult().getErrors());
 
-            DraftValidationErrorResponse response = new DraftValidationErrorResponse(intent, errors);
-            extensionNotificationService.publishDraftInvalid(ExtensionDraftInvalidEvent.of(userId, response));
-
             return ResponseEntity
                     .unprocessableEntity()
-                    .body(new DraftValidationErrorResponse(null, errors));
+                    .body(new DraftValidationErrorResponse(errors));
         }
 
     }
