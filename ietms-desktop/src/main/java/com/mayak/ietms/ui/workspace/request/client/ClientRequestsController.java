@@ -174,7 +174,6 @@ public class ClientRequestsController extends AbstractRequestController {
 
     private void setupFormFields() {
         TextUtils.allowOnlyLatin(true, fromTextArea, toTextArea, companyField, idField, weightTextField, loadingMeterTextField);
-        TextUtils.allowOnlyLatin(false, commentsTextArea);
 
         TextUtils.setupEnumComboBox(transportComboBox, TransportTypeDto.values(), TransportTypeDto::getLabel);
         setupListeners();
