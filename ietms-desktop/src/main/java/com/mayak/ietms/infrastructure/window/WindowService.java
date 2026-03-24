@@ -207,11 +207,11 @@ public class WindowService {
         injectStageIfSupported(controller, stage);
         if (initializer != null) initializer.accept(controller);
 
-//        root.setOpacity(0);
+        root.setOpacity(0);
         stage.setOnShown(e -> {
             Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
             if (stage.getHeight() > bounds.getHeight()) {
-                stage.setHeight(bounds.getHeight() - 20);
+                stage.setMaxHeight(bounds.getHeight() - 20);
             }
             centerOnScreen(owner, stage);
             fadeIn(stage, 180);
