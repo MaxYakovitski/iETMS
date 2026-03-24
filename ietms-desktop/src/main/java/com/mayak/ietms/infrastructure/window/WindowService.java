@@ -207,6 +207,7 @@ public class WindowService {
         injectStageIfSupported(controller, stage);
         if (initializer != null) initializer.accept(controller);
 
+        root.setOpacity(0);
         stage.setOnShown(e -> {
             Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
             if (stage.getHeight() > bounds.getHeight()) {
