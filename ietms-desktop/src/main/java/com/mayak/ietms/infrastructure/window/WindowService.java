@@ -5,12 +5,14 @@ import com.mayak.ietms.ui.core.ViewLifecycle;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
@@ -200,6 +202,14 @@ public class WindowService {
         stage.setTitle(title);
         stage.setResizable(false);
         stage.sizeToScene();
+
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        if (stage.getHeight() > bounds.getHeight()) {
+            stage.setHeight(bounds.getHeight() - 20);
+        }
+        if (stage.getWidth() > bounds.getWidth()) {
+            stage.setWidth(bounds.getWidth() - 20);
+        }
 
         applyDefaultIcon(iconPath, stage, owner);
         injectStageIfSupported(controller, stage);
