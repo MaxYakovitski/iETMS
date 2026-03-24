@@ -39,7 +39,10 @@ public class DesktopBootstrap {
                 windowService.loadControllerWithNode(View.HOME.getPath(), HomeController.class);
 
         Scene scene = new Scene(loaded.node());
-        return new StartupPlan(scene, stage -> stage.setMaximized(true));
+        return new StartupPlan(scene, stage -> {
+            stage.setWidth(900);
+            stage.setHeight(600);
+        });
     }
 
     private StartupPlan buildUpdatePlan(UpdateCheckResult result) {
