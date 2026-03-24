@@ -213,8 +213,10 @@ public class WindowService {
             if (stage.getHeight() > bounds.getHeight()) {
                 stage.setMaxHeight(bounds.getHeight() - 20);
             }
-            centerOnScreen(owner, stage);
-            fadeIn(stage, 180);
+            Platform.runLater(() -> {
+                centerOnScreen(owner, stage);
+                fadeIn(stage, 180);
+            });
         });
 
         if (wait) stage.showAndWait();
