@@ -40,8 +40,8 @@ public class DesktopBootstrap {
 
         Scene scene = new Scene(loaded.node());
         return new StartupPlan(scene, stage -> {
-            stage.setWidth(900);
-            stage.setHeight(600);
+            stage.setWidth(1120);
+            stage.setHeight(630);
         });
     }
 
