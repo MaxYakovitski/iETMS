@@ -18,9 +18,11 @@ import com.mayak.ietms.ui.auth.LoginRequest;
 import com.mayak.ietms.ui.core.SessionManager;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -71,7 +73,11 @@ public class JavaFxApplication extends Application {
 
         Stage loginStage = createBaseStage(scene);
         loginStage.setResizable(false);
-        loginStage.centerOnScreen();
+        loginStage.setOnShown(e -> {
+            Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+            loginStage.setX((screen.getWidth()  - loginStage.getWidth())  / 2.0);
+            loginStage.setY((screen.getHeight() - loginStage.getHeight()) / 2.0);
+        });
 
         controller.setOnLogin(req ->
                 CompletableFuture
