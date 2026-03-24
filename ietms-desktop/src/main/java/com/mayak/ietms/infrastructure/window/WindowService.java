@@ -203,19 +203,18 @@ public class WindowService {
         stage.setResizable(false);
         stage.sizeToScene();
 
-        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-        if (stage.getHeight() > bounds.getHeight()) {
-            stage.setHeight(bounds.getHeight() - 20);
-        }
-        if (stage.getWidth() > bounds.getWidth()) {
-            stage.setWidth(bounds.getWidth() - 20);
-        }
-
         applyDefaultIcon(iconPath, stage, owner);
         injectStageIfSupported(controller, stage);
         if (initializer != null) initializer.accept(controller);
 
         stage.setOnShown(e -> {
+            Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+            if (stage.getHeight() > bounds.getHeight()) {
+                stage.setHeight(bounds.getHeight() - 20);
+            }
+            if (stage.getWidth() > bounds.getWidth()) {
+                stage.setWidth(bounds.getWidth() - 20);
+            }
             centerOnScreen(owner, stage);
             fadeIn(stage, 180);
         });
