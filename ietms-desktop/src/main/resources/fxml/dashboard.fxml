@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Label?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/21.0.7"
+            minWidth="1138" minHeight="640"
             stylesheets="@/css/styles.css"
             styleClass="app-root">
 
