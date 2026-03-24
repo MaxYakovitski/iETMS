@@ -210,10 +210,7 @@ public class WindowService {
         stage.setOnShown(e -> {
             Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
             if (stage.getHeight() > bounds.getHeight()) {
-                stage.setMaxHeight(bounds.getHeight() - 50);
-            }
-            if (stage.getWidth() > bounds.getWidth()) {
-                stage.setMaxWidth(bounds.getWidth() - 50);
+                stage.setMaxHeight(bounds.getHeight() - 20);
             }
             centerOnScreen(owner, stage);
             fadeIn(stage, 180);
