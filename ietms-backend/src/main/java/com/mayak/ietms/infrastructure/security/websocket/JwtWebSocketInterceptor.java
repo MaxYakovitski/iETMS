@@ -32,8 +32,8 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
         String authHeader = accessor.getFirstNativeHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("WS CONNECT without valid Authorization header");
-            return message;
+            log.warn("WS CONNECT rejected: missing or invalid Authorization header");
+            throw new IllegalArgumentException("Missing Authorization header");
         }
 
         try {
@@ -42,7 +42,8 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
             accessor.setUser(() -> String.valueOf(userId));
             log.debug("WS CONNECT authenticated userId={}", userId);
         } catch (Exception e) {
-            log.warn("WS CONNECT JWT parse failed: {}", e.getMessage());
+            log.warn("WS CONNECT rejected: JWT parse failed: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid JWT token");
         }
 
         return message;
