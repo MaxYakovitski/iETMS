@@ -5,6 +5,7 @@ import com.mayak.ietms.analytics.AnalyticsReportDto;
 import com.mayak.ietms.company.dto.CompanyDto;
 import com.mayak.ietms.features.analytics.application.AnalyticsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/analytics")
+@PreAuthorize("hasAuthority('VIEW_ANALYTICS')")
 @RequiredArgsConstructor
 public class AnalyticsController {
 

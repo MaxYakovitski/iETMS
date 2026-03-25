@@ -7,6 +7,7 @@ import com.mayak.ietms.infrastructure.security.current.CurrentUserId;
 import com.mayak.ietms.statistics.ReportType;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/reports")
+@PreAuthorize("hasAuthority('VIEW_ANALYTICS')")
 @RequiredArgsConstructor
 public class ReportController {
 
