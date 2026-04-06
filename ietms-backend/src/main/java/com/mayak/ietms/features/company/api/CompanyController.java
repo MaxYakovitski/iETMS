@@ -3,6 +3,7 @@ package com.mayak.ietms.features.company.api;
 import com.mayak.ietms.company.dto.CompanyCreateDto;
 import com.mayak.ietms.company.dto.CompanyDto;
 import com.mayak.ietms.features.company.application.CompanyService;
+import com.mayak.ietms.shared.exception.business.CompanyNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class CompanyController {
     @GetMapping("/by-name")
     public CompanyDto findByName(@RequestParam("name") String name) {
         return companyService.findByName(name)
-                .orElseThrow(() -> new IllegalArgumentException("Company not found: " + name));
+                .orElseThrow(() -> new CompanyNotFoundException(name));
     }
 
     @PostMapping
