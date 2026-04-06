@@ -55,7 +55,7 @@ public class Lane {
     @Column(precision = 7, scale = 2)
     private BigDecimal price;
 
-    @Column(precision = 7, scale = 2)
+    @Column(precision = 5, scale = 4)
     private BigDecimal fuelSurcharge;
 
     private LocalDate validFrom;

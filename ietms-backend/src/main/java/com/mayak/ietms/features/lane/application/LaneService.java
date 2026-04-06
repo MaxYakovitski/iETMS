@@ -1,10 +1,12 @@
 package com.mayak.ietms.features.lane.application;
 
+import com.mayak.ietms.common.validation.ValidationResult;
 import com.mayak.ietms.lane.dto.LaneCreateDto;
 import com.mayak.ietms.lane.dto.LaneViewDto;
 import com.mayak.ietms.features.company.domain.model.Company;
 import com.mayak.ietms.features.lane.domain.model.Lane;
 import com.mayak.ietms.features.location.domain.model.Location;
+import com.mayak.ietms.lane.validator.LaneContractValidator;
 import com.mayak.ietms.shared.exception.business.LaneInUseException;
 import com.mayak.ietms.shared.exception.business.LaneNotFoundException;
 import com.mayak.ietms.features.lane.infra.mapping.LaneMapper;
@@ -13,6 +15,7 @@ import com.mayak.ietms.features.lane.infra.persistence.LaneRepository;
 import com.mayak.ietms.features.request.infra.persistence.ContractRequestRepository;
 import com.mayak.ietms.features.company.application.CompanyService;
 import com.mayak.ietms.features.location.application.LocationCommandService;
+import com.mayak.ietms.shared.exception.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,10 +34,12 @@ public class LaneService {
     private final CompanyService companyService;
     private final LaneMapper laneMapper;
     private final LocationMapper locationMapper;
+    private final LaneContractValidator laneValidator;
 
 
     @Transactional
     public LaneViewDto create(Long companyId, LaneCreateDto dto) {
+        validate(dto);
         Company company = companyService.getOrThrow(companyId);
         Lane lane = laneMapper.toEntity(dto);
         lane.setCustomer(company);
@@ -66,6 +71,7 @@ public class LaneService {
     @Transactional
     public LaneViewDto update(Long id, LaneCreateDto dto) {
         Lane lane = getOrThrow(id);
+        validate(dto);
 
         laneMapper.updateEntity(lane, dto);
 
@@ -94,4 +100,12 @@ public class LaneService {
         laneRepository.delete(lane);
         log.info("Lane deleted: id={}", id);
     }
+
+    private void validate(LaneCreateDto dto) {
+        ValidationResult result = laneValidator.isValid(dto);
+        if (!result.isValid()) {
+            throw new ValidationException(result);
+        }
+    }
+
 }

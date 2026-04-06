@@ -59,8 +59,9 @@ public class LaneContractValidator implements Validator<LaneCreateDto> {
         }
 
         if (object.fuelSurcharge() == null ||
-                object.fuelSurcharge().compareTo(new BigDecimal("-1.00")) < 0) {
-            validationResult.add("fuelSurcharge", "Fuel surcharge cannot be less than -100%");
+                object.fuelSurcharge().compareTo(new BigDecimal("-1.0000")) < 0 ||
+                object.fuelSurcharge().compareTo(new BigDecimal("1.0000")) > 0) {
+            validationResult.add("fuelSurcharge", "Fuel surcharge must be between -100% and 100%");
         }
 
         LocalDate from = object.validFrom();
