@@ -4,6 +4,7 @@ import com.mayak.ietms.company.dto.CompanyCreateDto;
 import com.mayak.ietms.company.dto.CompanyDto;
 import com.mayak.ietms.features.company.application.notify.CompanyNotificationService;
 import com.mayak.ietms.features.company.domain.model.Company;
+import com.mayak.ietms.features.shipment.infra.persistence.ShipmentRepository;
 import com.mayak.ietms.shared.exception.business.CompanyInUseException;
 import com.mayak.ietms.shared.exception.business.CompanyNotFoundException;
 import com.mayak.ietms.shared.exception.validation.ValidationException;
@@ -29,13 +30,20 @@ public class CompanyService {
 
     private final CompanyRepository companyRepository;
     private final RequestRepository requestRepository;
+    private final ShipmentRepository shipmentRepository;
     private final LaneRepository laneRepository;
     private final CompanyMapper companyMapper;
     private final CompanyCreateBackendValidator companyCreateBackendValidator;
     private final CompanyUpdateBackendValidator companyUpdateBackendValidator;
     private final CompanyNotificationService companyNotificationService;
 
-    // --- CREATE ---
+    /**
+     * Creates a new company and publishes a creation event.
+     *
+     * @param dto company creation data
+     * @return the created company
+     * @throws ValidationException if the input data is invalid
+     */
     @Transactional
     public CompanyDto create(CompanyCreateDto dto) {
         validateCreate(dto);
@@ -49,7 +57,12 @@ public class CompanyService {
         return companyMapper.toDto(saved);
     }
 
-    // --- READ ---
+    /**
+     * Finds a company by exact name, case-insensitive.
+     *
+     * @param name the company name to search for
+     * @return an {@link Optional} containing the company if found, or empty
+     */
     @Transactional(readOnly = true)
     public Optional<CompanyDto> findByName(String name) {
         if (name == null || name.isBlank()) {
@@ -61,6 +74,11 @@ public class CompanyService {
                 .map(companyMapper::toDto);
     }
 
+    /**
+     * Returns all companies.
+     *
+     * @return list of all companies
+     */
     @Transactional(readOnly = true)
     public List<CompanyDto> findAll() {
         return companyRepository.findAll()
@@ -69,9 +87,16 @@ public class CompanyService {
                 .toList();
     }
 
-    // --- UPDATE ---
+    /**
+     * Updates an existing company and publishes an update event.
+     *
+     * @param id  the company ID
+     * @param dto updated company data
+     * @throws CompanyNotFoundException if no company with the given ID exists
+     * @throws ValidationException      if the input data is invalid
+     */
     @Transactional
-    public void update (Long id, CompanyDto dto) {
+    public void update(Long id, CompanyDto dto) {
         validateUpdate(id, dto);
 
         Company company = getOrThrow(id);
@@ -80,24 +105,31 @@ public class CompanyService {
         companyNotificationService.publishUpdated(companyMapper.toDto(company));
     }
 
-    // --- DELETE ---
+    /**
+     * Deletes a company if it is not referenced by any request, lane, or shipment.
+     *
+     * @param id the company ID
+     * @throws CompanyNotFoundException if no company with the given ID exists
+     * @throws CompanyInUseException    if the company is in use
+     */
     @Transactional
     public void delete(Long id) {
         Company company = getOrThrow(id);
 
-        if (isCompanyUsed(id)) {
-            throw new CompanyInUseException(id);
-        }
+        assertNotInUse(id);
         companyRepository.delete(company);
         log.info("Company {} deleted", id);
         companyNotificationService.publishDeleted(id);
     }
 
-    private boolean isCompanyUsed(Long companyId) {
-        return requestRepository.existsByCustomer_Id(companyId)
-                || laneRepository.existsByCustomer_Id(companyId);
-    }
-
+    /**
+     * Finds a company by name or creates it automatically if it does not exist.
+     * Used for carrier assignment during shipment processing.
+     *
+     * @param name the company name
+     * @return the existing or newly created {@link Company} entity,
+     *         or {@code null} if the name is blank
+     */
     @Transactional
     public Company resolveCompany(String name) {
         if (name == null || name.isBlank()) {
@@ -117,7 +149,27 @@ public class CompanyService {
                 });
     }
 
-    // --- HELPERS ---
+    /**
+     * Returns a company entity by ID or throws if not found.
+     *
+     * @param id the company ID
+     * @return the {@link Company} entity
+     * @throws CompanyNotFoundException if no company with the given ID exists
+     */
+    public Company getOrThrow(Long id) {
+        return companyRepository.findById(id)
+                .orElseThrow(() -> new CompanyNotFoundException(id));
+    }
+
+    private void assertNotInUse(Long companyId) {
+        if (requestRepository.existsByCustomer_Id(companyId))
+            throw new CompanyInUseException("This company cannot be deleted because it is used in existing requests.");
+        if (laneRepository.existsByCustomer_Id(companyId))
+            throw new CompanyInUseException("This company cannot be deleted because it is used in contract lanes.");
+        if (shipmentRepository.existsByCarrier_Id(companyId))
+            throw new CompanyInUseException("This company cannot be deleted because it is assigned as a carrier in shipments.");
+    }
+
     private void validateCreate(CompanyCreateDto dto) {
         ValidationResult result = companyCreateBackendValidator.isValid(dto);
         if (!result.isValid()) {
@@ -130,10 +182,5 @@ public class CompanyService {
         if (!result.isValid()) {
             throw new ValidationException(result);
         }
-    }
-
-    public Company getOrThrow(Long id) {
-        return companyRepository.findById(id)
-                .orElseThrow(() -> new CompanyNotFoundException(id));
     }
 }

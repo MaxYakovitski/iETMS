@@ -30,5 +30,6 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     List<Shipment> findMyTransportShipments(@Param("userId") Long userId);
 
     boolean existsByRequestId(Long requestId);
+    boolean existsByCarrier_Id(Long carrierId);
 
 }
