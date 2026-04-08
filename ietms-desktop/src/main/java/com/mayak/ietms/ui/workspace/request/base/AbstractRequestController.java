@@ -92,12 +92,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
 
     protected ScheduledExecutorService uiUpdater;
 
-    private final ScheduledExecutorService wsDebouncer =
-            Executors.newSingleThreadScheduledExecutor(r -> {
-                Thread t = new Thread(r, "ws-debouncer");
-                t.setDaemon(true);
-                return t;
-            });
+    private ScheduledExecutorService wsDebouncer;
 
     private ScheduledFuture<?> pendingReload;
 
@@ -129,6 +124,11 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         }
 
         filterState.get().ifPresentOrElse(this::applyFilter, this::loadDefaultPage);
+        wsDebouncer = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "ws-debouncer");
+            t.setDaemon(true);
+            return t;
+        });
         initRealtimeUpdates();
     }
 
@@ -144,6 +144,11 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         if (pendingReload != null) {
             pendingReload.cancel(true);
             pendingReload = null;
+        }
+
+        if (wsDebouncer != null) {
+            wsDebouncer.shutdownNow();
+            wsDebouncer = null;
         }
 
         if (uiUpdater != null) {
@@ -456,6 +461,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     }
 
     private void scheduleSortedReload() {
+        if (wsDebouncer == null || wsDebouncer.isShutdown()) return;
         if (pendingReload != null && !pendingReload.isDone()) {
             pendingReload.cancel(false);
         }
