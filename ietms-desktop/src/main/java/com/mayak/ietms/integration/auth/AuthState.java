@@ -38,12 +38,15 @@ public class AuthState {
     }
 
     private Path tokenFilePath() {
-        return Path.of(System.getenv("LOCALAPPDATA"), "iETMS", "token");
+        String localAppData = System.getenv("LOCALAPPDATA");
+        if (localAppData == null) return null;
+        return Path.of(localAppData, "iETMS", "token");
     }
 
     private void writeTokenFile(String token) {
         try {
             Path path = tokenFilePath();
+            if (path == null) return;
             Files.createDirectories(path.getParent());
             Files.writeString(path, token, StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -52,7 +55,9 @@ public class AuthState {
     }
 
     private void deleteTokenFile() {
-        try { Files.deleteIfExists(tokenFilePath()); }
-        catch (IOException ignored) {}
+        try {
+            Path path = tokenFilePath();
+            if (path != null) Files.deleteIfExists(path);
+        } catch (IOException ignored) {}
     }
 }
