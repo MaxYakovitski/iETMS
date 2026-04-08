@@ -465,8 +465,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         if (pendingReload != null && !pendingReload.isDone()) {
             pendingReload.cancel(false);
         }
-        pendingReload = wsDebouncer.schedule(this::reloadSortedPageFromServer, 120, TimeUnit.MILLISECONDS
-        );
+        pendingReload = wsDebouncer.schedule(this::reloadSortedPageFromServer, 120, TimeUnit.MILLISECONDS);
     }
 
     private void reloadSortedPageFromServer() {
