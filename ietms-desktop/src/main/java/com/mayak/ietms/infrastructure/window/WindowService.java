@@ -144,8 +144,6 @@ public class WindowService {
             stage.setTitle(title);
             stage.setScene(new Scene(root));
             stage.setResizable(true);
-            stage.setMinWidth(1520);
-            stage.setMinHeight(540);
 
             stage.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
                 if (isFocused) {
@@ -212,6 +210,9 @@ public class WindowService {
             Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
             if (stage.getHeight() > bounds.getHeight()) {
                 stage.setMaxHeight(bounds.getHeight() - 20);
+            }
+            if (stage.getWidth() > bounds.getWidth()) {
+                stage.setMaxWidth(bounds.getWidth() - 20);
             }
             centerOnScreen(owner, stage);
             fadeIn(stage, 180);
