@@ -103,7 +103,7 @@ public class JavaFxApplication extends Application {
             authState.setToken(response.token());
             ctx.getBean(DesktopBridgeServer.class).start();
             return ctx;
-        } catch (ApiException ex) {
+        } catch (Exception ex) {
             ctx.close();
             throw ex;
         }
