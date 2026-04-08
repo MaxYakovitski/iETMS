@@ -59,6 +59,7 @@ public class ApiExceptionHandler {
             UserInUseException.class,
             DepartmentInUseException.class,
             LocationInUseException.class,
+            RequestStateException.class,
             CompanyInUseException.class,
     })
     @ResponseStatus(HttpStatus.CONFLICT)
