@@ -14,6 +14,7 @@
         <module>ietms-contract</module>
         <module>ietms-backend</module>
         <module>ietms-desktop-updater</module>
+        <module>ietms-native-host</module>
         <module>ietms-desktop</module>
     </modules>
 

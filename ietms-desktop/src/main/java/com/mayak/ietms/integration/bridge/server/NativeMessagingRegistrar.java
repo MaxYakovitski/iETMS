@@ -29,10 +29,8 @@ public class NativeMessagingRegistrar {
     @PostConstruct
     public void register() {
         try {
-            Path exePath = Path.of(ProcessHandle.current()
-                    .info().command().orElseThrow());
-            Path manifestPath = Path.of(
-                    System.getenv("LOCALAPPDATA"), "iETMS", "native-host-manifest.json");
+            Path exePath = Path.of(System.getenv("PROGRAMFILES"), "iETMS", "app", "native-host", "iETMS-NativeHost", "iETMS-NativeHost.exe");
+            Path manifestPath = Path.of(System.getenv("LOCALAPPDATA"), "iETMS", "native-host-manifest.json");
 
             String manifest = """
                 {
