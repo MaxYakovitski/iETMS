@@ -41,6 +41,10 @@ public class AlertUtils {
         showAlert(Alert.AlertType.INFORMATION, "Information", message);
     }
 
+    public static void showInfo(String message, Stage owner) {
+        showAlert(Alert.AlertType.INFORMATION, "Information", message, owner);
+    }
+
     /**
      * Shows a warning alert with the given message.
      */
@@ -48,11 +52,19 @@ public class AlertUtils {
         showAlert(Alert.AlertType.WARNING, "Warning", message);
     }
 
+    public static void showWarning(String message, Stage owner) {
+        showAlert(Alert.AlertType.WARNING, "Warning", message, owner);
+    }
+
     /**
      * Shows an error alert with the given message.
      */
     public static void showError(String message) {
         showAlert(Alert.AlertType.ERROR, "Error", message);
+    }
+
+    public static void showError(String message,  Stage owner) {
+        showAlert(Alert.AlertType.ERROR, "Error", message,  owner);
     }
 
     /**
@@ -98,6 +110,21 @@ public class AlertUtils {
 
         initOwner(alert);
 
+        alert.getDialogPane().setStyle("-fx-background-color: #ffffff;");
+        alert.showAndWait();
+    }
+
+    private static void showAlert(Alert.AlertType type, String title, String message, Stage owner) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        if (owner != null) {
+            alert.initOwner(owner);
+            alert.initModality(Modality.WINDOW_MODAL);
+        } else {
+            initOwner(alert);
+        }
         alert.getDialogPane().setStyle("-fx-background-color: #ffffff;");
         alert.showAndWait();
     }

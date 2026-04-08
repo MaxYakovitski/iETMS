@@ -303,7 +303,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         String exchangeText = actions.getExchangeString(requestId);
 
         if (exchangeText == null || exchangeText.isBlank()) {
-            AlertUtils.showWarning("Nothing to copy!");
+            AlertUtils.showWarning("Nothing to copy!", stage);
             return;
         }
 
@@ -311,7 +311,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         content.putString(exchangeText);
         Clipboard.getSystemClipboard().setContent(content);
 
-        AlertUtils.showInfo("Request details copied to buffer!");
+        AlertUtils.showInfo("Request details copied to buffer!", stage);
     }
 
     @FXML
