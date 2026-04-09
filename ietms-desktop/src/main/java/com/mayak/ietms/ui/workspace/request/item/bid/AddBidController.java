@@ -37,7 +37,6 @@ public class AddBidController {
 
     @FXML
     public void initialize() {
-        TextUtils.allowOnlyLatin(false, commentsInput);
         PriceFieldUtils.setupPriceField(bidInput);
     }
 
