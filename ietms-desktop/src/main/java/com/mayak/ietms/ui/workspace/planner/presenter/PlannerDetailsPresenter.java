@@ -99,7 +99,7 @@ public class PlannerDetailsPresenter {
         licensePlateField.setText(dto.licensePlate());
         transportOrder.setText(dto.transportOrder());
 
-        boolean fieldsEditable = plannerPolicy.canEditTransportFields(ctx);
+        boolean fieldsEditable = plannerPolicy.canEditCarrierFields(ctx);
 
         carrierField.setDisable(!fieldsEditable);
         licensePlateField.setDisable(!fieldsEditable);
@@ -107,7 +107,7 @@ public class PlannerDetailsPresenter {
 
         commentsTextArea.setDisable(false);
 
-        ShipmentStatusDto allowedStatus = fieldsEditable ? plannerPolicy.allowedNextStatus(ctx).orElse(null) : null;
+        ShipmentStatusDto allowedStatus = plannerPolicy.allowedNextStatus(ctx).orElse(null);
 
         statusComboBox.setValue(null);
         statusEditPolicy.reset(datePicker, timeSpinner);

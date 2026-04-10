@@ -1,8 +1,10 @@
 package com.mayak.ietms.features.shipment.application;
 
+import com.mayak.ietms.common.validation.ValidationResult;
 import com.mayak.ietms.features.shipment.application.notify.ShipmentNotificationService;
 import com.mayak.ietms.features.shipment.application.assembly.ShipmentListItemAssembler;
 import com.mayak.ietms.shared.exception.business.*;
+import com.mayak.ietms.shared.exception.validation.ValidationException;
 import com.mayak.ietms.shipment.dto.enums.TransportEventType;
 import com.mayak.ietms.shipment.dto.view.MyTransportEventDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
@@ -205,12 +208,13 @@ public class ShipmentService {
         }
 
         boolean statusChanged = applyStatusTransition(dto, shipment);
+        boolean transportOrderChanged = applyTransportOrder(dto, shipment, LocalDate.now());
         boolean carrierChanged = applyCarrier(dto, shipment);
         applyLicense(dto, shipment);
-        applyTransportOrder(dto, shipment);
         applyComments(dto, shipment);
+        validateTransportOrderConsistency(shipment);
 
-        if (statusChanged) {
+        if (statusChanged || transportOrderChanged) {
             shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
         } else if (carrierChanged) {
             shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.UPDATED, shipment);
@@ -236,22 +240,15 @@ public class ShipmentService {
     private boolean applyStatusTransition(ShipmentUpdateDto dto, Shipment shipment) {
         if (dto.status() == null) return false;
         ShipmentStatus target = ShipmentStatus.valueOf(dto.status().name());
-        ShipmentStatus current = shipment.getStatus();
-
-        if (!current.canTransitionTo(target)) {
-            throw new InvalidShipmentStatusTransitionException(current, target);
-        }
 
         if (dto.statusAt() == null) {
             throw new DeliveryTimeLineException("Status time must be provided when changing shipment status");
         }
 
-        shipment.validateStatusChange(target, dto.statusAt());
-
         switch (target) {
             case LOADED -> shipment.markLoaded(dto.statusAt());
             case DROPPED -> shipment.markDropped(dto.statusAt());
-            default -> throw new IllegalStateException("Unsupported shipment update status: " + target);
+            default -> throw new InvalidShipmentStatusTransitionException (shipment.getStatus(), target);
         }
 
         return true;
@@ -267,14 +264,33 @@ public class ShipmentService {
         }
     }
 
-    private void applyTransportOrder(ShipmentUpdateDto dto, Shipment shipment) {
-        if (dto.transportOrder() != null) {
-            if (dto.transportOrder().isBlank()) {
-                shipment.setTransportOrder(null);
-            } else {
-                shipment.setTransportOrder(dto.transportOrder().trim());
+    private boolean applyTransportOrder(ShipmentUpdateDto dto, Shipment shipment, LocalDate today) {
+        if (dto.transportOrder() == null) return false;
+
+        if (dto.transportOrder().isBlank()) {
+            shipment.setTransportOrder(null);
+            shipment.setLicensePlate(null);
+            if (shipment.getCarrier() != null) shipment.unassignCarrier();
+
+            ShipmentStatus current = shipment.getStatus();
+            if (current == ShipmentStatus.PLANNED || current == ShipmentStatus.TO_LOAD) {
+                shipment.revertToNew();
+                return true;
             }
+            return false;
         }
+
+        shipment.setTransportOrder(dto.transportOrder().trim());
+        if (shipment.getStatus() == ShipmentStatus.NEW) {
+            if (!today.isBefore(shipment.getPlannedLoadDate())) {
+                shipment.markToLoadByUser();
+            } else {
+                shipment.markPlanned(Instant.now());
+            }
+            return true;
+        }
+
+        return false;
     }
 
     private void applyLicense(ShipmentUpdateDto dto, Shipment shipment) {
@@ -307,6 +323,23 @@ public class ShipmentService {
         return true;
     }
 
+    private void validateTransportOrderConsistency(Shipment shipment) {
+        if (shipment.getTransportOrder() == null) return;
+
+        ValidationResult result = new ValidationResult();
+
+        if (shipment.getCarrier() == null) {
+            result.add("carrier", "Carrier is required when transport order is set");
+        }
+        if (shipment.getLicensePlate() == null || shipment.getLicensePlate().isBlank()) {
+            result.add("licensePlate", "License plate is required when transport order is set");
+        }
+
+        if (!result.isValid()) {
+            throw new ValidationException(result);
+        }
+    }
+
     /**
      * Cancels a shipment with the specified reason.
      *
@@ -330,14 +363,7 @@ public class ShipmentService {
             throw new ShipmentCancellationNotAllowedException(shipmentId);
         }
 
-        ShipmentStatus current = shipment.getStatus();
-
-        if (current.isFinal() || !current.canTransitionTo(ShipmentStatus.CANCELED)) {
-            throw new ShipmentCancellationNotAllowedException(shipmentId);
-        }
-
         shipment.cancel(reason);
-
         shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
     }
 

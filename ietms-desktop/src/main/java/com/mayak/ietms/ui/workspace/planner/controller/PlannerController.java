@@ -19,6 +19,7 @@ import com.mayak.ietms.shipment.dto.enums.ShipmentCancelReasonDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentUpdateDto;
 import com.mayak.ietms.shipment.dto.enums.ShipmentStatusDto;
+import com.mayak.ietms.support.validation.TransportOrderValidator;
 import com.mayak.ietms.ui.workspace.planner.presenter.PlannerDetailsPresenter;
 import com.mayak.ietms.ui.workspace.planner.state.PlannerState;
 import com.mayak.ietms.user.dto.UserResponseDto;
@@ -81,6 +82,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     @FXML private StackPane calendarContainer, detailsStack;
     @FXML public TextArea commentsTextArea;
+    @Getter
     @FXML public TextField carrierField, licensePlateField, transportOrder;
     @FXML public ComboBox<ShipmentStatusDto> shipmentStatusComboBox;
     @FXML private ListView<ShipmentListItemDto> toLoadListView, toDropListView, shipmentsListView;
@@ -176,7 +178,9 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         validationUI = new ValidationUIHelper(
                 Map.of(
                         "statusDate", dateAndTime,
-                        "statusTime", timeSpinner
+                        "statusTime", timeSpinner,
+                        "carrier", carrierField,
+                        "licensePlate", licensePlateField
                 )
         );
         validationUI.bindResetOnChange();
@@ -351,6 +355,12 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         );
 
         LocalDateTime statusAt = null;
+
+        var transportResult = new TransportOrderValidator().isValid(this);
+        if (!transportResult.isValid()) {
+            validationUI.showClientErrors(transportResult.getErrors());
+            return null;
+        }
 
         if (shipmentStatusComboBox.getValue() != null) {
             var result = new StatusDateTimeValidator().isValid(this);

@@ -7,12 +7,24 @@ public record ShipmentStatusView(
         String label,
         Color color) {
 
+    public static ShipmentStatusView created() {
+        return new ShipmentStatusView("NEW", TextUtils.SYSTEM_TEXT_DEFAULT_COLOR);
+    }
+
     public static ShipmentStatusView planned() {
         return new ShipmentStatusView("PLANNED", TextUtils.SYSTEM_TEXT_DEFAULT_COLOR);
     }
 
+    public static ShipmentStatusView toLoad() {
+        return new ShipmentStatusView("TO_LOAD", TextUtils.SYSTEM_TEXT_DEFAULT_COLOR);
+    }
+
     public static ShipmentStatusView loaded() {
         return new ShipmentStatusView("LOADED", TextUtils.SYSTEM_TEXT_DEFAULT_COLOR);
+    }
+
+    public static ShipmentStatusView toDrop() {
+        return new ShipmentStatusView("TO_DROP", TextUtils.SYSTEM_TEXT_DEFAULT_COLOR);
     }
 
     public static ShipmentStatusView dropped() {

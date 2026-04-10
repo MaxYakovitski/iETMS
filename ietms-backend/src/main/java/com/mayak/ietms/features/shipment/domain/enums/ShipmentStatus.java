@@ -1,27 +1,32 @@
 package com.mayak.ietms.features.shipment.domain.enums;
 
-import java.util.Set;
-
 public enum ShipmentStatus {
+    NEW,
     PLANNED,
+    TO_LOAD,
     LOADED,
+    TO_DROP,
     DROPPED,
     CANCELED;
 
-    public static Set<ShipmentStatus> toLoadStatuses() {
-        return Set.of(PLANNED, CANCELED);
-    }
-
-    public static Set<ShipmentStatus> toDropStatuses() {
-        return Set.of(LOADED, DROPPED);
-    }
-
-    public boolean canTransitionTo(ShipmentStatus next) {
-        return switch (this) {
-            case PLANNED -> next == LOADED || next == CANCELED;
-            case LOADED -> next == DROPPED || next == CANCELED;
-            default -> false;
+    public boolean canTransitionTo(ShipmentStatus next, TransitionInitiator initiator) {
+        return switch (initiator) {
+            case USER -> switch (this) {
+                case NEW              -> next == PLANNED || next == TO_LOAD || next == CANCELED;
+                case PLANNED, TO_LOAD -> next == NEW || next == LOADED || next == CANCELED;
+                case LOADED, TO_DROP  -> next == DROPPED;
+                default               -> false;
+            };
+            case SYSTEM -> switch (this) {
+                case PLANNED -> next == TO_LOAD;
+                case LOADED  -> next == TO_DROP;
+                default      -> false;
+            };
         };
+    }
+
+    public boolean hasTimestamp() {
+        return this == NEW || this == PLANNED || this == LOADED || this == DROPPED || this == CANCELED;
     }
 
     public boolean isFinal() {

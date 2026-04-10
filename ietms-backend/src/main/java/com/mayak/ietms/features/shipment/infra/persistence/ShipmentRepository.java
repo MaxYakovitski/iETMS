@@ -1,5 +1,6 @@
 package com.mayak.ietms.features.shipment.infra.persistence;
 
+import com.mayak.ietms.features.shipment.domain.enums.ShipmentStatus;
 import com.mayak.ietms.features.shipment.domain.model.Shipment;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,6 +29,9 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     WHERE s.dispatcherId = :userId
 """)
     List<Shipment> findMyTransportShipments(@Param("userId") Long userId);
+
+    List<Shipment> findByStatusAndPlannedLoadDateLessThanEqual(ShipmentStatus status, LocalDate date);
+    List<Shipment> findByStatusAndPlannedDropDateLessThanEqual(ShipmentStatus status, LocalDate date);
 
     boolean existsByRequestId(Long requestId);
     boolean existsByCarrier_Id(Long carrierId);

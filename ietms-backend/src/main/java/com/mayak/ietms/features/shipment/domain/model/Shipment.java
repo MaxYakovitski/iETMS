@@ -4,7 +4,9 @@ import com.mayak.ietms.features.company.domain.model.Company;
 import com.mayak.ietms.features.request.domain.model.Request;
 import com.mayak.ietms.features.shipment.domain.enums.ShipmentCancelReason;
 import com.mayak.ietms.features.shipment.domain.enums.ShipmentStatus;
+import com.mayak.ietms.features.shipment.domain.enums.TransitionInitiator;
 import com.mayak.ietms.shared.exception.business.DeliveryTimeLineException;
+import com.mayak.ietms.shared.exception.business.InvalidShipmentStatusTransitionException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -82,29 +84,70 @@ public class Shipment {
 
     public Shipment(Request request) {
         this.request = request;
-        this.status = ShipmentStatus.PLANNED;
-        addTimestamp(ShipmentStatus.PLANNED, Instant.now());
+        this.status = ShipmentStatus.NEW;
+        addTimestamp(ShipmentStatus.NEW, Instant.now());
         this.plannedLoadDate = request.getStartDate().toLocalDate();
         this.plannedDropDate = request.getEndDate().toLocalDate();
     }
 
-    private void addTimestamp(ShipmentStatus status, Instant at) {
-        if (status == null) throw new IllegalArgumentException("Status must not be null!");
-        if (at == null) throw new IllegalArgumentException("Timestamp time must not be null!");
-        this.timestamps.add(new ShipmentTimeStamp(this, status, at));
+    public void markPlanned(Instant at) {
+        if (!status.canTransitionTo(ShipmentStatus.PLANNED, TransitionInitiator.USER)) {
+            throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.PLANNED);
+        }
+        this.status = ShipmentStatus.PLANNED;
+        addTimestamp(ShipmentStatus.PLANNED, at);
+    }
+
+    public void markToLoadByUser() {
+        if (!status.canTransitionTo(ShipmentStatus.TO_LOAD, TransitionInitiator.USER)) {
+            throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.TO_LOAD);
+        }
+        this.status = ShipmentStatus.TO_LOAD;
+    }
+
+    public void markToLoadBySystem() {
+        if (!status.canTransitionTo(ShipmentStatus.TO_LOAD, TransitionInitiator.SYSTEM)) {
+            throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.TO_LOAD);
+        }
+        this.status = ShipmentStatus.TO_LOAD;
+    }
+
+    public void revertToNew() {
+        if (!status.canTransitionTo(ShipmentStatus.NEW, TransitionInitiator.USER)) {
+            throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.NEW);
+        }
+        this.status = ShipmentStatus.NEW;
     }
 
     public void markLoaded(Instant at) {
-        if (!status.canTransitionTo(ShipmentStatus.LOADED)) {
-            throw new IllegalStateException("Cannot mark as LOADED from " + status);
+        if (!status.canTransitionTo(ShipmentStatus.LOADED, TransitionInitiator.USER)) {
+            throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.LOADED);
+        }
+        Instant plannedTimestamp = getLastTimestamp(ShipmentStatus.PLANNED);
+        if (plannedTimestamp != null && at.isBefore(plannedTimestamp)) {
+            throw new DeliveryTimeLineException("Actual loading time cannot be before planned loading time!");
         }
         this.status = ShipmentStatus.LOADED;
         addTimestamp(ShipmentStatus.LOADED, at);
     }
 
+    public void markToDropBySystem() {
+        if (!status.canTransitionTo(ShipmentStatus.TO_DROP, TransitionInitiator.SYSTEM)) {
+            throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.TO_DROP);
+        }
+        this.status = ShipmentStatus.TO_DROP;
+    }
+
     public void markDropped(Instant at) {
-        if (!status.canTransitionTo(ShipmentStatus.DROPPED)) {
-            throw new IllegalStateException("Cannot mark as DROPPED from " + status);
+        if (!status.canTransitionTo(ShipmentStatus.DROPPED, TransitionInitiator.USER)) {
+            throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.DROPPED);
+        }
+        Instant loadedTimestamp = getLastTimestamp(ShipmentStatus.LOADED);
+        if (loadedTimestamp == null) {
+            throw new DeliveryTimeLineException("Cannot drop shipment that was not loaded!");
+        }
+        if (at.isBefore(loadedTimestamp)) {
+            throw new DeliveryTimeLineException("Dropping time cannot be before loading time!");
         }
         this.status = ShipmentStatus.DROPPED;
         addTimestamp(ShipmentStatus.DROPPED, at);
@@ -115,16 +158,8 @@ public class Shipment {
             throw new IllegalArgumentException("Cancel reason must not be null!");
         }
 
-        if (status.isFinal()) {
-            throw new IllegalStateException(
-                    "Cannot cancel shipment in status " + status
-            );
-        }
-
-        if (!status.canTransitionTo(ShipmentStatus.CANCELED)) {
-            throw new IllegalStateException(
-                    "Cannot cancel shipment from " + status
-            );
+        if (!status.canTransitionTo(ShipmentStatus.CANCELED, TransitionInitiator.USER)) {
+            throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.CANCELED);
         }
 
         this.status = ShipmentStatus.CANCELED;
@@ -135,10 +170,6 @@ public class Shipment {
     public void assignDispatcher(Long dispatcherId) {
         if (dispatcherId == null) throw new IllegalArgumentException("Dispatcher id must not be null!");
         this.dispatcherId = dispatcherId;
-    }
-
-    public boolean isDispatchedBy(Long userId) {
-        return dispatcherId != null && dispatcherId.equals(userId);
     }
 
     public void assignCarrier(Company carrier) {
@@ -160,56 +191,12 @@ public class Shipment {
         this.carrier = null;
     }
 
-    public void validateStatusChange(ShipmentStatus target, Instant at) {
-        if (target == ShipmentStatus.LOADED) {
-            Instant plannedAt = getLastTimestamp(ShipmentStatus.PLANNED);
-            if (plannedAt != null && at.isBefore(plannedAt)) {
-                throw new DeliveryTimeLineException("Actual loading time cannot be before planned loading time!");
-            }
-        }
-
-        if (target == ShipmentStatus.DROPPED) {
-            Instant loadedAt = getLastTimestamp(ShipmentStatus.LOADED);
-
-            if (loadedAt == null) {
-                throw new DeliveryTimeLineException("Cannot drop shipment that was not loaded!");
-            }
-
-            if (at.isBefore(loadedAt)) {
-                throw new DeliveryTimeLineException("Dropping time cannot be before loading time!");
-            }
-        }
-    }
-
-    private Instant getLastTimestamp(ShipmentStatus status) {
-        return timestamps.stream()
-                .filter(t -> t.getStatus() == status)
-                .map(ShipmentTimeStamp::getAt)
-                .max(Instant::compareTo)
-                .orElse(null);
-    }
-
-    public Instant plannedAt() {return getLastTimestamp(ShipmentStatus.PLANNED);}
-    public Instant loadedAt() {return getLastTimestamp(ShipmentStatus.LOADED);}
-    public Instant droppedAt() {return getLastTimestamp(ShipmentStatus.DROPPED);}
-    public Instant canceledAt() {return getLastTimestamp(ShipmentStatus.CANCELED);}
-
-    public boolean isLoadedBeforeOrOn(LocalDate date) {
-        Instant t = loadedAt();
-        if (t == null) return false;
-        LocalDate eventDate = t.atZone(ZoneOffset.UTC).toLocalDate();
-        return !eventDate.isAfter(date);
-    }
-
-    public boolean isDroppedBeforeOrOn(LocalDate date) {
-        Instant t = droppedAt();
-        if (t == null) return false;
-        LocalDate eventDate = t.atZone(ZoneOffset.UTC).toLocalDate();
-        return !eventDate.isAfter(date);
-    }
-
     public boolean isOwnedBy(Long userId) {
         return request != null && request.getAuthorId().equals(userId);
+    }
+
+    public boolean isDispatchedBy(Long userId) {
+        return dispatcherId != null && dispatcherId.equals(userId);
     }
 
     public Set<Long> collectParticipantIds() {
@@ -221,5 +208,47 @@ public class Shipment {
             ids.add(dispatcherId);
         }
         return ids;
+    }
+
+    public Instant newAt() {
+        return getLastTimestamp(ShipmentStatus.NEW);
+    }
+
+    public Instant plannedAt() {
+        return getLastTimestamp(ShipmentStatus.PLANNED);
+    }
+
+    public Instant loadedAt() {
+        return getLastTimestamp(ShipmentStatus.LOADED);
+    }
+
+    public Instant droppedAt() {
+        return getLastTimestamp(ShipmentStatus.DROPPED);
+    }
+
+    public Instant canceledAt() {
+        return getLastTimestamp(ShipmentStatus.CANCELED);
+    }
+
+    public boolean isLoadedBeforeOrOn(LocalDate date) {
+        Instant t = loadedAt();
+        if (t == null) return false;
+        LocalDate eventDate = t.atZone(ZoneOffset.UTC).toLocalDate();
+        return !eventDate.isAfter(date);
+    }
+
+    private void addTimestamp(ShipmentStatus status, Instant at) {
+        if (status == null) throw new IllegalArgumentException("Status must not be null!");
+        if (at == null) throw new IllegalArgumentException("Timestamp time must not be null!");
+        if (!status.hasTimestamp()) throw new IllegalArgumentException("Status " + status + " does not record a timestamp!");
+        this.timestamps.add(new ShipmentTimeStamp(this, status, at));
+    }
+
+    private Instant getLastTimestamp(ShipmentStatus status) {
+        return timestamps.stream()
+                .filter(t -> t.getStatus() == status)
+                .map(ShipmentTimeStamp::getAt)
+                .max(Instant::compareTo)
+                .orElse(null);
     }
 }
