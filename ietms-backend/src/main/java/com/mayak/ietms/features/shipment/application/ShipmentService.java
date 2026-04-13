@@ -5,8 +5,6 @@ import com.mayak.ietms.features.shipment.application.notify.ShipmentNotification
 import com.mayak.ietms.features.shipment.application.assembly.ShipmentListItemAssembler;
 import com.mayak.ietms.shared.exception.business.*;
 import com.mayak.ietms.shared.exception.validation.ValidationException;
-import com.mayak.ietms.shipment.dto.enums.TransportEventType;
-import com.mayak.ietms.shipment.dto.view.MyTransportEventDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentUpdateDto;
 import com.mayak.ietms.features.company.domain.model.Company;
@@ -22,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Application service responsible for shipment-related use cases.
@@ -101,84 +99,27 @@ public class ShipmentService {
     }
 
     /**
-     * Returns transport events (LOAD / DROP) assigned to the given dispatcher
-     * for the specified calendar date.
+     * Returns all active transports dispatched to the given user.
      *
      * <p>
-     * The method retrieves shipments where the user acts as dispatcher and
-     * projects them into date-specific transport events.
-     * Depending on shipment state and planned dates, a shipment may produce:
-     * <ul>
-     *     <li>a LOAD event,</li>
-     *     <li>a DROP event,</li>
-     *     <li>or no events at all.</li>
-     * </ul>
+     * Transport is considered active if its status is not final
+     * ({@code DROPPED} or {@code CANCELED}), or if it reached a final state
+     * today — allowing the dispatcher to see completed work until end of day.
      * </p>
      *
-     * <p>
-     * The projection reflects shipment state as of the given date.
-     * </p>
-     *
-     * @param date   calendar date selected in planner view
-     * @param userId dispatcher identifier
-     * @return list of transport events for the date
+     * @param userId identifier of the transport specialist
+     * @return list of current shipment projections sorted by status
      */
-    public List<MyTransportEventDto> findMyTransportEventsForDate(LocalDate date, Long userId) {
-        return shipmentRepository.findMyTransportShipments(userId).stream()
-                .flatMap(s -> toTransportEvents(s, date))
+    public List<ShipmentListItemDto> findMyActiveTransports(Long userId) {
+        Instant startOfDay = LocalDate.now()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant();
+
+        return shipmentRepository
+                .findMyActiveTransports(userId, List.of(ShipmentStatus.DROPPED, ShipmentStatus.CANCELED), startOfDay)
+                .stream()
+                .map(assembler::assembleCurrent)
                 .toList();
-    }
-
-    /**
-     * Projects a shipment into transport events for the given calendar date.
-     *
-     * <p>
-     * Depending on shipment status and planned dates, this method may produce
-     * LOAD and/or DROP transport events, or no events at all.
-     * </p>
-     *
-     * <p>
-     * The returned projection reflects the shipment state as of the given date.
-     * </p>
-     *
-     * @param s    shipment entity
-     * @param date calendar date
-     * @return stream of transport events applicable for the date
-     */
-    private Stream<MyTransportEventDto> toTransportEvents(Shipment s, LocalDate date) {
-        ShipmentListItemDto dto = assembler.assembleAsOfDate(s, date);
-
-        if (s.getStatus() == ShipmentStatus.CANCELED) {
-            if (!date.equals(s.getPlannedLoadDate())) return Stream.empty();
-            return Stream.of(new MyTransportEventDto(
-                        s.getId(),
-                        TransportEventType.LOAD,
-                        s.getPlannedLoadDate().atStartOfDay(),
-                        dto
-                ));
-        }
-
-        Stream.Builder<MyTransportEventDto> b = Stream.builder();
-
-        if (date.equals(s.getPlannedLoadDate())) {
-            b.add(new MyTransportEventDto(
-                    s.getId(),
-                    TransportEventType.LOAD,
-                    s.getPlannedLoadDate().atStartOfDay(),
-                    dto
-            ));
-        }
-
-        if (date.equals(s.getPlannedDropDate()) && s.isLoadedBeforeOrOn(date)) {
-            b.add(new MyTransportEventDto(
-                    s.getId(),
-                    TransportEventType.DROP,
-                    s.getPlannedDropDate().atStartOfDay(),
-                    dto
-            ));
-        }
-
-        return b.build();
     }
 
     /**
@@ -188,6 +129,12 @@ public class ShipmentService {
      * Only the dispatcher is allowed to perform updates.
      * Status transitions are validated against the domain state machine and
      * require an explicit timestamp.
+     * </p>
+     *
+     * <p>
+     * After applying the requested transition, an automatic promotion to
+     * {@code TO_DROP} is applied if the shipment is {@code LOADED} and its
+     * planned drop date has arrived.
      * </p>
      *
      * @param shipmentId identifier of the shipment
@@ -207,8 +154,10 @@ public class ShipmentService {
             throw new UnauthorizedException("Only dispatcher can update shipment");
         }
 
+        LocalDate today = LocalDate.now();
         boolean statusChanged = applyStatusTransition(dto, shipment);
-        boolean transportOrderChanged = applyTransportOrder(dto, shipment, LocalDate.now());
+        promoteToDropIfNeeded(shipment, today);
+        boolean transportOrderChanged = applyTransportOrder(dto, shipment, today);
         boolean carrierChanged = applyCarrier(dto, shipment);
         applyLicense(dto, shipment);
         applyComments(dto, shipment);
@@ -282,11 +231,7 @@ public class ShipmentService {
 
         shipment.setTransportOrder(dto.transportOrder().trim());
         if (shipment.getStatus() == ShipmentStatus.NEW) {
-            if (!today.isBefore(shipment.getPlannedLoadDate())) {
-                shipment.markToLoadByUser();
-            } else {
-                shipment.markPlanned(Instant.now());
-            }
+            promoteToLoadIfNeeded(shipment, today);
             return true;
         }
 
@@ -321,6 +266,21 @@ public class ShipmentService {
 
         shipment.assignCarrier(newCarrier);
         return true;
+    }
+
+    private void promoteToLoadIfNeeded(Shipment shipment, LocalDate today) {
+        if (!today.isBefore(shipment.getPlannedLoadDate())) {
+            shipment.markToLoadByUser();
+        } else {
+            shipment.markPlanned(Instant.now());
+        }
+    }
+
+    private void promoteToDropIfNeeded(Shipment shipment, LocalDate today) {
+        if (shipment.getStatus() == ShipmentStatus.LOADED
+                && !today.isBefore(shipment.getPlannedDropDate())) {
+            shipment.markToDropByUser();
+        }
     }
 
     private void validateTransportOrderConsistency(Shipment shipment) {

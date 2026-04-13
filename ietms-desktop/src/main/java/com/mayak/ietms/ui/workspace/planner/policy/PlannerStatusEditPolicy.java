@@ -3,6 +3,7 @@ package com.mayak.ietms.ui.workspace.planner.policy;
 import com.mayak.ietms.shipment.dto.enums.ShipmentStatusDto;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.Spinner;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,13 @@ public class PlannerStatusEditPolicy {
     public void configure(ComboBox<ShipmentStatusDto> comboBox) {
         comboBox.getItems().setAll(ALL_EDITABLE_STATUSES);
         comboBox.setDisable(true);
+        comboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(ShipmentStatusDto item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item == null ? comboBox.getPromptText() : item.name());
+            }
+        });
     }
 
     public void apply(ShipmentStatusDto selectedStatus, DatePicker datePicker, Spinner<LocalTime> timeSpinner) {

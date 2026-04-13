@@ -1,8 +1,5 @@
 package com.mayak.ietms.features.shipment.api;
 
-import com.mayak.ietms.features.user.application.UserQueryService;
-import com.mayak.ietms.features.user.domain.model.User;
-import com.mayak.ietms.shipment.dto.view.MyTransportEventDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.infrastructure.security.current.CurrentUserId;
 import com.mayak.ietms.features.shipment.application.ShipmentService;
@@ -26,9 +23,9 @@ public class ShipmentQueryController {
         return service.findMyShipmentsForDate(date, userId);
     }
 
-    @GetMapping("/my-transport-events")
-    public List<MyTransportEventDto> myTransportEvents(@RequestParam("date") LocalDate date, @CurrentUserId Long userId) {
-        return service.findMyTransportEventsForDate(date, userId);
+    @GetMapping("/my-transports")
+    public List<ShipmentListItemDto> myTransports(@CurrentUserId Long userId) {
+        return service.findMyActiveTransports(userId);
     }
 
     @GetMapping("/{id}")

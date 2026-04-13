@@ -1,6 +1,5 @@
 package com.mayak.ietms.ui.workspace.planner.presenter;
 
-import com.mayak.ietms.domain.planner.model.ShipmentContext;
 import com.mayak.ietms.domain.planner.policy.ShipmentExecutionPolicy;
 import com.mayak.ietms.domain.planner.policy.ShipmentPlannerPolicy;
 import com.mayak.ietms.domain.planner.timeline.ShipmentTimelineService;
@@ -11,8 +10,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalTime;
 
 @Component
 @RequiredArgsConstructor
@@ -25,16 +22,20 @@ public class PlannerDetailsPresenter {
     private final PlannerStatusEditPolicy statusEditPolicy;
 
 
-    public void hideAll(VBox shipmentDetails, VBox transportDetails, VBox timelineContainer, Button cancelButton) {
+    public void hideAll(VBox shipmentDetails, VBox shipmentTimeline, VBox transportDetails, VBox transportTimeline, Button cancelButton) {
         shipmentDetails.setVisible(false);
         shipmentDetails.setManaged(false);
+
+        shipmentTimeline.getChildren().clear();
+        shipmentTimeline.setVisible(false);
+        shipmentTimeline.setManaged(false);
 
         transportDetails.setVisible(false);
         transportDetails.setManaged(false);
 
-        timelineContainer.getChildren().clear();
-        timelineContainer.setVisible(false);
-        timelineContainer.setManaged(false);
+        transportTimeline.getChildren().clear();
+        transportTimeline.setVisible(false);
+        transportTimeline.setManaged(false);
 
         cancelButton.setVisible(false);
         cancelButton.setManaged(false);
@@ -44,29 +45,24 @@ public class PlannerDetailsPresenter {
                                     Label shipmentNumber,
                                     Label dispatcher,
                                     VBox shipmentDetails,
-                                    VBox transportDetails,
                                     VBox timelineContainer,
                                     Button cancelButton) {
-
-        transportDetails.setVisible(false);
-        transportDetails.setManaged(false);
 
         shipmentDetails.setVisible(true);
         shipmentDetails.setManaged(true);
 
         shipmentNumber.setText(String.valueOf(dto.id()));
         dispatcher.setText(dto.dispatcher() != null ? dto.dispatcher().fullName() : "-");
-        timelineContainer.getChildren().clear();
 
         boolean showTimeline = executionPolicy.showTimeline(dto);
         boolean canCancel = executionPolicy.canCancel(dto);
 
+        timelineContainer.getChildren().clear();
         timelineContainer.setVisible(showTimeline);
         timelineContainer.setManaged(showTimeline);
 
         cancelButton.setVisible(canCancel);
         cancelButton.setManaged(canCancel);
-
 
         if (showTimeline) {
             var entries = timelineService.build(dto.timestamps());
@@ -74,43 +70,31 @@ public class PlannerDetailsPresenter {
         }
     }
 
-    public void showTransportDetails(ShipmentListItemDto dto,
-                                      ShipmentContext ctx,
-                                      Label shipmentNumber,
-                                      VBox shipmentDetails,
-                                      VBox transportDetails,
-                                      TextField carrierField,
-                                      TextArea commentsTextArea,
-                                      TextField licensePlateField,
-                                      TextField transportOrder,
-                                      ComboBox<ShipmentStatusDto> statusComboBox,
-                                      DatePicker datePicker,
-                                      Spinner<LocalTime> timeSpinner) {
+    public void showTransportDetails(TransportDetailsInput input) {
 
-        shipmentDetails.setVisible(false);
-        shipmentDetails.setManaged(false);
+        input.transportDetails().setVisible(true);
+        input.transportDetails().setManaged(true);
 
-        transportDetails.setVisible(true);
-        transportDetails.setManaged(true);
-        shipmentNumber.setText(String.valueOf(dto.id()));
+        input.shipmentNumber().setText(String.valueOf(input.dto().id()));
+        input.carrierField().setText(input.dto().carrierName());
+        input.licensePlateField().setText(input.dto().licensePlate());
+        input.transportOrder().setText(input.dto().transportOrder());
+        input.commentsTextArea().setText(input.dto().shipmentComments());
 
-        carrierField.setText(dto.carrierName());
-        commentsTextArea.setText(dto.shipmentComments());
-        licensePlateField.setText(dto.licensePlate());
-        transportOrder.setText(dto.transportOrder());
+        boolean fieldsEditable = plannerPolicy.canEditCarrierFields(input.ctx());
+        input.carrierField().setDisable(!fieldsEditable);
+        input.licensePlateField().setDisable(!fieldsEditable);
+        input.transportOrder().setDisable(!fieldsEditable);
+        input.commentsTextArea().setDisable(false);
 
-        boolean fieldsEditable = plannerPolicy.canEditCarrierFields(ctx);
+        ShipmentStatusDto allowedStatus = plannerPolicy.allowedNextStatus(input.ctx()).orElse(null);
 
-        carrierField.setDisable(!fieldsEditable);
-        licensePlateField.setDisable(!fieldsEditable);
-        transportOrder.setDisable(!fieldsEditable);
+        input.statusComboBox().getSelectionModel().clearSelection();
+        statusEditPolicy.reset(input.datePicker(), input.timeSpinner());
+        statusEditPolicy.applyAllowedStatus(input.statusComboBox(), allowedStatus);
 
-        commentsTextArea.setDisable(false);
-
-        ShipmentStatusDto allowedStatus = plannerPolicy.allowedNextStatus(ctx).orElse(null);
-
-        statusComboBox.setValue(null);
-        statusEditPolicy.reset(datePicker, timeSpinner);
-        statusEditPolicy.applyAllowedStatus(statusComboBox, allowedStatus);
+        input.timelineContainer().getChildren().clear();
+        var entries = timelineService.build(input.dto().timestamps());
+        timelinePresenter.render(input.timelineContainer(), entries);
     }
 }

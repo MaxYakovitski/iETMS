@@ -1,8 +1,6 @@
 package com.mayak.ietms.domain.planner.service;
 
 import com.mayak.ietms.integration.api.ShipmentClient;
-import com.mayak.ietms.shipment.dto.enums.TransportEventType;
-import com.mayak.ietms.shipment.dto.view.MyTransportEventDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,38 +14,23 @@ public class PlannerDataService {
 
     private final ShipmentClient shipmentClient;
     private final ShipmentSortingService shipmentSortingService;
+    private final TransportSortingService transportSortingService;
 
     public List<ShipmentListItemDto> loadMyShipments(LocalDate date) {
         LocalDate d = date != null ? date : LocalDate.now();
 
         return shipmentClient.findMyShipments(d).stream()
-                .sorted(shipmentSortingService.byStatus())
+                .sorted(shipmentSortingService.byDateThenStatus())
                 .toList();
     }
 
-    public TransportBuckets loadMyTransports(LocalDate date) {
-        LocalDate d = date != null ? date : LocalDate.now();
-
-        List<MyTransportEventDto> events = shipmentClient.findMyTransportEvents(d);
-
-        List<ShipmentListItemDto> toLoad = events.stream()
-                .filter(e -> e.eventType() == TransportEventType.LOAD)
-                .map(MyTransportEventDto::shipment)
-                .sorted(shipmentSortingService.byStatus())
+    public List<ShipmentListItemDto> loadMyTransports() {
+        return shipmentClient.findMyTransports().stream()
+                .sorted(transportSortingService.byStatusThenDate())
                 .toList();
-
-        List<ShipmentListItemDto> toDrop = events.stream()
-                .filter(e -> e.eventType() == TransportEventType.DROP)
-                .map(MyTransportEventDto::shipment)
-                .sorted(shipmentSortingService.byStatus())
-                .toList();
-
-        return new TransportBuckets(toLoad, toDrop);
     }
 
     public ShipmentListItemDto loadShipmentById(Long shipmentId) {
         return shipmentClient.getDetails(shipmentId);
     }
-
-    public record TransportBuckets(List<ShipmentListItemDto> toLoad, List<ShipmentListItemDto> toDrop) {}
 }

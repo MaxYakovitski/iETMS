@@ -15,6 +15,8 @@
     <HBox fx:id="requestPane" styleClass="request-pane" minHeight="60" spacing="5" alignment="CENTER"
           AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 
+        <Label fx:id="statusLabel" prefWidth="70" textAlignment="CENTER"/>
+
         <VBox fx:id="fromISOContainer" prefWidth="18" minHeight="60" spacing="5" alignment="CENTER"/>
         <VBox prefWidth="10" minHeight="60" alignment="CENTER">
             <Line startX="-100" endX="-90"/>
@@ -124,12 +126,10 @@
             <Label fx:id="authorSurname"/>
         </VBox>
 
-        <VBox prefWidth="150" minHeight="60" spacing="5" alignment="CENTER">
+        <VBox prefWidth="150" minHeight="60" spacing="5" alignment="CENTER_RIGHT">
             <Label fx:id="carrierLabel" textAlignment="CENTER"/>
             <Label fx:id="carrierPriceLabel" style="-fx-font-weight: bold" textAlignment="CENTER"/>
         </VBox>
-
-        <Label fx:id="statusLabel" prefWidth="70" textAlignment="CENTER"/>
 
     </HBox>
 </AnchorPane>

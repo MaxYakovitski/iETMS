@@ -4,7 +4,6 @@ import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.api.ShipmentClient;
 import com.mayak.ietms.shipment.dto.command.CancelShipmentRequest;
 import com.mayak.ietms.shipment.dto.enums.ShipmentCancelReasonDto;
-import com.mayak.ietms.shipment.dto.view.MyTransportEventDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentUpdateDto;
 import com.mayak.ietms.ui.core.SessionManager;
@@ -43,16 +42,15 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
     }
 
     @Override
-    public List<MyTransportEventDto> findMyTransportEvents(LocalDate date) {
+    public List<ShipmentListItemDto> findMyTransports() {
         return exchangeSafely(() -> {
-
             RequestEntity<Void> request = RequestEntity
-                    .get(API + "/my-transport-events?date={date}", date)
+                    .get(API + "/my-transports")
                     .build();
 
             var body = restTemplate.exchange(
                     request,
-                    new ParameterizedTypeReference<List<MyTransportEventDto>>() {}
+                    new ParameterizedTypeReference<List<ShipmentListItemDto>>() {}
             ).getBody();
 
             return body != null ? body : List.of();

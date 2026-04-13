@@ -28,23 +28,11 @@ public class ShipmentListItemAssembler {
         return enrichCommon(dto, shipment);
     }
 
-    public ShipmentListItemDto assembleAsOfDate(Shipment shipment, LocalDate date) {
-        ShipmentListItemDto dto = shipmentMapper.toListItemDto(shipment);
-
-        var filteredTimestamps = dto.timestamps().stream()
-                .filter(t -> !t.at().atZone(ZoneOffset.UTC).toLocalDate().isAfter(date))
-                .toList();
-
-        return enrichCommon(dto.withTimestamps(filteredTimestamps), shipment);
-    }
-
     public ShipmentListItemDto assembleForPlanner(Shipment shipment, LocalDate date) {
-
         ShipmentListItemDto dto = shipmentMapper.toListItemDto(shipment);
 
         boolean isLastPlannedDay =
-                shipment.getPlannedDropDate() != null
-                        && shipment.getPlannedDropDate().isEqual(date);
+                shipment.getPlannedDropDate() != null && shipment.getPlannedDropDate().isEqual(date);
 
         var timestamps = isLastPlannedDay
                 ? dto.timestamps()

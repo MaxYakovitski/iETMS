@@ -433,23 +433,23 @@
     -fx-border-color: #306eed;
 }
 
-#loadingOverlay {
+#loadingOverlay, #shipmentsLoadingOverlay, #transportsLoadingOverlay {
     -fx-background-color: rgba(255, 255, 255, 0.9);
 }
 
-#loadingOverlay Label {
+#loadingOverlay, #shipmentsLoadingOverlay, #transportsLoadingOverlay Label {
     -fx-text-fill: #c8c8c8;
     -fx-font-size: 13px;
 }
 
-#loadingOverlay ProgressIndicator {
+#loadingOverlay, #shipmentsLoadingOverlay, #transportsLoadingOverlay ProgressIndicator {
     -fx-progress-color: #c8c8c8;
     -fx-pref-width: 60px;
     -fx-pref-height: 60px;
     -fx-background-color: transparent;
 }
 
-#loadingOverlay ProgressIndicator .spinner {
+#loadingOverlay, #shipmentsLoadingOverlay, #transportsLoadingOverlay ProgressIndicator .spinner {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
 }
@@ -636,24 +636,20 @@
 }
 
 #shipmentsListView,
-#toLoadListView,
-#toDropListView {
+#transportsListView {
     -fx-background-color: transparent;
 }
 
 #shipmentsListView .list-cell:even,
 #shipmentsListView .list-cell:odd,
-#toLoadListView .list-cell:even,
-#toLoadListView .list-cell:odd,
-#toDropListView .list-cell:even,
-#toDropListView .list-cell:odd {
+#transportsListView .list-cell:even,
+#transportsListView .list-cell:odd {
     -fx-background-color: transparent;
     -fx-padding: 0;
 }
 
 #shipmentsListView .list-cell:selected,
-#toLoadListView .list-cell:selected,
-#toDropListView .list-cell:selected {
+#transportsListView .list-cell:selected {
     -fx-background-color: #eff5fb;
 }
 
@@ -728,4 +724,13 @@
 .login-progress .spinner {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
+}
+
+.timeline-toggle-button  {
+    -fx-background-color: #f9f9f9;
+    -fx-padding: 0;
+}
+
+.timeline-toggle-button .image-view {
+    -fx-opacity: 0.65;
 }

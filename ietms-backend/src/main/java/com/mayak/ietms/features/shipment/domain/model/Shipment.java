@@ -11,15 +11,23 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Core domain entity representing a shipment in execution.
+ *
+ * <p>A shipment is created from a {@link Request} and progresses through
+ * a defined lifecycle: NEW → PLANNED → TO_LOAD → LOADED → TO_DROP → DROPPED.
+ * It may be CANCELED at any non-final stage by an authorized user.
+ *
+ * <p>Status transitions are enforced via {@link ShipmentStatus#canTransitionTo}.
+ * Timeline timestamps are recorded for auditable statuses only.
+ */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -94,13 +102,27 @@ public class Shipment {
         if (!status.canTransitionTo(ShipmentStatus.PLANNED, TransitionInitiator.USER)) {
             throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.PLANNED);
         }
+        Instant newTimestamp = getLastTimestamp(ShipmentStatus.NEW);
+        if (newTimestamp != null && at.isBefore(newTimestamp)) {
+            throw new DeliveryTimeLineException("Actual planning time cannot be before shipment creation time!");
+        }
         this.status = ShipmentStatus.PLANNED;
         addTimestamp(ShipmentStatus.PLANNED, at);
     }
 
+    /**
+     * Transitions the shipment to TO_LOAD by a user action.
+     *
+     * <p>If the current status is NEW (i.e. the shipment was never explicitly planned),
+     * a PLANNED timestamp is recorded automatically at the current time
+     * to preserve a complete timeline.
+     */
     public void markToLoadByUser() {
         if (!status.canTransitionTo(ShipmentStatus.TO_LOAD, TransitionInitiator.USER)) {
             throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.TO_LOAD);
+        }
+        if (this.status == ShipmentStatus.NEW) {
+            addTimestamp(ShipmentStatus.PLANNED, Instant.now());
         }
         this.status = ShipmentStatus.TO_LOAD;
     }
@@ -112,13 +134,25 @@ public class Shipment {
         this.status = ShipmentStatus.TO_LOAD;
     }
 
+    /**
+     * Reverts the shipment to NEW status, removing all PLANNED timestamps.
+     *
+     * <p>Used when transport assignment is canceled and the shipment
+     * needs to be re-planned from scratch.
+     */
     public void revertToNew() {
         if (!status.canTransitionTo(ShipmentStatus.NEW, TransitionInitiator.USER)) {
             throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.NEW);
         }
+        timestamps.removeIf(t -> t.getStatus() == ShipmentStatus.PLANNED);
         this.status = ShipmentStatus.NEW;
     }
 
+    /**
+     * Marks the shipment as loaded at the given time.
+     *
+     * @param at actual loading time — must not be before the PLANNED timestamp
+     */
     public void markLoaded(Instant at) {
         if (!status.canTransitionTo(ShipmentStatus.LOADED, TransitionInitiator.USER)) {
             throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.LOADED);
@@ -131,6 +165,13 @@ public class Shipment {
         addTimestamp(ShipmentStatus.LOADED, at);
     }
 
+    public void markToDropByUser() {
+        if (!status.canTransitionTo(ShipmentStatus.TO_DROP, TransitionInitiator.USER)) {
+            throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.TO_DROP);
+        }
+        this.status = ShipmentStatus.TO_DROP;
+    }
+
     public void markToDropBySystem() {
         if (!status.canTransitionTo(ShipmentStatus.TO_DROP, TransitionInitiator.SYSTEM)) {
             throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.TO_DROP);
@@ -138,6 +179,11 @@ public class Shipment {
         this.status = ShipmentStatus.TO_DROP;
     }
 
+    /**
+     * Marks the shipment as dropped (delivered) at the given time.
+     *
+     * @param at actual delivery time — must not be before the LOADED timestamp
+     */
     public void markDropped(Instant at) {
         if (!status.canTransitionTo(ShipmentStatus.DROPPED, TransitionInitiator.USER)) {
             throw new InvalidShipmentStatusTransitionException(status, ShipmentStatus.DROPPED);
@@ -208,33 +254,6 @@ public class Shipment {
             ids.add(dispatcherId);
         }
         return ids;
-    }
-
-    public Instant newAt() {
-        return getLastTimestamp(ShipmentStatus.NEW);
-    }
-
-    public Instant plannedAt() {
-        return getLastTimestamp(ShipmentStatus.PLANNED);
-    }
-
-    public Instant loadedAt() {
-        return getLastTimestamp(ShipmentStatus.LOADED);
-    }
-
-    public Instant droppedAt() {
-        return getLastTimestamp(ShipmentStatus.DROPPED);
-    }
-
-    public Instant canceledAt() {
-        return getLastTimestamp(ShipmentStatus.CANCELED);
-    }
-
-    public boolean isLoadedBeforeOrOn(LocalDate date) {
-        Instant t = loadedAt();
-        if (t == null) return false;
-        LocalDate eventDate = t.atZone(ZoneOffset.UTC).toLocalDate();
-        return !eventDate.isAfter(date);
     }
 
     private void addTimestamp(ShipmentStatus status, Instant at) {

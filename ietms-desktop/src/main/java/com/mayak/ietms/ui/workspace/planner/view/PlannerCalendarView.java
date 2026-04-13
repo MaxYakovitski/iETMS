@@ -6,7 +6,10 @@ import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
 
@@ -18,39 +21,105 @@ import java.time.temporal.WeekFields;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
-public class PlannerCalendarView extends GridPane {
+public class PlannerCalendarView extends VBox {
 
     private final Locale locale = Locale.UK;
     private final WeekFields weekFields = WeekFields.of(locale);
 
     private final ObjectProperty<LocalDate> selectedDate = new SimpleObjectProperty<>(LocalDate.now());
-
     private final Map<LocalDate, Button> dayButtons = new HashMap<>();
 
     private YearMonth currentMonth = YearMonth.now();
     private Button selectedDayButton;
 
+    private final Label yearLabel  = new Label();
+    private final Label monthLabel = new Label();
+
+    private final GridPane grid = new GridPane();
+
     public PlannerCalendarView() {
-        setHgap(5);
-        setVgap(5);
-        setAlignment(Pos.CENTER);
-
+        grid.setHgap(5);
+        grid.setVgap(5);
+        grid.setAlignment(Pos.CENTER);
         configureGridSizing();
+
+        Button leftButton  = createNavButton("/icons/left-chevron.png");
+        Button rightButton = createNavButton("/icons/right-chevron.png");
+
+        leftButton.setOnAction(e -> navigate(-1));
+        rightButton.setOnAction(e -> navigate(1));
+
+        yearLabel.setStyle("-fx-text-fill: #306eed; -fx-font-size: 20");
+
+        HBox nav = new HBox(10, leftButton, monthLabel, rightButton);
+        nav.setAlignment(Pos.CENTER);
+
+        setAlignment(Pos.TOP_CENTER);
+        setSpacing(10);
+        getChildren().addAll(yearLabel, nav, grid);
+
+        updateHeader();
         renderCalendar();
     }
 
-    public YearMonth getMonth() { return currentMonth; }
+    /**
+     * Observable property holding the currently selected date.
+     * Fires on every date selection including programmatic ones.
+     */
+    public ObjectProperty<LocalDate> selectedDateProperty() {
+        return selectedDate;
+    }
 
-    public void setMonth(YearMonth month) {
-        this.currentMonth = month;
+    /**
+     * Resets the calendar to today's date and current month.
+     * Fires the {@code selectedDate} property change even if today was already selected.
+     */
+    public void resetToToday() {
+        LocalDate today = LocalDate.now();
+        currentMonth = YearMonth.now();
+        updateHeader();
+        if (today.equals(selectedDate.get())) {
+            selectedDate.set(null);
+        }
+        selectedDate.set(today);
         renderCalendar();
     }
 
-    public ObjectProperty<LocalDate> selectedDateProperty() { return selectedDate;}
+    private void navigate(int months) {
+        currentMonth = currentMonth.plusMonths(months);
+        updateHeader();
+        renderCalendar();
+    }
+
+    private void updateHeader() {
+        yearLabel.setText(String.valueOf(currentMonth.getYear()));
+        monthLabel.setText(currentMonth.getMonth()
+                .getDisplayName(TextStyle.FULL, locale));
+    }
+
+    private Button createNavButton(String iconPath) {
+        ImageView icon = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream(iconPath))));
+        icon.setFitWidth(20);
+        icon.setFitHeight(20);
+        icon.setPreserveRatio(true);
+
+        Button btn = new Button();
+        btn.setGraphic(icon);
+        btn.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btn.setOpacity(0.65);
+        btn.setMnemonicParsing(false);
+        btn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-border-color: transparent;" +
+                "-fx-padding: 0;"
+        );
+        return btn;
+    }
 
     private void renderCalendar() {
-        getChildren().clear();
+        grid.getChildren().clear();
         dayButtons.clear();
         selectedDayButton = null;
 
@@ -63,11 +132,11 @@ public class PlannerCalendarView extends GridPane {
             LocalDate weekStart = gridStart.plusWeeks(row);
 
             int weekNumber = weekStart.get(weekFields.weekOfWeekBasedYear());
-            add(makeWeekLabel(weekNumber), 0, row + 1);
+            grid.add(makeWeekLabel(weekNumber), 0, row + 1);
 
             for (int col = 0; col < 7; col++) {
                 LocalDate date = weekStart.plusDays(col);
-                add(makeDayCell(date), col + 1, row + 1);
+                grid.add(makeDayCell(date), col + 1, row + 1);
             }
         }
 
@@ -79,7 +148,7 @@ public class PlannerCalendarView extends GridPane {
         wk.getStyleClass().add("calendar-header");
         GridPane.setHalignment(wk, HPos.CENTER);
         GridPane.setValignment(wk, VPos.CENTER);
-        add(wk, 0, 0);
+        grid.add(wk, 0, 0);
 
         DayOfWeek[] days = DayOfWeek.values();
 
@@ -91,7 +160,7 @@ public class PlannerCalendarView extends GridPane {
             lbl.getStyleClass().add("calendar-header");
             GridPane.setHalignment(lbl, HPos.CENTER);
             GridPane.setValignment(lbl, VPos.CENTER);
-            add(lbl, i + 1, 0);
+            grid.add(lbl, i + 1, 0);
         }
     }
 
@@ -135,28 +204,27 @@ public class PlannerCalendarView extends GridPane {
     }
 
     private void configureGridSizing() {
-        getColumnConstraints().clear();
+        grid.getColumnConstraints().clear();
 
         ColumnConstraints weekCol = new ColumnConstraints();
         weekCol.setMinWidth(32);
         weekCol.setPrefWidth(32);
         weekCol.setMaxWidth(32);
         weekCol.setHgrow(Priority.NEVER);
-        getColumnConstraints().add(weekCol);
+        grid.getColumnConstraints().add(weekCol);
 
         for (int i = 0; i < 7; i++) {
             ColumnConstraints dayCol = new ColumnConstraints();
             dayCol.setFillWidth(true);
-            getColumnConstraints().add(dayCol);
+            grid.getColumnConstraints().add(dayCol);
         }
 
-        // 6 радкоў
-        getRowConstraints().clear();
+        grid.getRowConstraints().clear();
         for (int i = 0; i < 7; i++) {
             RowConstraints rc = new RowConstraints();
             rc.setVgrow(Priority.ALWAYS);
             rc.setFillHeight(true);
-            getRowConstraints().add(rc);
+            grid.getRowConstraints().add(rc);
         }
     }
 
@@ -174,6 +242,7 @@ public class PlannerCalendarView extends GridPane {
     private void restoreSelected() {
         LocalDate date = selectedDate.get();
         if (date == null) return;
+        if (!YearMonth.from(date).equals(currentMonth)) return;
 
         Button btn = dayButtons.get(date);
         if (btn == null) return;

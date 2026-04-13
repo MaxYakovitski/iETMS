@@ -2,14 +2,8 @@ package com.mayak.ietms.ui.workspace.planner.controller;
 
 import com.mayak.ietms.domain.planner.service.PlannerDataService;
 import com.mayak.ietms.domain.planner.service.PlannerSelectionService;
-import com.mayak.ietms.domain.planner.service.ShipmentSortingService;
-import com.mayak.ietms.infrastructure.fx.CompanyEventHandler;
-import com.mayak.ietms.integration.websocket.CompanyStompClient;
-import com.mayak.ietms.request.dto.event.ShipmentEventDto;
-import com.mayak.ietms.shipment.dto.enums.TransportEventType;
-import com.mayak.ietms.shipment.event.ShipmentEvent;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
-import com.mayak.ietms.infrastructure.toast.ToastService;
+import com.mayak.ietms.infrastructure.window.WindowService;
 import com.mayak.ietms.integration.api.CompanyClient;
 import com.mayak.ietms.integration.api.ShipmentClient;
 import com.mayak.ietms.integration.exception.ApiException;
@@ -20,10 +14,14 @@ import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentUpdateDto;
 import com.mayak.ietms.shipment.dto.enums.ShipmentStatusDto;
 import com.mayak.ietms.support.validation.TransportOrderValidator;
+import com.mayak.ietms.ui.workspace.planner.handler.PlannerListManager;
+import com.mayak.ietms.ui.workspace.planner.handler.PlannerRealtimeHandler;
 import com.mayak.ietms.ui.workspace.planner.presenter.PlannerDetailsPresenter;
+import com.mayak.ietms.ui.workspace.planner.presenter.TransportDetailsInput;
 import com.mayak.ietms.ui.workspace.planner.state.PlannerState;
+import com.mayak.ietms.ui.workspace.planner.view.PlannerDateView;
+import com.mayak.ietms.ui.workspace.planner.view.TimelineToggleButton;
 import com.mayak.ietms.user.dto.UserResponseDto;
-import com.mayak.ietms.integration.websocket.ShipmentStompClient;
 import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.core.SecuredView;
 import com.mayak.ietms.ui.core.UserPermissions;
@@ -40,7 +38,6 @@ import com.mayak.ietms.infrastructure.fx.AutoCompleteUtils;
 import com.mayak.ietms.infrastructure.time.DatePickerUtils;
 import com.mayak.ietms.infrastructure.time.TimeSpinnerUtils;
 import com.mayak.ietms.infrastructure.ui.ValidationUIHelper;
-import com.mayak.ietms.infrastructure.window.WindowService;
 import com.mayak.ietms.support.validation.StatusDateTimeValidator;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -52,53 +49,51 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.YearMonth;
-import java.time.format.TextStyle;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Controller
 @RequiredArgsConstructor
 @Slf4j
 public class PlannerController implements SecuredView, ViewLifecycle {
 
-    @FXML public Label yearLabel, monthLabel, shipmentNumber, shipmentNumberTransport, dispatcher, emptyMessageLabel;
-    @FXML public Button leftButton, rightButton, myShipments, myTransports, cancelButton, submitButton;
-    @FXML public VBox contentContainer, shipmentDetailsContainer, timelineContainer, transportDetailsContainer, myShipmentsContainer, myTransportsContainer,
-                      toLoadContainer, toDropContainer;
-    @FXML public HBox buttonsContainer;
-    @FXML public StackPane loadingOverlay;
+    @FXML public PlannerCalendarView calendarView;
+    @FXML public PlannerDateView dateView;
+    @FXML public Label shipmentNumber, shipmentNumberTransport, dispatcher, shipmentsEmptyMessageLabel, transportsEmptyLabel;
+    @FXML public Button myShipments, myTransports, cancelButton, submitButton;
+    @FXML public VBox shipmentsContentContainer, transportsContentContainer, shipmentDetailsContainer, shipmentTimelineContainer, transportDetailsContainer, transportTimelineContainer;
+    @FXML public HBox shipmentsView, transportsView, buttonsContainer;
+    @FXML public StackPane shipmentsLoadingOverlay, transportsLoadingOverlay;
 
+    @FXML public TimelineToggleButton showTimeStampsButton;
+    @Getter
+    @FXML public TextField carrierField, licensePlateField, transportOrder;
     @Getter
     @FXML public DatePicker dateAndTime;
     @Getter
     @FXML public Spinner<LocalTime> timeSpinner;
-
-    @FXML private StackPane calendarContainer, detailsStack;
     @FXML public TextArea commentsTextArea;
-    @Getter
-    @FXML public TextField carrierField, licensePlateField, transportOrder;
     @FXML public ComboBox<ShipmentStatusDto> shipmentStatusComboBox;
-    @FXML private ListView<ShipmentListItemDto> toLoadListView, toDropListView, shipmentsListView;
+    @FXML private ListView<ShipmentListItemDto> shipmentsListView, transportsListView;
 
     /* ================= Dependencies ================= */
     private final PlannerStatusEditPolicy statusEditPolicy;
     private final PlannerDataService dataService;
     private final PlannerSelectionService selectionService;
     private final PlannerDetailsPresenter detailsPresenter;
-    private final ShipmentSortingService sortingService;
+
+    private final WindowService windowService;
 
     private final CompanyClient companyClient;
     private final ShipmentClient shipmentClient;
-    private final CompanyStompClient companyStompClient;
-    private final ShipmentStompClient shipmentStompClient;
-    private final WindowService windowService;
+    private final PlannerRealtimeHandler realtimeHandler;
+    private final PlannerListManager listManager;
 
     private Runnable companyWsUnsubscribe;
 
@@ -109,16 +104,15 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     private ValidationUIHelper validationUI;
     private UserPermissions permissions;
     private boolean initializingForm = false;
+    private boolean restoringSelection = false;
 
     @Getter
     private UserResponseDto loggedInUser;
 
     /* ================= UI Runtime ================= */
-    private PlannerCalendarView calendarView;
+    private final ObservableList<ShipmentListItemDto> shipmentItems = FXCollections.observableArrayList();
+    private final ObservableList<ShipmentListItemDto> transportItems = FXCollections.observableArrayList();
 
-    private final ObservableList<ShipmentListItemDto> toLoadItems = FXCollections.observableArrayList();
-    private final ObservableList<ShipmentListItemDto> toDropItems = FXCollections.observableArrayList();
-    private final ObservableList<ShipmentListItemDto> shipmentsItems = FXCollections.observableArrayList();
 
     @Override
     public void setLoggedInUser(UserResponseDto user) {
@@ -128,8 +122,16 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     @Override
     public void onShow() {
-        applyPermissions();
-        loadForDate(state.getSelectedDate());
+        boolean canViewShipments = permissions.canViewMyShipments();
+        applyPermissions(canViewShipments);
+        if (canViewShipments) {
+            state.setActiveTab(ActiveTab.MY_SHIPMENTS);
+            setActive(myShipments, myTransports);
+            calendarView.resetToToday();
+        } else {
+            state.setActiveTab(ActiveTab.MY_TRANSPORTS);
+            loadTransports();
+        }
         initShipmentRealtimeUpdates();
     }
 
@@ -143,33 +145,13 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     /* ================= Realtime Updates ================= */
     private void initShipmentRealtimeUpdates() {
-        shipmentStompClient.connect(event -> Platform.runLater(() -> {
-            handleShipmentEvent(event);
-            handleShipmentUserEvent(event);
-        }));
-        companyWsUnsubscribe = companyStompClient.connect(event ->
-                Platform.runLater(() -> CompanyEventHandler.apply(event, companySuggestions)));
-    }
-
-    private void handleShipmentEvent(ShipmentEvent<ShipmentEventDto> event) {
-        if (event == null) return;
-
-        switch (event.getType()) {
-            case STATUS_CHANGED -> loadForDate(state.getSelectedDate());
-            case UPDATED -> invalidateShipment(event.getShipmentId());
-        }
-    }
-
-    private void handleShipmentUserEvent(ShipmentEvent<ShipmentEventDto> event) {
-        if (event == null || event.getPayload() == null) return;
-        if (event.getType() != ShipmentEvent.EventType.STATUS_CHANGED) return;
-
-        if (ShipmentStatusDto.CANCELED.name().equals(event.getPayload().status())) {
-            ToastService.showInfo(
-                    windowService.getPrimaryStage(),
-                    "Shipment canceled",
-                    "Shipment #" + event.getShipmentId() + " has been canceled");
-        }
+        companyWsUnsubscribe = realtimeHandler.init(
+                companySuggestions,
+                () -> {
+                    if (permissions.canViewMyShipments()) loadShipments(state.getSelectedDate());
+                    loadTransports();
+                },
+                listManager::invalidateShipment);
     }
 
     @FXML
@@ -184,24 +166,19 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                 )
         );
         validationUI.bindResetOnChange();
-
-        calendarView = new PlannerCalendarView();
-        calendarContainer.getChildren().add(calendarView);
-
-        updateHeader(calendarView.getMonth());
-
-        calendarView.selectedDateProperty().addListener((obs, oldD, newD) ->
-                loadForDate(newD));
-
+        calendarView.selectedDateProperty()
+                .addListener((obs, oldD, newD) -> {
+                    if (newD == null) return;
+                    clearSelection();
+                    loadShipments(newD);
+                });
         statusEditPolicy.configure(shipmentStatusComboBox);
 
-        toLoadListView.setItems(toLoadItems);
-        toDropListView.setItems(toDropItems);
-        shipmentsListView.setItems(shipmentsItems);
+        shipmentsListView.setItems(shipmentItems);
+        transportsListView.setItems(transportItems);
 
-        setupList(toLoadListView, toDropListView, TransportEventType.LOAD);
-        setupList(toDropListView, toLoadListView, TransportEventType.DROP);
-        setupSingleList(shipmentsListView);
+        setupList(shipmentsListView, ActiveTab.MY_SHIPMENTS);
+        setupList(transportsListView, ActiveTab.MY_TRANSPORTS);
 
         setupDirtyListeners();
 
@@ -215,37 +192,19 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         AutoCompleteUtils.setupAutoCompletion(carrierField, companySuggestions);
         DatePickerUtils.setupDatePicker(dateAndTime);
         TimeSpinnerUtils.setupTimeSpinner(timeSpinner, 15);
+
+        listManager.init(
+                shipmentItems,
+                transportItems,
+                state,
+                this::showMyShipmentDetails,
+                this::showMyTransportDetails);
     }
 
-    private void setupList(ListView<ShipmentListItemDto> list,
-                           ListView<ShipmentListItemDto> otherList,
-                           TransportEventType eventType) {
+    private void setupList(ListView<ShipmentListItemDto> list, ActiveTab activeTab) {
         list.setCellFactory(lv -> {
             ShipmentCell cell = new ShipmentCell(windowService);
-            cell.setActiveTab(ActiveTab.MY_TRANSPORTS);
-            return cell;
-        });
-
-        list.getSelectionModel()
-                .selectedItemProperty()
-                .addListener((obs, oldItem, newItem) -> {
-
-                    if (newItem == null) return;
-                    state.setSelectedTransportEvent(eventType);
-
-                    if (otherList.getSelectionModel().getSelectedItem() != null) {
-                        Platform.runLater(() ->
-                                otherList.getSelectionModel().clearSelection());
-                    }
-
-                    Platform.runLater(() -> selectShipment(newItem));
-                });
-    }
-
-    private void setupSingleList(ListView<ShipmentListItemDto> list) {
-        list.setCellFactory(lv -> {
-            ShipmentCell cell = new ShipmentCell(windowService);
-            cell.setActiveTab(ActiveTab.MY_SHIPMENTS);
+            cell.setActiveTab(activeTab);
             return cell;
         });
 
@@ -253,6 +212,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                 .selectedItemProperty()
                 .addListener((obs, oldItem, newItem) -> {
                     if (newItem == null) return;
+                    if (restoringSelection) return;
                     selectShipment(newItem);
                 });
     }
@@ -296,18 +256,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     /* ================= Event Handlers ================= */
     @FXML
-    public void handleLeft() {
-        calendarView.setMonth(calendarView.getMonth().minusMonths(1));
-        updateHeader(calendarView.getMonth());
-    }
-
-    @FXML
-    public void handleRight() {
-        calendarView.setMonth(calendarView.getMonth().plusMonths(1));
-        updateHeader(calendarView.getMonth());
-    }
-
-    @FXML
     public void submitShipmentUpdate() {
         if (!formState.isDirty() || state.getSelectedShipment() == null) return;
 
@@ -316,7 +264,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
         try {
             ShipmentListItemDto fresh = shipmentClient.update(updateDto);
-            applyShipmentUpdate(fresh);
+            listManager.applyShipmentUpdate(fresh);
         } catch (ApiException e) {
             log.warn("Shipment update rejected by backend", e);
             AlertUtils.show(ApiErrorUtils.resolve(e, "Shipment update failed."));
@@ -324,25 +272,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     /* ================= Update / Mutation ================= */
-    private void applyShipmentUpdate(ShipmentListItemDto fresh) {
-        if (fresh == null) return;
-
-        replaceIn(shipmentsItems, fresh);
-        replaceIn(toLoadItems, fresh);
-        replaceIn(toDropItems, fresh);
-
-        resortByStatus(shipmentsItems);
-        resortByStatus(toLoadItems);
-        resortByStatus(toDropItems);
-
-        if (state.getSelectedShipment() != null
-                && Objects.equals(state.getSelectedShipment().id(), fresh.id())) {
-            state.setSelectedShipment(fresh);
-            if (selectionService.isShipmentTab(state)) showMyShipmentDetails(fresh);
-            else showMyTransportDetails(fresh);
-        }
-    }
-
     private ShipmentUpdateDto buildUpdateDto() {
         if (state.getSelectedShipment() == null) return null;
 
@@ -368,7 +297,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                 validationUI.showClientErrors(result.getErrors());
                 return null;
             }
-
             statusAt = LocalDateTime.of(dateAndTime.getValue(), timeSpinner.getValue());
         }
 
@@ -384,6 +312,14 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     @FXML
     public void onMyTransportsHandle() {
         switchTab(ActiveTab.MY_TRANSPORTS);
+        loadTransports();
+    }
+
+    @FXML
+    public void handleShowHistory() {
+        boolean nowVisible = showTimeStampsButton.toggle();
+        transportTimelineContainer.setVisible(nowVisible);
+        transportTimelineContainer.setManaged(nowVisible);
     }
 
     @FXML
@@ -392,8 +328,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
         boolean confirmed = AlertUtils.showConfirmation(
                 "Cancellation",
-                "Are you sure you want to cancel shipment " + state.getSelectedShipment().id() + "?"
-        );
+                "Are you sure you want to cancel shipment " + state.getSelectedShipment().id() + "?");
         if (!confirmed) return;
 
         String fxmlPath = View.REFUSE_REASON.getPath();
@@ -428,121 +363,86 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     /* ================= Core Orchestration ================= */
-    private void loadForDate(LocalDate date) {
+    private void loadShipments(LocalDate date) {
         state.setSelectedDate(date);
 
-        CompletableFuture
-                .supplyAsync(() -> dataService.loadMyShipments(date))
-                .thenCombine(CompletableFuture.supplyAsync(() -> dataService.loadMyTransports(date)), Map::entry)
-                .thenAccept(result ->
-                        Platform.runLater(() -> {
-                            clearSelection();
-                            applyDayData(result.getKey(), result.getValue());
-                        })
-                )
-                .exceptionally(ex -> {
-                    log.warn("Failed to reload planner for date {}", date, ex);
-                    return null;
-                });
-    }
+        CompletableFuture.supplyAsync(() -> dataService.loadMyShipments(date))
+                .thenAccept(result -> Platform.runLater(() -> {
+                    shipmentItems.setAll(result);
 
-    private void invalidateShipment(Long shipmentId) {
-        if (shipmentId == null) return;
-
-        CompletableFuture
-                .supplyAsync(() -> dataService.loadShipmentById(shipmentId))
-                .thenAccept(fresh -> Platform.runLater(() -> {
-                    if (fresh == null) return;
-
-                    replaceIn(shipmentsItems, fresh);
-                    replaceIn(toLoadItems, fresh);
-                    replaceIn(toDropItems, fresh);
-
-                    if (state.getSelectedShipment() != null
-                            && Objects.equals(state.getSelectedShipment().id(), shipmentId)) {
-                        state.setSelectedShipment(fresh);
-                        if (selectionService.isShipmentTab(state)) showMyShipmentDetails(fresh);
-                        else showMyTransportDetails(fresh);
+                    if (state.getSelectedShipment() != null) {
+                        Long selectedId = state.getSelectedShipment().id();
+                        IntStream.range(0, result.size())
+                                .filter(i -> Objects.equals(result.get(i).id(), selectedId))
+                                .findFirst()
+                                .ifPresent(shipmentsListView.getSelectionModel()::select);
                     }
+
+                    state.setHasMyShipments(!result.isEmpty());
+                    shipmentsEmptyMessageLabel.setVisible(result.isEmpty());
+                    shipmentsEmptyMessageLabel.setManaged(result.isEmpty());
+
+                    shipmentsLoadingOverlay.setVisible(false);
+                    shipmentsLoadingOverlay.setManaged(false);
+                    shipmentsContentContainer.setVisible(true);
+                    shipmentsContentContainer.setManaged(true);
+
                 }))
                 .exceptionally(ex -> {
-                    log.warn("Failed to refresh shipment {}", shipmentId, ex);
+                    log.warn("Failed to load shipments for {}", date, ex);
                     return null;
                 });
     }
 
-    private void resortByStatus(ObservableList<ShipmentListItemDto> list) {
-        if (list.size() < 2) return;
-        FXCollections.sort(list, sortingService.byStatus());
-    }
+    private void loadTransports() {
+        CompletableFuture.supplyAsync(dataService::loadMyTransports)
+                .thenAccept(result -> Platform.runLater(() -> {
+                    transportItems.setAll(result);
 
-    private static void replaceIn(ObservableList<ShipmentListItemDto> list, ShipmentListItemDto fresh) {
-        Long id = fresh.id();
-        if (id == null) return;
+                    if (state.getSelectedShipment() != null) {
+                        Long selectedId = state.getSelectedShipment().id();
+                        result.stream()
+                                .filter(s -> Objects.equals(s.id(), selectedId))
+                                .findFirst()
+                                .ifPresent(fresh -> {
+                                    if (fresh.status() == ShipmentStatusDto.CANCELED) {
+                                        state.setSelectedShipment(fresh);
+                                        showMyTransportDetails(fresh);
+                                    }
+                                    restoringSelection = true;
+                                    IntStream.range(0, result.size())
+                                            .filter(i -> Objects.equals(result.get(i).id(), selectedId))
+                                            .findFirst()
+                                            .ifPresent(transportsListView.getSelectionModel()::select);
+                                    restoringSelection = false;
+                                });
+                    }
 
-        for (int i = 0; i < list.size(); i++) {
-            ShipmentListItemDto it = list.get(i);
-            if (it != null && Objects.equals(it.id(), id)) {
-                list.set(i, fresh);
-                return;
-            }
-        }
+                    state.setHasMyTransports(!result.isEmpty());
+                    transportsEmptyLabel.setVisible(result.isEmpty());
+                    transportsEmptyLabel.setManaged(result.isEmpty());
+
+                    transportsLoadingOverlay.setVisible(false);
+                    transportsLoadingOverlay.setManaged(false);
+                    transportsContentContainer.setVisible(true);
+                    transportsContentContainer.setManaged(true);
+                }))
+                .exceptionally(ex -> {
+                    log.warn("Failed to load transports", ex);
+                    return null;
+                });
     }
 
     private void reloadAfterMutation() {
-        loadMyShipments();
-        loadMyTransports();
-
-        ActiveTab preferredTab = state.getActiveTab();
-
-        if (preferredTab == ActiveTab.MY_TRANSPORTS && state.isHasMyTransports()) {
-            switchTab(ActiveTab.MY_TRANSPORTS);
-        } else if (preferredTab == ActiveTab.MY_SHIPMENTS && state.isHasMyShipments()) {
-            clearSelection();
-            switchTab(ActiveTab.MY_SHIPMENTS);
-        } else if (state.isHasMyShipments()) {
-            switchTab(ActiveTab.MY_SHIPMENTS);
-        } else if (state.isHasMyTransports()) {
-            switchTab(ActiveTab.MY_TRANSPORTS);
-        } else {
-            showEmptyState();
+        if (permissions.canViewMyShipments()) {
+            loadShipments(state.getSelectedDate());
         }
-    }
-
-    /* ================= Async Data Apply ================= */
-    private void applyDayData(List<ShipmentListItemDto> shipments, PlannerDataService.TransportBuckets buckets) {
-        loadingOverlay.setVisible(false);
-        loadingOverlay.setManaged(false);
-        contentContainer.setVisible(true);
-        contentContainer.setManaged(true);
-
-        // shipments
-        shipmentsItems.setAll(shipments);
-        state.setHasMyShipments(!shipments.isEmpty());
-
-        // transports
-        toLoadItems.setAll(buckets.toLoad());
-        toDropItems.setAll(buckets.toDrop());
-        state.setHasMyTransports(!buckets.toLoad().isEmpty() || !buckets.toDrop().isEmpty());
-
-        applyTabsVisibilityRules();
-        updateTransportVisibility();
-
-        if (state.isHasMyShipments()) {
-            switchTab(ActiveTab.MY_SHIPMENTS);
-        } else if (state.isHasMyTransports()) {
-            switchTab(ActiveTab.MY_TRANSPORTS);
-        } else {
-            showEmptyState();
-        }
+        loadTransports();
     }
 
     /* ================= Selection & Tabs ================= */
     public void selectShipment(ShipmentListItemDto dto) {
         state.setSelectedShipment(dto);
-
-        detailsStack.setVisible(true);
-        detailsStack.setManaged(true);
 
         if (selectionService.isShipmentTab(state)) {
             showMyShipmentDetails(dto);
@@ -561,42 +461,20 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         switch (tab) {
             case MY_SHIPMENTS -> {
                 setActive(myShipments, myTransports);
-                myShipmentsContainer.setVisible(true);
-                myShipmentsContainer.setManaged(true);
-                myTransportsContainer.setVisible(false);
-                myTransportsContainer.setManaged(false);
+                shipmentsView.setVisible(true);
+                shipmentsView.setManaged(true);
+                transportsView.setVisible(false);
+                transportsView.setManaged(false);
+                calendarView.resetToToday();
             }
             case MY_TRANSPORTS -> {
                 setActive(myTransports, myShipments);
-                myTransportsContainer.setVisible(true);
-                myTransportsContainer.setManaged(true);
-                myShipmentsContainer.setVisible(false);
-                myShipmentsContainer.setManaged(false);
+                transportsView.setVisible(true);
+                transportsView.setManaged(true);
+                shipmentsView.setVisible(false);
+                shipmentsView.setManaged(false);
             }
         }
-    }
-
-    /* ================= Data Loading ================= */
-    private void loadMyTransports() {
-        var buckets = dataService.loadMyTransports(state.getSelectedDate());
-
-        toLoadItems.setAll(buckets.toLoad());
-        toDropItems.setAll(buckets.toDrop());
-
-        state.setHasMyTransports(!toLoadItems.isEmpty() || !toDropItems.isEmpty());
-
-        applyTabsVisibilityRules();
-        updateTransportVisibility();
-    }
-
-    private void loadMyShipments() {
-        var items = dataService.loadMyShipments(state.getSelectedDate());
-        shipmentsItems.setAll(items);
-
-        state.setHasMyShipments(!shipmentsItems.isEmpty());
-
-        applyTabsVisibilityRules();
-        updateMyShipmentsVisibility();
     }
 
     /* ================= Details ================= */
@@ -606,32 +484,28 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                 shipmentNumber,
                 dispatcher,
                 shipmentDetailsContainer,
-                transportDetailsContainer,
-                timelineContainer,
+                shipmentTimelineContainer,
                 cancelButton
         );
     }
 
     private void showMyTransportDetails(ShipmentListItemDto dto) {
+        transportTimelineContainer.setVisible(false);
+        transportTimelineContainer.setManaged(false);
+        showTimeStampsButton.reset();
+
         initializingForm = true;
         formState.reset();
         submitButton.setDisable(true);
 
-        ShipmentContext ctx = selectionService.buildContext(dto, state.getSelectedDate(), state.getSelectedTransportEvent());
+        ShipmentContext ctx = selectionService.buildContext(dto, state.getSelectedDate());
 
         detailsPresenter.showTransportDetails(
-                dto,
-                ctx,
-                shipmentNumberTransport,
-                shipmentDetailsContainer,
-                transportDetailsContainer,
-                carrierField,
-                commentsTextArea,
-                licensePlateField,
-                transportOrder,
-                shipmentStatusComboBox,
-                dateAndTime,
-                timeSpinner
+                new TransportDetailsInput(
+                        dto, ctx, shipmentNumberTransport, transportTimelineContainer,
+                        transportDetailsContainer, carrierField, commentsTextArea,
+                        licensePlateField, transportOrder, shipmentStatusComboBox,
+                        dateAndTime, timeSpinner)
         );
 
         formState.bindTo(dto);
@@ -640,18 +514,13 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     }
 
     private void hideDetailsCompletely() {
-        detailsStack.setVisible(false);
-        detailsStack.setManaged(false);
-        detailsPresenter.hideAll(shipmentDetailsContainer, transportDetailsContainer, timelineContainer, cancelButton);
+        detailsPresenter.hideAll(shipmentDetailsContainer, shipmentTimelineContainer, transportDetailsContainer, transportTimelineContainer, cancelButton);
     }
 
     private void clearSelection() {
         state.setSelectedShipment(null);
-
-        toLoadListView.getSelectionModel().clearSelection();
-        toDropListView.getSelectionModel().clearSelection();
         shipmentsListView.getSelectionModel().clearSelection();
-
+        transportsListView.getSelectionModel().clearSelection();
         hideDetailsCompletely();
 
         carrierField.clear();
@@ -659,52 +528,13 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         licensePlateField.clear();
         transportOrder.clear();
         shipmentStatusComboBox.setValue(null);
-
         statusEditPolicy.reset(dateAndTime, timeSpinner);
-
         formState.reset();
         updateSubmitState();
+        showTimeStampsButton.reset();
     }
 
     /* ================= UI Helpers ================= */
-    private void updateHeader(YearMonth ym) {
-        yearLabel.setText(String.valueOf(ym.getYear()));
-        monthLabel.setText(ym.getMonth().getDisplayName(TextStyle.FULL, Locale.UK)
-        );
-    }
-
-    private void updateTransportVisibility() {
-        boolean hasToLoad = !toLoadItems.isEmpty();
-        boolean hasToDrop = !toDropItems.isEmpty();
-
-        toLoadContainer.setVisible(hasToLoad);
-        toLoadContainer.setManaged(hasToLoad);
-
-        toDropContainer.setVisible(hasToDrop);
-        toDropContainer.setManaged(hasToDrop);
-    }
-
-    private void updateMyShipmentsVisibility() {
-        myShipmentsContainer.setVisible(true);
-        myShipmentsContainer.setManaged(true);
-    }
-
-    private void applyTabsVisibilityRules() {
-        boolean showEmpty = !state.isHasMyShipments() && !state.isHasMyTransports();
-
-        emptyMessageLabel.setVisible(showEmpty);
-        emptyMessageLabel.setManaged(showEmpty);
-
-        buttonsContainer.setVisible(!showEmpty);
-        buttonsContainer.setManaged(!showEmpty);
-
-        myShipments.setVisible(state.isHasMyShipments());
-        myShipments.setManaged(state.isHasMyShipments());
-
-        myTransports.setVisible(state.isHasMyTransports());
-        myTransports.setManaged(state.isHasMyTransports());
-    }
-
     private void setActive(Button active, Button inactive) {
         if (!active.getStyleClass().contains("active-tab")) {
             active.getStyleClass().add("active-tab");
@@ -712,26 +542,14 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         inactive.getStyleClass().remove("active-tab");
     }
 
-    private void applyPermissions() {
-        boolean canViewMyShipments = permissions.canViewMyShipments();
-        myShipments.setDisable(!canViewMyShipments);
+    private void applyPermissions(boolean canViewShipments) {
+        buttonsContainer.setVisible(canViewShipments);
+        buttonsContainer.setManaged(canViewShipments);
+
+        shipmentsView.setVisible(canViewShipments);
+        shipmentsView.setManaged(canViewShipments);
+
+        transportsView.setVisible(!canViewShipments);
+        transportsView.setManaged(!canViewShipments);
     }
-
-    /* ================= Empty State ================= */
-    private void showEmptyState() {
-        clearSelection();
-
-        myShipmentsContainer.setVisible(false);
-        myShipmentsContainer.setManaged(false);
-
-        myTransportsContainer.setVisible(false);
-        myTransportsContainer.setManaged(false);
-
-        emptyMessageLabel.setVisible(true);
-        emptyMessageLabel.setManaged(true);
-
-        buttonsContainer.setVisible(false);
-        buttonsContainer.setManaged(false);
-    }
-
 }
