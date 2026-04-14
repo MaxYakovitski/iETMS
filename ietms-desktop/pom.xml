@@ -14,7 +14,7 @@
     </parent>
 
     <artifactId>ietms-desktop</artifactId>
-    <version>0.1.11</version>
+    <version>0.1.12</version>
     <packaging>jar</packaging>
 
     <name>ietms-desktop</name>
