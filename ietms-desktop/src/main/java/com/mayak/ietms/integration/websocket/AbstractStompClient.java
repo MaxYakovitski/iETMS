@@ -30,7 +30,7 @@ public class AbstractStompClient {
      */
     public synchronized void requestConnect() {
         desiredConnected = true;
-        log.warn("{} requestConnect()", getClass().getSimpleName());
+        log.debug("{} requestConnect()", getClass().getSimpleName());
     }
 
     /**
@@ -39,7 +39,7 @@ public class AbstractStompClient {
      */
     public synchronized void requestDisconnect() {
         desiredConnected = false;
-        log.warn("{} requestDisconnect()", getClass().getSimpleName());
+        log.debug("{} requestDisconnect()", getClass().getSimpleName());
         disconnectSession();
     }
 

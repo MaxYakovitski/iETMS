@@ -26,17 +26,22 @@ public class PlannerRealtimeHandler {
     /**
      * Subscribes to shipment and company WebSocket streams.
      *
-     * @return unsubscribe callback for the company stream — must be called on view hide
+     * @return unsubscribe callback for both streams — must be called on view hide
      */
     public Runnable init(Set<String> companySuggestions, Runnable onStatusChanged, Consumer<Long> onInvalidate) {
 
-        shipmentStompClient.connect(event -> Platform.runLater(() -> {
+        Runnable shipmentUnsub = shipmentStompClient.connect(event -> Platform.runLater(() -> {
             handleShipmentEvent(event, onStatusChanged, onInvalidate);
             handleShipmentUserEvent(event);
         }));
 
-        return companyStompClient.connect(event ->
+        Runnable companyUnsub = companyStompClient.connect(event ->
                 Platform.runLater(() -> CompanyEventHandler.apply(event, companySuggestions)));
+
+        return () -> {
+            shipmentUnsub.run();
+            companyUnsub.run();
+        };
     }
 
     private void handleShipmentEvent(ShipmentEvent<ShipmentEventDto> event, Runnable onStatusChanged, Consumer<Long> onInvalidate) {

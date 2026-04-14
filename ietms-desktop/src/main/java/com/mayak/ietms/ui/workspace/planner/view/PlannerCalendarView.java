@@ -28,7 +28,7 @@ public class PlannerCalendarView extends VBox {
     private final Locale locale = Locale.UK;
     private final WeekFields weekFields = WeekFields.of(locale);
 
-    private final ObjectProperty<LocalDate> selectedDate = new SimpleObjectProperty<>(LocalDate.now());
+    private final ObjectProperty<LocalDate> selectedDate = new SimpleObjectProperty<>(null);
     private final Map<LocalDate, Button> dayButtons = new HashMap<>();
 
     private YearMonth currentMonth = YearMonth.now();
@@ -74,16 +74,15 @@ public class PlannerCalendarView extends VBox {
 
     /**
      * Resets the calendar to today's date and current month.
-     * Fires the {@code selectedDate} property change even if today was already selected.
+     * Fires {@code selectedDate} only if the selected date has changed.
      */
     public void resetToToday() {
         LocalDate today = LocalDate.now();
         currentMonth = YearMonth.now();
         updateHeader();
-        if (today.equals(selectedDate.get())) {
-            selectedDate.set(null);
+        if (!today.equals(selectedDate.get())) {
+            selectedDate.set(today);
         }
-        selectedDate.set(today);
         renderCalendar();
     }
 
@@ -95,8 +94,7 @@ public class PlannerCalendarView extends VBox {
 
     private void updateHeader() {
         yearLabel.setText(String.valueOf(currentMonth.getYear()));
-        monthLabel.setText(currentMonth.getMonth()
-                .getDisplayName(TextStyle.FULL, locale));
+        monthLabel.setText(currentMonth.getMonth().getDisplayName(TextStyle.FULL, locale));
     }
 
     private Button createNavButton(String iconPath) {

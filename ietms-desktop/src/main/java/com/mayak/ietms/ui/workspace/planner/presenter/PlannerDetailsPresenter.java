@@ -22,7 +22,7 @@ public class PlannerDetailsPresenter {
     private final PlannerStatusEditPolicy statusEditPolicy;
 
 
-    public void hideAll(VBox shipmentDetails, VBox shipmentTimeline, VBox transportDetails, VBox transportTimeline, Button cancelButton) {
+    public void hideShipmentDetails(VBox shipmentDetails, VBox shipmentTimeline, Button cancelButton) {
         shipmentDetails.setVisible(false);
         shipmentDetails.setManaged(false);
 
@@ -30,15 +30,17 @@ public class PlannerDetailsPresenter {
         shipmentTimeline.setVisible(false);
         shipmentTimeline.setManaged(false);
 
+        cancelButton.setVisible(false);
+        cancelButton.setManaged(false);
+    }
+
+    public void hideTransportDetails(VBox transportDetails, VBox transportTimeline) {
         transportDetails.setVisible(false);
         transportDetails.setManaged(false);
 
         transportTimeline.getChildren().clear();
         transportTimeline.setVisible(false);
         transportTimeline.setManaged(false);
-
-        cancelButton.setVisible(false);
-        cancelButton.setManaged(false);
     }
 
     public void showShipmentDetails(ShipmentListItemDto dto,

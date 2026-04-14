@@ -20,6 +20,8 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -37,7 +39,7 @@ public class ShipmentStompClient extends AbstractStompClient {
     private final String wsUrl;
     private final AuthState authState;
 
-    private Consumer<ShipmentEvent<ShipmentEventDto>> onEventHandler;
+    private final List<Consumer<ShipmentEvent<ShipmentEventDto>>> handlers = new CopyOnWriteArrayList<>();
 
     public ShipmentStompClient(AuthState authState, BackendProperties backendProperties) {
         this.authState = authState;
@@ -51,14 +53,16 @@ public class ShipmentStompClient extends AbstractStompClient {
      * Public API.
      * Declares intent that WS must stay connected.
      */
-    public void connect(Consumer<ShipmentEvent<ShipmentEventDto>> onEvent) {
-        this.onEventHandler = onEvent;
-
+    public Runnable connect(Consumer<ShipmentEvent<ShipmentEventDto>> onEvent) {
+        handlers.add(onEvent);
         requestConnect();
-
         if (!connected && !shuttingDown) {
             doConnect();
         }
+        return () -> {
+            handlers.remove(onEvent);
+            if (handlers.isEmpty()) requestDisconnect();
+        };
     }
 
     /**
@@ -79,7 +83,7 @@ public class ShipmentStompClient extends AbstractStompClient {
                 ShipmentStompClient.this.session = session;
                 connected = true;
 
-                session.subscribe("/user" + QUEUE_SHIPMENTS, frameHandler(onEventHandler));
+                session.subscribe("/user" + QUEUE_SHIPMENTS, frameHandler(e -> handlers.forEach(h -> h.accept(e))));
             }
 
             @Override

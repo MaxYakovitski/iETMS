@@ -433,23 +433,31 @@
     -fx-border-color: #306eed;
 }
 
-#loadingOverlay, #shipmentsLoadingOverlay, #transportsLoadingOverlay {
+#loadingOverlay,
+#shipmentsLoadingOverlay,
+#transportsLoadingOverlay {
     -fx-background-color: rgba(255, 255, 255, 0.9);
 }
 
-#loadingOverlay, #shipmentsLoadingOverlay, #transportsLoadingOverlay Label {
+#loadingOverlay Label,
+#shipmentsLoadingOverlay Label,
+#transportsLoadingOverlay Label {
     -fx-text-fill: #c8c8c8;
     -fx-font-size: 13px;
 }
 
-#loadingOverlay, #shipmentsLoadingOverlay, #transportsLoadingOverlay ProgressIndicator {
+#loadingOverlay ProgressIndicator,
+#shipmentsLoadingOverlay ProgressIndicator,
+#transportsLoadingOverlay ProgressIndicator {
     -fx-progress-color: #c8c8c8;
     -fx-pref-width: 60px;
     -fx-pref-height: 60px;
     -fx-background-color: transparent;
 }
 
-#loadingOverlay, #shipmentsLoadingOverlay, #transportsLoadingOverlay ProgressIndicator .spinner {
+#loadingOverlay ProgressIndicator .spinner,
+#shipmentsLoadingOverlay ProgressIndicator .spinner,
+#transportsLoadingOverlay ProgressIndicator .spinner {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
 }

@@ -95,7 +95,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     private final PlannerRealtimeHandler realtimeHandler;
     private final PlannerListManager listManager;
 
-    private Runnable companyWsUnsubscribe;
+    private Runnable wsUnsubscribe;
 
     /* ================= State ================= */
     private final PlannerState state = new PlannerState();
@@ -137,15 +137,15 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     @Override
     public void onHide() {
-        if (companyWsUnsubscribe != null) {
-            companyWsUnsubscribe.run();
-            companyWsUnsubscribe = null;
+        if (wsUnsubscribe != null) {
+            wsUnsubscribe.run();
+            wsUnsubscribe = null;
         }
     }
 
     /* ================= Realtime Updates ================= */
     private void initShipmentRealtimeUpdates() {
-        companyWsUnsubscribe = realtimeHandler.init(
+        wsUnsubscribe = realtimeHandler.init(
                 companySuggestions,
                 () -> {
                     if (permissions.canViewMyShipments()) loadShipments(state.getSelectedDate());
@@ -169,7 +169,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         calendarView.selectedDateProperty()
                 .addListener((obs, oldD, newD) -> {
                     if (newD == null) return;
-                    clearSelection();
+                    clearShipmentSelection();
                     loadShipments(newD);
                 });
         statusEditPolicy.configure(shipmentStatusComboBox);
@@ -365,6 +365,8 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     /* ================= Core Orchestration ================= */
     private void loadShipments(LocalDate date) {
         state.setSelectedDate(date);
+        shipmentsLoadingOverlay.setVisible(true);
+        shipmentsLoadingOverlay.setManaged(true);
 
         CompletableFuture.supplyAsync(() -> dataService.loadMyShipments(date))
                 .thenAccept(result -> Platform.runLater(() -> {
@@ -372,10 +374,19 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
                     if (state.getSelectedShipment() != null) {
                         Long selectedId = state.getSelectedShipment().id();
-                        IntStream.range(0, result.size())
-                                .filter(i -> Objects.equals(result.get(i).id(), selectedId))
+                        result.stream()
+                                .filter(s -> Objects.equals(s.id(), selectedId))
                                 .findFirst()
-                                .ifPresent(shipmentsListView.getSelectionModel()::select);
+                                .ifPresent(fresh -> {
+                                    state.setSelectedShipment(fresh);
+                                    showMyShipmentDetails(fresh);
+                                    restoringSelection = true;
+                                    IntStream.range(0, result.size())
+                                            .filter(i -> Objects.equals(result.get(i).id(), selectedId))
+                                            .findFirst()
+                                            .ifPresent(shipmentsListView.getSelectionModel()::select);
+                                    restoringSelection = false;
+                                });
                     }
 
                     state.setHasMyShipments(!result.isEmpty());
@@ -390,6 +401,10 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                 }))
                 .exceptionally(ex -> {
                     log.warn("Failed to load shipments for {}", date, ex);
+                    Platform.runLater(() -> {
+                        shipmentsLoadingOverlay.setVisible(false);
+                        shipmentsLoadingOverlay.setManaged(false);
+                    });
                     return null;
                 });
     }
@@ -453,7 +468,8 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     private void switchTab(ActiveTab tab) {
         if (state.getActiveTab() != tab) {
-            clearSelection();
+            clearShipmentSelection();
+            clearTransportSelection();
         }
 
         state.setActiveTab(tab);
@@ -513,25 +529,25 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         updateSubmitState();
     }
 
-    private void hideDetailsCompletely() {
-        detailsPresenter.hideAll(shipmentDetailsContainer, shipmentTimelineContainer, transportDetailsContainer, transportTimelineContainer, cancelButton);
-    }
-
-    private void clearSelection() {
+    private void clearShipmentSelection() {
         state.setSelectedShipment(null);
         shipmentsListView.getSelectionModel().clearSelection();
-        transportsListView.getSelectionModel().clearSelection();
-        hideDetailsCompletely();
+        detailsPresenter.hideShipmentDetails(shipmentDetailsContainer, shipmentTimelineContainer, cancelButton);
+    }
 
+    private void clearTransportSelection() {
+        state.setSelectedShipment(null);
+        transportsListView.getSelectionModel().clearSelection();
         carrierField.clear();
-        commentsTextArea.clear();
         licensePlateField.clear();
         transportOrder.clear();
         shipmentStatusComboBox.setValue(null);
         statusEditPolicy.reset(dateAndTime, timeSpinner);
+        commentsTextArea.clear();
         formState.reset();
         updateSubmitState();
         showTimeStampsButton.reset();
+        detailsPresenter.hideTransportDetails(transportDetailsContainer, transportTimelineContainer);
     }
 
     /* ================= UI Helpers ================= */

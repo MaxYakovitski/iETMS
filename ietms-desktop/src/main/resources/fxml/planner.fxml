@@ -10,14 +10,12 @@
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.ProgressIndicator?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.geometry.Insets?>
 <?import java.lang.String?>
 <?import com.mayak.ietms.ui.workspace.planner.view.PlannerDateView?>
 <?import com.mayak.ietms.ui.workspace.planner.view.PlannerCalendarView?>
-
 <?import com.mayak.ietms.ui.workspace.planner.view.TimelineToggleButton?>
+
 <VBox xmlns="http://javafx.com/javafx/21.0.7"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.mayak.ietms.ui.workspace.planner.controller.PlannerController"
@@ -67,29 +65,28 @@
                 style="-fx-background-color: #c8c8c8;"/>
 
         <!-- Right: shipments list -->
-        <StackPane HBox.hgrow="ALWAYS">
-            <VBox fx:id="shipmentsContentContainer" spacing="10" HBox.hgrow="ALWAYS">
-                <StackPane VBox.vgrow="ALWAYS">
-                    <ListView fx:id="shipmentsListView"  VBox.vgrow="ALWAYS">
-                        <styleClass>
-                            <String fx:value="app-list-view"/>
-                            <String fx:value="scroll-minimal"/>
-                        </styleClass>
-                    </ListView>
+        <VBox fx:id="shipmentsContentContainer" spacing="10" HBox.hgrow="ALWAYS">
+            <StackPane VBox.vgrow="ALWAYS">
+                <ListView fx:id="shipmentsListView">
+                    <styleClass>
+                        <String fx:value="app-list-view"/>
+                        <String fx:value="scroll-minimal"/>
+                    </styleClass>
+                </ListView>
 
-                    <Label fx:id="shipmentsEmptyMessageLabel"
-                           text="Oops! No shipments found..."
-                           visible="false" managed="false"
-                           style="-fx-opacity: 0.5;"/>
+                <Label fx:id="shipmentsEmptyMessageLabel"
+                       text="Oops! No shipments found..."
+                       visible="false" managed="false"
+                       style="-fx-opacity: 0.5;"/>
+
+                <StackPane fx:id="shipmentsLoadingOverlay" visible="false">
+                    <VBox alignment="CENTER" spacing="10">
+                        <ProgressIndicator/>
+                        <Label text="loading..."/>
+                    </VBox>
                 </StackPane>
-            </VBox>
-            <StackPane fx:id="shipmentsLoadingOverlay">
-                <VBox alignment="CENTER" spacing="10">
-                    <ProgressIndicator/>
-                    <Label text="loading..."/>
-                </VBox>
             </StackPane>
-        </StackPane>
+        </VBox>
     </HBox>
 
     <!-- ═══ My Transports view ═══ -->
@@ -139,30 +136,27 @@
             style="-fx-background-color: #c8c8c8;"/>
 
         <!-- Right: transports list -->
-        <StackPane HBox.hgrow="ALWAYS">
-            <VBox fx:id="transportsContentContainer" spacing="10" HBox.hgrow="ALWAYS">
-                <StackPane VBox.vgrow="ALWAYS">
-                        <ListView fx:id="transportsListView"  VBox.vgrow="ALWAYS">
-                            <styleClass>
-                                <String fx:value="app-list-view"/>
-                                <String fx:value="scroll-minimal"/>
-                            </styleClass>
-                        </ListView>
+        <VBox fx:id="transportsContentContainer" spacing="10" HBox.hgrow="ALWAYS">
+            <StackPane VBox.vgrow="ALWAYS">
+                <ListView fx:id="transportsListView"  VBox.vgrow="ALWAYS">
+                    <styleClass>
+                        <String fx:value="app-list-view"/>
+                        <String fx:value="scroll-minimal"/>
+                    </styleClass>
+                </ListView>
 
-                    <Label fx:id="transportsEmptyLabel"
-                           text="Oops! No transports found..."
-                           visible="false" managed="false"
-                           style="-fx-opacity: 0.5;"/>
+                <Label fx:id="transportsEmptyLabel"
+                       text="Oops! No transports found..."
+                       visible="false" managed="false"
+                       style="-fx-opacity: 0.5;"/>
+                <StackPane fx:id="transportsLoadingOverlay" visible="false">
+                    <VBox alignment="CENTER" spacing="10">
+                        <ProgressIndicator/>
+                        <Label text="loading..."/>
+                    </VBox>
                 </StackPane>
-
-            </VBox>
-            <StackPane fx:id="transportsLoadingOverlay">
-                <VBox alignment="CENTER" spacing="10">
-                    <ProgressIndicator/>
-                    <Label text="loading..."/>
-                </VBox>
             </StackPane>
-        </StackPane>
+            </VBox>
     </HBox>
 
 </VBox>
