@@ -1,4 +1,4 @@
-package com.mayak.ietms.integration.bridge.server;
+package com.mayak.ietms.integration.nativemessaging;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
