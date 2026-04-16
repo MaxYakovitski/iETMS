@@ -5,6 +5,7 @@ import com.mayak.ietms.features.request.domain.model.RefuseReason;
 import com.mayak.ietms.features.request.infra.mapping.RefuseReasonMapper;
 import com.mayak.ietms.features.shipment.application.notify.ShipmentNotificationService;
 import com.mayak.ietms.features.user.application.UserQueryService;
+import com.mayak.ietms.features.user.domain.enums.UserType;
 import com.mayak.ietms.request.dto.create.BaseRequestDto;
 import com.mayak.ietms.request.dto.create.ContractRequestDto;
 import com.mayak.ietms.features.company.domain.model.Company;
@@ -43,17 +44,30 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Orchestrates the full lifecycle of a request —
+ * creation, competitor management, bidding, offer, acceptance and deletion.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RequestLifecycleService {
 
+    // repositories
     private final RequestRepository requestRepository;
     private final ShipmentRepository shipmentRepository;
     private final BidRepository bidRepository;
     private final LaneRepository laneRepository;
+
+    // mappers
+    private final LocationMapper locationMapper;
+    private final RefuseReasonMapper refuseReasonMapper;
+
+    // validators / factories
     private final RequestContractValidator requestContractValidator;
     private final RequestFactory requestFactory;
+
+    // services
     private final UserQueryService userQueryService;
     private final RequestNotificationService requestNotificationService;
     private final ShipmentNotificationService shipmentNotificationService;
@@ -62,8 +76,6 @@ public class RequestLifecycleService {
     private final CompanyService companyService;
     private final RequestLifecycle lifecycle;
     private final LocationCommandService locationCommandService;
-    private final LocationMapper locationMapper;
-    private final RefuseReasonMapper refuseReasonMapper;
 
     @Transactional
     public Request create(BaseRequestDto dto, Long userId) {
@@ -215,6 +227,12 @@ public class RequestLifecycleService {
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
+    /**
+     * Deletes a request and notifies all participants.
+     *
+     * <p>Only the request author or an admin may delete a request.
+     * Deletion is blocked if a shipment already exists for this request.
+     */
     @Transactional
     public void delete(Long requestId, Long userId) {
         User actor = userQueryService.getEntityById(userId);
@@ -223,8 +241,9 @@ public class RequestLifecycleService {
         Request request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
 
-        if (!request.isAuthoredBy(actor.getId())) {
-            throw new UnauthorizedException("Only author can delete request");
+        boolean isAdmin = actor.getUserType() == UserType.ADMIN;
+        if (!request.isAuthoredBy(actor.getId()) && !isAdmin) {
+            throw new UnauthorizedException("Only author or admin can delete request");
         }
 
         if (shipmentRepository.existsByRequestId(requestId)) {

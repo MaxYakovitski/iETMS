@@ -3,12 +3,17 @@ package com.mayak.ietms.ui.workspace.request.item;
 import com.mayak.ietms.request.dto.enums.RequestStatusDto;
 import com.mayak.ietms.request.dto.view.RequestDetailsDto;
 import com.mayak.ietms.user.dto.UserResponseDto;
+import com.mayak.ietms.user.dto.enums.UserTypeDto;
 import lombok.NoArgsConstructor;
 
+/**
+ * Determines UI button visibility for a request list item
+ * based on the current user's role and request state.
+ */
 @NoArgsConstructor
 public class RequestItemUiPolicy {
 
-    // ----------- ROLE -----------
+    // ----------- PREDICATES -----------
     public static boolean isAuthor(RequestDetailsDto dto, UserResponseDto user) {
         return dto != null
                 && user != null
@@ -48,7 +53,12 @@ public class RequestItemUiPolicy {
         return isAuthor(dto, user);
     }
 
+    /**
+     * Authors can delete their own requests.
+     * Admins can delete any request regardless of authorship.
+     */
     public static boolean canDelete(RequestDetailsDto dto, UserResponseDto user) {
-        return isAuthor(dto, user);
+        if (dto == null || user == null) return false;
+        return isAuthor(dto, user) || user.userType() == UserTypeDto.ADMIN;
     }
 }
