@@ -21,9 +21,8 @@
         </VBox>
         <VBox fx:id="toISOContainer" prefWidth="18" minHeight="60" spacing="5" alignment="CENTER"/>
 
-        <VBox prefWidth="90" minHeight="60"
-              spacing="5" alignment="CENTER">
-            <Label fx:id="customerReference"/>
+        <VBox prefWidth="90" minHeight="60" spacing="5" fillWidth="false" alignment="CENTER_LEFT">
+            <TextField fx:id="customerReference" focusTraversable="false" editable="false" styleClass="request-textfield"/>
             <Label fx:id="customer"/>
         </VBox>
 

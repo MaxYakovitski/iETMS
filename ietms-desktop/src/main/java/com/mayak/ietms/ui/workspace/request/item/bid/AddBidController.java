@@ -4,7 +4,6 @@ import com.mayak.ietms.request.dto.bid.BidCreateDto;
 import com.mayak.ietms.integration.api.BidClient;
 import com.mayak.ietms.infrastructure.common.ErrorUtils;
 import com.mayak.ietms.infrastructure.common.PriceFieldUtils;
-import com.mayak.ietms.infrastructure.common.TextUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -54,10 +53,11 @@ public class AddBidController {
             return;
         }
 
+        String comment = commentsInput.getText();
         BidCreateDto dto = new BidCreateDto(
                 requestId,
                 amount,
-                commentsInput.getText() == null ? "" : commentsInput.getText()
+                comment == null ? "" : comment.trim()
         );
 
         bidClient.create(dto);
@@ -71,26 +71,4 @@ public class AddBidController {
         if (stage != null) stage.close();
     }
 
-    public BigDecimal getBidAmount() {
-        try {
-            String text = bidInput.getText().replace(",", ".");
-            if (text.isEmpty()) return null;
-            return new BigDecimal(text);
-        } catch (NumberFormatException e) {
-            log.warn("Invalid bid amount: {}", bidInput.getText());
-            return null;
-        }
-    }
-
-    private void removeError() {
-        ErrorUtils.removeErrorStyle(bidInput);
-    }
-
-    private boolean validatePrice() {
-        if (getBidAmount() == null) {
-            ErrorUtils.addErrorStyle(bidInput);
-            return false;
-        }
-        return true;
-    }
 }

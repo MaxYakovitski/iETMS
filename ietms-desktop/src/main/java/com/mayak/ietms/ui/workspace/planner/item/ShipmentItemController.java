@@ -36,11 +36,11 @@ public class ShipmentItemController implements ViewLifecycle {
 
     @FXML public HBox requestPane;
     @FXML public VBox fromISOContainer, toISOContainer, fromPointContainer, toPointContainer;
-    @FXML public Label customerReference, customer, dataStart, dataEnd, shipmentType, transportType, dangerousCheck,
+    @FXML public Label customer, dataStart, dataEnd, shipmentType, transportType, dangerousCheck,
             temperature, weight, loadingMeters, rIDLabel, tIdLabel, requestTypeLabel, customerPriceLabel,
             carrierLabel, carrierPriceLabel, authorName, authorSurname, statusLabel;
     @FXML public Button commentsButton;
-    @FXML public TextField rId, tId;
+    @FXML public TextField customerReference, rId, tId;
 
     private static final String COMMENTS_ICON = "/icons/comments.png";
 
@@ -62,8 +62,9 @@ public class ShipmentItemController implements ViewLifecycle {
 
     @FXML
     private void initialize() {
-        LabelTooltipUtils.attachAutoTooltip(customerReference, customer, carrierLabel, authorName);
+        LabelTooltipUtils.attachAutoTooltip(customer, carrierLabel, authorName);
 
+        ControlSizingUtils.fitTextFieldToDigits(customerReference);
         ControlSizingUtils.fitTextFieldToDigits(rId);
         ControlSizingUtils.fitTextFieldToDigits(tId);
     }
@@ -124,7 +125,7 @@ public class ShipmentItemController implements ViewLifecycle {
 
     private void applyStyles() {
         ItemStyleUtils.applyDefaultTextColor(
-                customerReference, customer, dataStart, dataEnd,
+                customer, dataStart, dataEnd,
                 shipmentType, transportType,
                 temperature, weight, loadingMeters,
                 rIDLabel, tIdLabel, requestTypeLabel,

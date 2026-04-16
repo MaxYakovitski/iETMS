@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class ItemVisibilityUtils {
 
     public static void applyStandardRules(
-            Label customerReference,
+            TextField customerReference,
             Label customer,
             Label dangerousCheck,
             Label temperature,

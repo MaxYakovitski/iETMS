@@ -11,6 +11,7 @@ import com.mayak.ietms.infrastructure.common.TextUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -28,10 +29,8 @@ public class BidItemController implements ViewLifecycle, SecuredView {
 
     @FXML
     private HBox root;
-    @FXML private Label amountLabel;
-    @FXML private Label authorLabel;
-    @FXML private Label timeLabel;
-    @FXML private Label commentLabel;
+    @FXML private Label amountLabel, authorLabel, timeLabel;
+    @FXML private TextArea comments;
     @FXML private Button deleteButton;
 
     private final BidClient bidClient;
@@ -67,9 +66,9 @@ public class BidItemController implements ViewLifecycle, SecuredView {
         }
 
         boolean hasComment = bid.comment() != null && !bid.comment().isBlank();
-        commentLabel.setVisible(hasComment);
-        commentLabel.setManaged(hasComment);
-        commentLabel.setText(hasComment ? bid.comment() : "");
+        comments.setVisible(hasComment);
+        comments.setManaged(hasComment);
+        comments.setText(hasComment ? bid.comment() : "");
 
         boolean isOwner =
                 bid.userId() != null &&

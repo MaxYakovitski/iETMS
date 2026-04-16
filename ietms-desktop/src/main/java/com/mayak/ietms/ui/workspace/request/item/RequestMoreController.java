@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,8 @@ public class RequestMoreController {
     private final RequestClient requestClient;
 
     @Setter
+    private Stage stage;
+    @Setter
     private RequestDetailsDto details;
     @Setter
     private Runnable onTidUpdated;
@@ -46,7 +49,7 @@ public class RequestMoreController {
     @FXML
     public void handleSave() {
         saveTId();
-        tidContainer.requestFocus();
+        if (stage != null) stage.close();
     }
 
     private void renderParticipants() {

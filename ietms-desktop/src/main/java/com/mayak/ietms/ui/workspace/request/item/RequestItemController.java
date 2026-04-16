@@ -51,9 +51,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RequestItemController implements ViewLifecycle, SecuredView {
 
-    @FXML public Label customerReference, customer, rIDLabel, tIdLabel, dataStart, dataEnd, requestTypeLabel, shipmentType, transportType,
+    @FXML public Label customer, rIDLabel, tIdLabel, dataStart, dataEnd, requestTypeLabel, shipmentType, transportType,
             dangerousCheck, temperature, weight, loadingMeters, status, customerPriceLabel, authorFullName, requestDateTime;
-    @FXML public TextField rId, tId;
+    @FXML public TextField customerReference, rId, tId;
     @Getter
     @FXML public HBox requestPane;
     @FXML public Button commentsButton, joinButton, bidButton, priceButton, confirmedAndOfferedButton, acceptButton,
@@ -84,9 +84,10 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
 
     @FXML
     void initialize() {
-        LabelTooltipUtils.attachAutoTooltip(customerReference, customer, authorFullName);
+        LabelTooltipUtils.attachAutoTooltip(customer, authorFullName);
         priceButton.setOnAction(event -> showBidHistory());
 
+        ControlSizingUtils.fitTextFieldToDigits(customerReference);
         ControlSizingUtils.fitTextFieldToDigits(rId);
         ControlSizingUtils.fitTextFieldToDigits(tId);
     }
@@ -154,7 +155,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         requestDateTime.setText(localDateTime.format(TextUtils.DATE_TIME_FORMATTER));
 
         ItemStyleUtils.applyDefaultTextColor(
-                customerReference, customer, dataStart,
+                customer, dataStart,
                 dataEnd, shipmentType, transportType,
                 temperature, weight, loadingMeters,
                 rIDLabel, tIdLabel, customerPriceLabel,
