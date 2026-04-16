@@ -43,7 +43,7 @@ public class CompanyController extends AbstractSettingsController<CompanyDto, Co
 
     @FXML
     public void initialize() {
-        TextUtils.allowOnlyLatin(true, companyNameField);
+        TextUtils.allowOnlyLatin(companyNameField);
         companiesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         companyNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().name()));
 

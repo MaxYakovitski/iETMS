@@ -53,7 +53,7 @@ public class DepartmentSettingsController extends AbstractSettingsController<Dep
 
     @FXML
     public void initialize() {
-        TextUtils.allowOnlyLatin(true, deptNameField, deptCodeField);
+        TextUtils.allowOnlyLatin(deptNameField, deptCodeField);
         departmentsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         deptCodeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().code()));
         deptNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().name()));

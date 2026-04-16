@@ -53,7 +53,7 @@ public class LocationSettingsController extends AbstractSettingsController<Locat
 
     @FXML
     public void initialize() {
-        TextUtils.allowOnlyLatin(true, countryCodeField, zipCodeField, placeNameField);
+        TextUtils.allowOnlyLatin(countryCodeField, zipCodeField, placeNameField);
         locationsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         locIsoCodeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().countryCode()));
         locZipCodeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().zipCode()));

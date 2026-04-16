@@ -156,7 +156,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     @FXML
     private void initialize() {
-        TextUtils.allowOnlyLatin(true, carrierField, licensePlateField, transportOrder);
+        TextUtils.allowOnlyLatin(carrierField, licensePlateField, transportOrder);
         validationUI = new ValidationUIHelper(
                 Map.of(
                         "statusDate", dateAndTime,

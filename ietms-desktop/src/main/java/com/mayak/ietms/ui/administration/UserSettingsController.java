@@ -55,7 +55,7 @@ public class UserSettingsController extends AbstractSettingsController<UserRespo
 
     @FXML
     public void initialize() {
-        TextUtils.allowOnlyLatin(true, userNameField, userSurnameField, userEmailField, userPasswordField);
+        TextUtils.allowOnlyLatin(userNameField, userSurnameField, userEmailField, userPasswordField);
 
         setupTable();
         setupCombos();

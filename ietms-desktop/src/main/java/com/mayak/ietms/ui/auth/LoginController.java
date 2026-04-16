@@ -29,7 +29,7 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        TextUtils.allowOnlyLatin(true, loginField, passwordField);
+        TextUtils.allowOnlyLatin(loginField, passwordField);
         loginField.setOnAction(e -> login());
         passwordField.setOnAction(e -> login());
     }

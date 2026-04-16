@@ -129,7 +129,7 @@ public class RequestFilterController implements SecuredView, ViewLifecycle {
         ftlRadioButton.setToggleGroup(shipmentTypeGroup);
         ltlRadioButton.setToggleGroup(shipmentTypeGroup);
 
-        TextUtils.allowOnlyLatin(true, fromIsoField, fromZipField, fromPlaceField,
+        TextUtils.allowOnlyLatin(fromIsoField, fromZipField, fromPlaceField,
                 toIsoField, toZipField, companyField,weightFrom, weightTo,  ldmFromField, ldmToField);
 
         spotRadioButton.setUserData(RequestTypeDto.SPOT);
