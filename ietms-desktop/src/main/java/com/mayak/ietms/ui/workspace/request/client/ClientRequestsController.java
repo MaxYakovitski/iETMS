@@ -341,7 +341,6 @@ public class ClientRequestsController extends AbstractRequestController {
             Optional.ofNullable(renewedRequest).ifPresent(r -> {
                 try {
                     requestClient.delete(r);
-                    requestItems.removeIf(existing -> existing.id().equals(r));
                 } catch (Exception e) {
                     log.warn("Could not delete renewed request: {}", e.getMessage());
                 } finally {

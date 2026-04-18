@@ -346,7 +346,6 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
 
         try {
             actions.delete(requestId);
-            parent.getRequestItems().removeIf(it -> it.id().equals(requestId));
             requestId = null;
             dto = null;
 
@@ -371,12 +370,6 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
 
         try {
             actions.delete(requestId);
-
-            if (parent != null) {
-                parent.getRequestItems()
-                        .removeIf(it -> it != null && it.id() != null && it.id().equals(requestId));
-            }
-
             requestId = null;
             dto = null;
 

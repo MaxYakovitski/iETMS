@@ -46,27 +46,23 @@ public class MultiSelectComboBoxUtils {
         var model = checkComboBox.getCheckModel();
         BooleanProperty bulk = new SimpleBooleanProperty(false);
 
-        model.getCheckedItems().addListener((ListChangeListener<T>) item -> {
+        model.getCheckedItems().addListener((ListChangeListener<T>) change -> {
             if (bulk.get()) return;
-
             bulk.set(true);
 
-            boolean allChecked = model.isChecked(allItem);
-            int realTotal = sourceList.size();
-            int realChecked = (int) model.getCheckedItems()
-                    .stream()
-                    .filter(i -> i != allItem)
-                    .count();
-
-            if (allChecked && realChecked < realTotal) {
-                model.checkAll();
-            }
-            else if (!allChecked && realChecked == realTotal) {
-                model.clearChecks();
-            }
-            else {
-                if (realChecked == realTotal) {model.check(allItem);}
-                else {model.clearCheck(allItem);}
+            while (change.next()) {
+                if (change.wasAdded() && change.getAddedSubList().contains(allItem)) {
+                    model.checkAll();
+                }
+                else if (change.wasRemoved() && change.getRemoved().contains(allItem)) {
+                    model.clearChecks();
+                }
+                else {
+                    int realChecked = (int) model.getCheckedItems().stream()
+                            .filter(i -> i != allItem).count();
+                    if (realChecked == sourceList.size()) model.check(allItem);
+                    else model.clearCheck(allItem);
+                }
             }
 
             bulk.set(false);

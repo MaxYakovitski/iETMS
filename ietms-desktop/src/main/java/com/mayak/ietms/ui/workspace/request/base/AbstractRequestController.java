@@ -450,14 +450,21 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     private void handleEventReceived(List<RequestEvent<RequestEventDto>> events) {
         if (!active || pauseUpdates || events.isEmpty()) return;
 
-        boolean statusChanged = events.stream()
+        boolean needsReload = events.stream()
                 .map(RequestEvent::getPayload)
                 .filter(Objects::nonNull)
                 .map(RequestEventDto::status)
                 .anyMatch(Objects::nonNull);
 
-        if (statusChanged) scheduleSortedReload();
-        events.stream().map(RequestEvent::getRequestId).distinct().forEach(this::invalidateRequest);
+        boolean hasDeleted = events.stream()
+                .anyMatch(e -> e.getType() == RequestEvent.EventType.DELETED);
+
+        if (needsReload || hasDeleted) scheduleSortedReload();
+
+        events.stream().filter(e -> e.getType() != RequestEvent.EventType.DELETED)
+                .map(RequestEvent::getRequestId)
+                .distinct()
+                .forEach(this::invalidateRequest);
     }
 
     private void scheduleSortedReload() {
@@ -482,6 +489,8 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
                 })
                 .thenAccept(result -> Platform.runLater(() -> {
                     requestItems.setAll(result.getContent());
+                    currentPage = 1;
+                    allLoaded = result.getContent().size() < PAGE_SIZE;
                     showEmptyMessage(result.getContent().isEmpty());
                 }));
     }
