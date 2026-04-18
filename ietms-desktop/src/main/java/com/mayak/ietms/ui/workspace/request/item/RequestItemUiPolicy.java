@@ -69,9 +69,12 @@ public class RequestItemUiPolicy {
     }
 
     /**
-     * Returns {@code true} if the author can edit (renew) the request.
+     * Returns {@code true} if the author can renew (edit) the request.
+     * Not available once the request reaches a final status.
      */
     public static boolean canEdit(RequestDetailsDto dto, UserResponseDto user) {
+        if (dto == null || user == null) return false;
+        if (dto.status() == RequestStatusDto.ACCEPTED || dto.status() == RequestStatusDto.REFUSED) return false;
         return isAuthor(dto, user);
     }
 
