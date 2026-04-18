@@ -224,7 +224,12 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         licensePlateField.textProperty()
                 .addListener((obs, o, n) -> markDirtyIfChanged());
         transportOrder.textProperty()
-                .addListener((obs, o, n) -> markDirtyIfChanged());
+                .addListener((obs, o, n) -> {
+                    markDirtyIfChanged();
+                    if (n == null || n.isBlank()) {
+                        validationUI.showClientErrors(List.of());
+                    }
+                });
         shipmentStatusComboBox.valueProperty()
                 .addListener((obs, oldVal, newVal) -> {
                     if (state.getSelectedShipment() == null) return;
