@@ -34,7 +34,6 @@ import com.mayak.ietms.ui.workspace.planner.policy.PlannerStatusEditPolicy;
 import com.mayak.ietms.ui.workspace.planner.view.PlannerCalendarView;
 import com.mayak.ietms.ui.workspace.request.item.RefuseReasonController;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
-import com.mayak.ietms.infrastructure.common.TextUtils;
 import com.mayak.ietms.infrastructure.fx.AutoCompleteUtils;
 import com.mayak.ietms.infrastructure.time.DatePickerUtils;
 import com.mayak.ietms.infrastructure.time.TimeSpinnerUtils;
