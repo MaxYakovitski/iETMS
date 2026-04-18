@@ -257,7 +257,7 @@ ORDER BY
         SELECT r
         FROM Request r
         WHERE r.status IN :statuses
-          AND r.issueDate < :threshold
+          AND r.startDate < :threshold
     """)
     List<Request> findExpiredRequests(@Param("statuses") Set<RequestStatus> statuses, @Param("threshold") Instant threshold);
 
