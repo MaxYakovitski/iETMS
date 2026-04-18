@@ -13,7 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RequestItemUiPolicy {
 
-    // ----------- PREDICATES -----------
+    /**
+     * Returns {@code true} if the given user is the author of the request.
+     */
     public static boolean isAuthor(RequestDetailsDto dto, UserResponseDto user) {
         return dto != null
                 && user != null
@@ -21,7 +23,11 @@ public class RequestItemUiPolicy {
                 && dto.author().id().equals(user.id());
     }
 
-    // ----------- JOIN -----------
+    /**
+     * Returns {@code true} if the join/unjoin button should be visible.
+     * Hidden for the request author. Visible if the user has already joined
+     * or can still join and the request is not yet finished.
+     */
     public static boolean canShowJoinButton(RequestDetailsDto dto, UserResponseDto user) {
         if (dto == null || user == null) return false;
         if (isAuthor(dto, user)) return false;
@@ -31,34 +37,63 @@ public class RequestItemUiPolicy {
         return dto.isJoined() || (dto.canJoin() && notFinished);
     }
 
-    // ----------- BID -----------
+    /**
+     * Returns {@code true} if the user can place a bid on the request.
+     */
     public static boolean canBid(RequestDetailsDto dto) {
         return dto != null && dto.canBid();
     }
 
-    // ----------- AUTHOR ACTIONS -----------
+    /**
+     * Returns {@code true} if the author can confirm (offer) the request.
+     * Only allowed when the request is in {@code BIDDING} status.
+     */
     public static boolean canConfirm(RequestDetailsDto dto, UserResponseDto user) {
         return isAuthor(dto, user) && dto.status() == RequestStatusDto.BIDDING;
     }
 
+    /**
+     * Returns {@code true} if the author can accept the offered request.
+     * Only allowed when the request is in {@code OFFERED} status.
+     */
     public static boolean canAccept(RequestDetailsDto dto, UserResponseDto user) {
         return isAuthor(dto, user) && dto.status() == RequestStatusDto.OFFERED;
     }
 
+    /**
+     * Returns {@code true} if the author can refuse the offered request.
+     * Only allowed when the request is in {@code OFFERED} status.
+     */
     public static boolean canRefuse(RequestDetailsDto dto, UserResponseDto user) {
         return isAuthor(dto, user) && dto.status() == RequestStatusDto.OFFERED;
     }
 
+    /**
+     * Returns {@code true} if the author can edit (renew) the request.
+     */
     public static boolean canEdit(RequestDetailsDto dto, UserResponseDto user) {
         return isAuthor(dto, user);
     }
 
     /**
+     * Returns {@code true} if the user can delete the request.
      * Authors can delete their own requests.
      * Admins can delete any request regardless of authorship.
      */
     public static boolean canDelete(RequestDetailsDto dto, UserResponseDto user) {
         if (dto == null || user == null) return false;
+        return isAuthor(dto, user) || user.userType() == UserTypeDto.ADMIN;
+    }
+
+    /**
+     * Returns {@code true} if the user can manually expire the request.
+     * Only allowed for requests in {@code NEW} or {@code IN_PROGRESS} status.
+     * Authors can expire their own requests.
+     * Admins can expire any request regardless of authorship.
+     */
+    public static boolean canExpire(RequestDetailsDto dto, UserResponseDto user) {
+        if (dto == null || user == null) return false;
+        if (dto.status() != RequestStatusDto.NEW && dto.status() != RequestStatusDto.IN_PROGRESS) return false;
         return isAuthor(dto, user) || user.userType() == UserTypeDto.ADMIN;
     }
 }

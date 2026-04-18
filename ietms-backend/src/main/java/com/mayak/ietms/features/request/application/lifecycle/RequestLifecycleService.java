@@ -1,5 +1,6 @@
 package com.mayak.ietms.features.request.application.lifecycle;
 
+import com.mayak.ietms.features.request.domain.enums.ReasonCode;
 import com.mayak.ietms.features.request.domain.lifecycle.RequestLifecycle;
 import com.mayak.ietms.features.request.domain.model.RefuseReason;
 import com.mayak.ietms.features.request.infra.mapping.RefuseReasonMapper;
@@ -46,7 +47,8 @@ import java.util.Objects;
 
 /**
  * Orchestrates the full lifecycle of a request —
- * creation, competitor management, bidding, offer, acceptance and deletion.
+ * creation, competitor management, bidding, offer,
+ * acceptance, expiry and deletion.
  */
 @Service
 @RequiredArgsConstructor
@@ -77,6 +79,10 @@ public class RequestLifecycleService {
     private final RequestLifecycle lifecycle;
     private final LocationCommandService locationCommandService;
 
+    /**
+     * Creates a new request on behalf of the given user,
+     * resolves the company and locations, and publishes a CREATED event.
+     */
     @Transactional
     public Request create(BaseRequestDto dto, Long userId) {
         User actor = userQueryService.getEntityById(userId);
@@ -110,6 +116,10 @@ public class RequestLifecycleService {
         return saved;
     }
 
+    /**
+     * Adds the user as a competitor on the request and recalculates its status.
+     * Does nothing if the user has already joined.
+     */
     @Transactional
     public void join(Long requestId, Long userId) {
         User actor = userQueryService.getEntityById(userId);
@@ -125,6 +135,10 @@ public class RequestLifecycleService {
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
+    /**
+     * Removes the user from request competitors and recalculates its status.
+     * Does nothing if the user has not joined.
+     */
     @Transactional
     public void leave(Long requestId, Long userId) {
         User actor = userQueryService.getEntityById(userId);
@@ -139,6 +153,10 @@ public class RequestLifecycleService {
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
+    /**
+     * Moves the request to {@code BIDDING} status when the first bid is placed.
+     * Does nothing if the request is already in {@code BIDDING} status.
+     */
     @Transactional
     public void bid(Long requestId, Long userId) {
         User actor = userQueryService.getEntityById(userId);
@@ -153,6 +171,10 @@ public class RequestLifecycleService {
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
+    /**
+     * Moves the request to {@code OFFERED} status.
+     * Requires at least one active bid. Does nothing if already {@code OFFERED}.
+     */
     @Transactional
     public void offer(Long requestId, Long userId) {
         User actor = userQueryService.getEntityById(userId);
@@ -174,6 +196,10 @@ public class RequestLifecycleService {
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
+    /**
+     * Accepts the request using the best active bid and an optional client price.
+     * Creates a shipment if one does not yet exist, and notifies all participants.
+     */
     @Transactional
     public void accept(Long requestId, BigDecimal clientPrice, Long userId) {
         User actor = userQueryService.getEntityById(userId);
@@ -201,6 +227,10 @@ public class RequestLifecycleService {
         requestNotificationService.publishToUser(dispatcherId, RequestEvent.EventType.UPDATED, request);
     }
 
+    /**
+     * Refuses the request with the given reason code.
+     * Blocked for requests already in a final state.
+     */
     @Transactional
     public void refuse(Long requestId, String reasonCode, Long userId) {
         User actor = userQueryService.getEntityById(userId);
@@ -223,6 +253,36 @@ public class RequestLifecycleService {
         }
 
         lifecycle.refuse(request, reason);
+        requestRepository.save(request);
+        requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
+    }
+
+    /**
+     * Manually expires the request by refusing it with reason {@code BID_NOT_PROVIDED},
+     * replicating the behaviour of the scheduled daily expiry job.
+     *
+     * <p>Only the request author or an admin may expire a request.
+     * Blocked for requests already in a final state.
+     */
+    @Transactional
+    public void expire(Long requestId, Long userId) {
+        User actor = userQueryService.getEntityById(userId);
+        accessService.requireAuthenticated(actor);
+
+        Request request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new RequestNotFoundException(requestId));
+
+        boolean isAdmin = actor.getUserType() == UserType.ADMIN;
+        if (!request.isAuthoredBy(actor.getId()) && !isAdmin) {
+            throw new UnauthorizedException("Only author or admin can expire request");
+        }
+
+        if (request.getStatus().isFinal()) {
+            throw new RequestStateException(requestId, request.getStatus(),
+                    "Cannot expire request in final state");
+        }
+
+        lifecycle.refuse(request, ReasonCode.BID_NOT_PROVIDED);
         requestRepository.save(request);
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
@@ -254,6 +314,9 @@ public class RequestLifecycleService {
         requestNotificationService.publishEvent(RequestEvent.EventType.DELETED, request);
     }
 
+    /**
+     * Recalculates and publishes the request status after bid changes.
+     */
     @Transactional
     public void onBidsChanged(Long requestId) {
         Request request = getOrThrow(requestId);
@@ -261,6 +324,11 @@ public class RequestLifecycleService {
         requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
     }
 
+    /**
+     * Updates the tracking ID (t.ID) of the request.
+     * Clears the t.ID if the provided value is blank.
+     * Notifies shipment participants if a shipment exists.
+     */
     @Transactional
     public void updateTid(Long requestId, String tid, Long userId) {
         User actor = userQueryService.getEntityById(userId);

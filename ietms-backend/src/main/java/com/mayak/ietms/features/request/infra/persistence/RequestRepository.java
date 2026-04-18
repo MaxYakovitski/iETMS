@@ -16,8 +16,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public interface RequestRepository extends JpaRepository<Request, Long>, JpaSpecificationExecutor<Request>, RequestRepositoryCustom {
+public interface RequestRepository
+        extends JpaRepository<Request, Long>, JpaSpecificationExecutor<Request>, RequestRepositoryCustom {
 
+    /**
+     * Returns all non-archived requests sorted by status priority
+     * (NEW → IN_PROGRESS → BIDDING → OFFERED → ACCEPTED → REFUSED),
+     * then by issue date descending within each status group.
+     */
     @Query("""         
 SELECT r FROM Request r
 WHERE r.archived = false
@@ -35,6 +41,10 @@ ORDER BY
 """)
     Page<Request> findAllActiveSorted(Pageable pageable);
 
+    /**
+     * Same ordering as {@link #findAllActiveSorted} but filtered by request type
+     * ({@link SpotRequest} or {@link ContractRequest}).
+     */
     @Query("""
 SELECT r FROM Request r
 WHERE r.archived = false
@@ -87,6 +97,10 @@ ORDER BY
                                    @Param("start") Instant start,
                                    @Param("end") Instant end);
 
+    /**
+     * Counts distinct requests that have at least one bid placed by the given user
+     * within the time range. Counts requests, not individual bids.
+     */
     @Query("""
         SELECT COUNT(DISTINCT b.request.id)
         FROM Bid b
@@ -161,6 +175,12 @@ ORDER BY
             @Param("toExclusive") Instant toExclusive
     );
 
+    /**
+     * Returns pairs of [refuseReason, count] for refused requests
+     * of the given type in the given department and date range.
+     * Result rows: {@code Object[0]} — reason code (String),
+     * {@code Object[1]} — count (Long).
+     */
     @Query("""
     SELECT r.refuseReason, COUNT(r)
     FROM Request r
@@ -237,6 +257,10 @@ ORDER BY
     """)
     boolean existsByCompetitor(@Param("userId") Long userId);
 
+    /**
+     * Checks whether the given location is referenced in any request's
+     * from/to location lists using a native PostgreSQL JSONB containment query.
+     */
     @Query(
             value = """
             select exists (
@@ -252,7 +276,11 @@ ORDER BY
 
     boolean existsByCustomer_Id(Long companyId);
 
-
+    /**
+     * Finds requests eligible for automatic expiry by the scheduler.
+     * Filters by status and {@code startDate} — requests whose start date
+     * is before the given threshold.
+     */
     @Query("""
         SELECT r
         FROM Request r
@@ -261,6 +289,11 @@ ORDER BY
     """)
     List<Request> findExpiredRequests(@Param("statuses") Set<RequestStatus> statuses, @Param("threshold") Instant threshold);
 
+    /**
+     * Finds non-archived requests eligible for archiving by the scheduler.
+     * Filters by status and {@code issueDate} — requests whose issue date
+     * is before the given threshold.
+     */
     @Query("""
         SELECT r
         FROM Request r

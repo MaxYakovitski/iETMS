@@ -1,5 +1,9 @@
 package com.mayak.ietms.ui.workspace.request.item;
 
+import com.mayak.ietms.infrastructure.error.AlertUtils;
+import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
+import com.mayak.ietms.infrastructure.error.UiError;
+import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.request.dto.view.RequestDetailsDto;
 import com.mayak.ietms.user.dto.UserLookupDto;
 import com.mayak.ietms.integration.api.RequestClient;
@@ -23,7 +27,7 @@ import java.util.stream.Collectors;
 public class RequestMoreController {
 
     @FXML public Label participantsLabel, participantsGroup, dispatchedToLabel, dispatcherFullName, tIdLabel;
-    @FXML public VBox tidContainer;
+    @FXML public VBox authorContainer, deleteContainer;
     @FXML public TextField tId;
 
     private final RequestClient requestClient;
@@ -34,22 +38,51 @@ public class RequestMoreController {
     private RequestDetailsDto details;
     @Setter
     private Runnable onTidUpdated;
+    @Setter
+    private Runnable onDeleted;
+    @Setter
+    private boolean canDelete;
 
     public void setRequest(RequestDetailsDto details) {
         if (details == null) return;
-
         this.details = details;
-
         renderParticipants();
         renderDispatcher();
         renderTid();
         setupTidAccess();
+        setupDeleteAccess();
     }
 
     @FXML
-    public void handleSave() {
+    public void handleSaveTidNumber() {
         saveTId();
         if (stage != null) stage.close();
+    }
+
+    @FXML
+    public void handleDelete() {
+        if (details == null) {
+            AlertUtils.showInfo("Request is already deleted.");
+            return;
+        }
+
+        boolean confirmed = AlertUtils.showConfirmation(
+                null,
+                "Are you sure you want to delete this request? This action cannot be undone.",
+                stage);
+        if (!confirmed) return;
+
+        try {
+            requestClient.delete(details.id());
+            details = null;
+            if (stage != null) stage.close();
+            if (onDeleted != null) onDeleted.run();
+
+        } catch (ApiException ex) {
+            UiError error = ApiErrorUtils.resolve(ex, "Failed to delete request.");
+            AlertUtils.show(error, stage);
+            log.warn("Delete request failed", ex);
+        }
     }
 
     private void renderParticipants() {
@@ -76,22 +109,22 @@ public class RequestMoreController {
 
     private void setupTidAccess() {
         boolean canEditTid = details.isAuthor();
+        authorContainer.setVisible(canEditTid);
+        authorContainer.setManaged(canEditTid);
+    }
 
-        tidContainer.setVisible(canEditTid);
-        tidContainer.setManaged(canEditTid);
-
+    private void setupDeleteAccess() {
+        deleteContainer.setVisible(canDelete);
+        deleteContainer.setManaged(canDelete);
     }
 
     private void saveTId() {
         if (details == null || !details.isAuthor()) return;
-
         requestClient.updateTid(details.id(), tId.getText());
         details = requestClient.getDetails(details.id());
-
         if (onTidUpdated != null) {
             onTidUpdated.run();
         }
-
         log.info("Updated tid='{}' for details {}", tId.getText(), details.id());
     }
 }

@@ -82,4 +82,14 @@ public class RequestCommandController {
             @CurrentUserId Long userId) {
         requestCommandService.updateTid(id, request.tid(), userId);
     }
+
+    /**
+     * Manually expires the request by refusing it with reason {@code BID_NOT_PROVIDED},
+     * replicating the behaviour of the scheduled daily expiry job.
+     * Only the request author or an admin may call this endpoint.
+     */
+    @PostMapping("/{id}/expire")
+    public void expire(@PathVariable("id") long id, @CurrentUserId Long userId) {
+        requestCommandService.expire(id, userId);
+    }
 }

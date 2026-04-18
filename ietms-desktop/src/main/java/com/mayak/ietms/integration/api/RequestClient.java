@@ -29,4 +29,9 @@ public interface RequestClient {
 
     RequestDetailsDto create(BaseRequestDto dto);
     void delete(long requestId);
+
+    /**
+     * Manually expires the request by refusing it with reason {@code BID_NOT_PROVIDED}.
+     */
+    void expire(long requestId);
 }

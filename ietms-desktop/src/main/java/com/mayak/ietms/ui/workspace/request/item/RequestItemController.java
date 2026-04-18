@@ -57,7 +57,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     @Getter
     @FXML public HBox requestPane;
     @FXML public Button commentsButton, joinButton, bidButton, priceButton, confirmedAndOfferedButton, acceptButton,
-            goToExchangeButton, refuseButton, renewButton, deleteButton, moreButton;
+            goToExchangeButton, refuseButton, renewButton, expireButton, moreButton;
     @FXML public VBox fromISOContainer, toISOContainer, fromPointContainer, toPointContainer;
     @FXML public ImageView joinImageView;
 
@@ -92,6 +92,11 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         ControlSizingUtils.fitTextFieldToDigits(tId);
     }
 
+    /**
+     * Binds a new request ID to this cell controller.
+     * Resets the DTO and initialization state if the ID has changed,
+     * preparing the cell for a fresh render cycle.
+     */
     public void bindRequest(Long requestId) {
         if (Objects.equals(this.requestId, requestId)) return;
         this.requestId = requestId;
@@ -111,12 +116,15 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         priceButton.setDisable(true);
     }
 
+    /**
+     * Attaches full request details to this controller.
+     * On first bind, renders the static (immutable) view;
+     * on subsequent updates, refreshes only the dynamic view.
+     */
     public void attachDetails(RequestDetailsDto dto) {
         boolean firstBind = !initialized;
-
         this.dto = dto;
         this.initialized = true;
-
         if (firstBind) initStaticView();
         updateDynamicView();
     }
@@ -129,7 +137,6 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         LocationUIHelper.addLocationLabels(dto.toLocations(), toISOContainer, toPointContainer);
 
         customerReference.setText(Optional.ofNullable(dto.customerReference()).orElse(""));
-
         customer.setText(Optional.ofNullable(dto.customer()).map(CompanyDto::name).map(String::toUpperCase).orElse(""));
 
         dataStart.setText(dto.startDate().toLocalDate().format(TextUtils.DATE_FORMATTER));
@@ -159,16 +166,14 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
                 dataEnd, shipmentType, transportType,
                 temperature, weight, loadingMeters,
                 rIDLabel, tIdLabel, customerPriceLabel,
-                requestTypeLabel, authorFullName, requestDateTime
-        );
+                requestTypeLabel, authorFullName, requestDateTime);
 
         status.setTextFill(StatusColorMapper.toColor(dto.status()));
 
         ItemVisibilityUtils.applyStandardRules(
                 customerReference, customer, dangerousCheck,
                 temperature, weight, loadingMeters, rIDLabel,
-                rId, tIdLabel, tId, requestTypeLabel, customerPriceLabel
-        );
+                rId, tIdLabel, tId, requestTypeLabel, customerPriceLabel);
     }
 
     public void updateDynamicView() {
@@ -190,7 +195,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         }
 
         renewButton.setVisible(RequestItemUiPolicy.canEdit(dto, loggedInUser));
-        deleteButton.setVisible(RequestItemUiPolicy.canDelete(dto, loggedInUser));
+        expireButton.setVisible(RequestItemUiPolicy.canExpire(dto, loggedInUser));
         refreshPriceButton();
 
         customerPriceLabel.setText(TextUtils.formatMoney(dto.price()));
@@ -325,8 +330,10 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
                 fxmlPath,
                 RequestMoreController.class,
                 controller -> {
+                    controller.setCanDelete(RequestItemUiPolicy.canDelete(dto, loggedInUser));
                     controller.setRequest(dto);
                     controller.setOnTidUpdated(() -> parent.invalidateRequest(requestId));
+                    controller.setOnDeleted(() -> parent.invalidateRequest(requestId));
                 },
                 "More",
                 MORE_ICON,
@@ -357,26 +364,26 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     }
 
     @FXML
-    public void handleDelete() {
+    public void handleExpire() {
         if (requestId == null) {
-            AlertUtils.showInfo("Request is already deleted.");
+            AlertUtils.showInfo("Request is already expired.");
             return;
         }
 
         boolean confirmed = AlertUtils.showConfirmation(
                 null,
-                "Are you sure you want to delete this request? This action cannot be undone.");
+                "Are you sure you want to expire this request? This action cannot be undone.");
         if (!confirmed) return;
 
         try {
-            actions.delete(requestId);
+            actions.expire(requestId);
             requestId = null;
             dto = null;
 
         } catch (ApiException ex) {
-            UiError error = ApiErrorUtils.resolve(ex, "Failed to delete request.");
+            UiError error = ApiErrorUtils.resolve(ex, "Failed to expire request.");
             AlertUtils.show(error);
-            log.warn("Delete request failed", ex);
+            log.warn("Expire request failed", ex);
         }
     }
 
@@ -405,6 +412,10 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         this.loggedInUser = user;
     }
 
+    /**
+     * Sets the user context and parent reference for this controller.
+     * Must be called before any user-dependent rendering or actions.
+     */
     public void setContext(UserResponseDto loggedInUser, RequestsParent parent) {
         this.loggedInUser = loggedInUser;
         this.parent = parent;

@@ -15,11 +15,11 @@
     <HBox fx:id="requestPane" styleClass="request-pane" minHeight="60" spacing="5" alignment="CENTER"
           AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 
-        <VBox fx:id="fromISOContainer" prefWidth="18" minHeight="60" spacing="5" alignment="CENTER"/>
+        <VBox fx:id="fromISOContainer" prefWidth="20" minHeight="60" spacing="5" alignment="CENTER"/>
         <VBox prefWidth="10" minHeight="60" alignment="CENTER">
             <Line startX="-100" endX="-90"/>
         </VBox>
-        <VBox fx:id="toISOContainer" prefWidth="18" minHeight="60" spacing="5" alignment="CENTER"/>
+        <VBox fx:id="toISOContainer" prefWidth="20" minHeight="60" spacing="5" alignment="CENTER"/>
 
         <VBox prefWidth="90" minHeight="60" spacing="5" fillWidth="false" alignment="CENTER_LEFT">
             <TextField fx:id="customerReference" focusTraversable="false" editable="false" styleClass="request-textfield"/>
@@ -208,13 +208,13 @@
                 </graphic>
             </Button>
 
-            <Button fx:id="deleteButton" contentDisplay="GRAPHIC_ONLY"
+            <Button fx:id="expireButton" contentDisplay="GRAPHIC_ONLY"
                     prefWidth="18" prefHeight="18"
                     style="-fx-background-color: transparent; -fx-padding: 0"
-                    onAction="#handleDelete">
+                    onAction="#handleExpire">
                 <graphic>
                     <ImageView fitHeight="18" fitWidth="18" opacity="0.65" pickOnBounds="true" preserveRatio="true">
-                        <Image url="@../icons/bin.png"/>
+                        <Image url="@../icons/archive.png"/>
                     </ImageView>
                 </graphic>
             </Button>

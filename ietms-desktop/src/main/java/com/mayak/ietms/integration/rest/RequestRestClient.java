@@ -221,4 +221,16 @@ public class RequestRestClient extends AbstractRestClient implements RequestClie
         });
     }
 
+    @Override
+    public void expire(long requestId) {
+        exchangeSafely(() -> {
+            RequestEntity<Void> request = RequestEntity
+                    .post(API + "/" + requestId + "/expire")
+                    .build();
+
+            restTemplate.exchange(request, Void.class);
+            return null;
+        });
+    }
+
 }

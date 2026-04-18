@@ -9,6 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+/**
+ * Application-layer facade for request write operations.
+ * Delegates all business logic to {@link RequestLifecycleService}.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -50,6 +54,10 @@ public class RequestCommandService {
 
     public void delete(long requestId, Long userId) {
         lifecycleService.delete(requestId, userId);
+    }
+
+    public void expire(long requestId, Long userId) {
+        lifecycleService.expire(requestId, userId);
     }
 
 }

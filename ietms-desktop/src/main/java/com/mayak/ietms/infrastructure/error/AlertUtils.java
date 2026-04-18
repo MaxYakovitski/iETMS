@@ -88,6 +88,27 @@ public class AlertUtils {
         return result.isPresent() && result.get() == yes;
     }
 
+    public static boolean showConfirmation(String title, String message, Stage owner) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        ButtonType yes = new ButtonType("yes");
+        ButtonType no = new ButtonType("no");
+        alert.getButtonTypes().setAll(yes, no);
+
+        if (owner != null) {
+            alert.initOwner(owner);
+            alert.initModality(Modality.WINDOW_MODAL);
+        } else {
+            initOwner(alert);
+        }
+
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == yes;
+    }
+
     /**
      * Dispatches a {@link UiError} to the appropriate alert type based on its severity.
      * Does nothing if {@code error} is {@code null}.
@@ -99,6 +120,15 @@ public class AlertUtils {
             case INFO    -> showInfo(error.message());
             case WARNING -> showWarning(error.message());
             case ERROR   -> showError(error.message());
+        }
+    }
+
+    public static void show(UiError error, Stage owner) {
+        if (error == null) return;
+        switch (error.severity()) {
+            case INFO    -> showInfo(error.message(), owner);
+            case WARNING -> showWarning(error.message(), owner);
+            case ERROR   -> showError(error.message(), owner);
         }
     }
 
