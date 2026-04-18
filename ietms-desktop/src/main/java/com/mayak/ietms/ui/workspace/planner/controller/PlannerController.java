@@ -1,5 +1,6 @@
 package com.mayak.ietms.ui.workspace.planner.controller;
 
+import com.mayak.ietms.common.util.UnicodeNormalizer;
 import com.mayak.ietms.domain.planner.service.PlannerDataService;
 import com.mayak.ietms.domain.planner.service.PlannerSelectionService;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
@@ -156,7 +157,6 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     @FXML
     private void initialize() {
-        TextUtils.allowOnlyLatin(carrierField, licensePlateField, transportOrder);
         validationUI = new ValidationUIHelper(
                 Map.of(
                         "statusDate", dateAndTime,
@@ -241,10 +241,10 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         if (state.getSelectedShipment() == null) return;
 
         formState.updateCurrent(
-                carrierField.getText(),
+                UnicodeNormalizer.normalize(carrierField.getText()),
                 commentsTextArea.getText(),
-                licensePlateField.getText(),
-                transportOrder.getText(),
+                UnicodeNormalizer.toAscii(licensePlateField.getText()),
+                UnicodeNormalizer.toAscii(transportOrder.getText()),
                 shipmentStatusComboBox.getValue());
 
         updateSubmitState();
@@ -276,10 +276,10 @@ public class PlannerController implements SecuredView, ViewLifecycle {
         if (state.getSelectedShipment() == null) return null;
 
         formState.updateCurrent(
-                carrierField.getText(),
+                UnicodeNormalizer.normalize(carrierField.getText()),
                 commentsTextArea.getText(),
-                licensePlateField.getText(),
-                transportOrder.getText(),
+                UnicodeNormalizer.toAscii(licensePlateField.getText()),
+                UnicodeNormalizer.toAscii(transportOrder.getText()),
                 shipmentStatusComboBox.getValue()
         );
 
