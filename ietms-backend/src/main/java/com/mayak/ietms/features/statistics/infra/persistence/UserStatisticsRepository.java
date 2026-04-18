@@ -27,85 +27,81 @@ public interface UserStatisticsRepository extends Repository <User, Long> {
     }
 
     @Query(value = """
-        WITH first_bids AS (
+        WITH
+        created AS (
+                    SELECT author_id AS user_id, COUNT(*) AS cnt
+                    FROM requests
+                    WHERE issue_date >= :from AND issue_date < :toExclusive
+                    AND author_id = ANY(:userIds)
+                    GROUP BY author_id
+                   ),
+        joined AS (
+                    SELECT rc.user_id, COUNT(*) AS cnt
+                    FROM request_competitors rc
+                    JOIN requests r ON r.id = rc.request_id
+                    AND r.issue_date >= :from AND r.issue_date < :toExclusive
+                    WHERE rc.user_id = ANY(:userIds)
+                    GROUP BY rc.user_id
+                    ),
+        first_bids AS (
+                    SELECT b.user_id, b.request_id, MIN(b.time) AS first_time
+                    FROM bids b
+                    JOIN requests r ON r.id = b.request_id
+                    AND r.request_type = 'SPOT'
+                    AND r.issue_date >= :from AND r.issue_date < :toExclusive
+                    WHERE b.deleted = false AND b.user_id = ANY(:userIds)
+                    GROUP BY b.user_id, b.request_id
+                    ),
+        bids_agg AS (
+                    SELECT fb.user_id,
+                    COUNT(*) AS bided,
+                    ROUND(AVG(GREATEST(EXTRACT(EPOCH FROM (fb.first_time - r.issue_date)) / 60.0, 0))::numeric, 2) AS avg_response
+                    FROM first_bids fb
+                    JOIN requests r ON r.id = fb.request_id
+                    GROUP BY fb.user_id
+                    ),
+        accepted_spot AS (
+                    SELECT author_id AS user_id, COUNT(*) AS cnt
+                    FROM requests
+                    WHERE status = 'ACCEPTED' AND request_type = 'SPOT'
+                    AND issue_date >= :from AND issue_date < :toExclusive
+                    AND author_id = ANY(:userIds)
+                    GROUP BY author_id
+                    ),
+        accepted_contract AS (
+                    SELECT author_id AS user_id, COUNT(*) AS cnt
+                    FROM requests
+                    WHERE status = 'ACCEPTED' AND request_type = 'CONTRACT'
+                    AND issue_date >= :from AND issue_date < :toExclusive
+                    AND author_id = ANY(:userIds)
+                    GROUP BY author_id
+                    ),
+        dispatched AS (
+                    SELECT dispatcher_id AS user_id, COUNT(*) AS cnt
+                    FROM requests
+                    WHERE issue_date >= :from AND issue_date < :toExclusive
+                    AND dispatcher_id = ANY(:userIds)
+                    GROUP BY dispatcher_id
+                    )
             SELECT
-                b.user_id,
-                b.request_id,
-                MIN(b.time) AS first_time
-            FROM bids b
-            JOIN requests r ON r.id = b.request_id
-            WHERE b.deleted = false
-              AND r.request_type = 'SPOT'
-              AND r.issue_date >= :from
-              AND r.issue_date < :toExclusive
-              AND b.user_id = ANY(:userIds)
-            GROUP BY b.user_id, b.request_id
-        )
-        SELECT
             u.id AS userId,
             u.name AS firstName,
             u.surname AS lastName,
-
-            COUNT(DISTINCT r_created.id) AS created,
-            COUNT(DISTINCT r_joined.id) AS joined,
-            COUNT(DISTINCT fb.request_id) AS bided,
-            COUNT(DISTINCT r_accepted_spot.id) AS acceptedSpot,
-            COUNT(DISTINCT r_accepted_contract.id) AS acceptedContract,
-            COUNT(DISTINCT r_dispatched.id) AS dispatched,
-
-            COALESCE(
-                ROUND(
-                    AVG(
-                        GREATEST(
-                            EXTRACT(EPOCH FROM (fb.first_time - r.issue_date)) / 60.0,
-                            0
-                        )
-                    )::numeric,
-                    2
-                ),
-                0
-            ) AS avgResponseMinutes
-
-        FROM users u
-        LEFT JOIN requests r_created
-            ON r_created.author_id = u.id
-               AND r_created.issue_date >= :from
-               AND r_created.issue_date < :toExclusive
-
-        LEFT JOIN request_competitors rc
-            ON rc.user_id = u.id
-        LEFT JOIN requests r_joined
-            ON r_joined.id = rc.request_id
-               AND r_joined.issue_date >= :from
-               AND r_joined.issue_date < :toExclusive
-
-        LEFT JOIN first_bids fb
-            ON fb.user_id = u.id
-
-        LEFT JOIN requests r
-            ON r.id = fb.request_id
-        
-        LEFT JOIN requests r_accepted_spot
-            ON r_accepted_spot.author_id = u.id
-               AND r_accepted_spot.status = 'ACCEPTED'
-               AND r_accepted_spot.request_type = 'SPOT'
-               AND r_accepted_spot.issue_date >= :from
-               AND r_accepted_spot.issue_date < :toExclusive
-        
-        LEFT JOIN requests r_accepted_contract
-            ON r_accepted_contract.author_id = u.id
-               AND r_accepted_contract.status = 'ACCEPTED'
-               AND r_accepted_contract.request_type = 'CONTRACT'
-               AND r_accepted_contract.issue_date >= :from
-               AND r_accepted_contract.issue_date < :toExclusive
-        
-        LEFT JOIN requests r_dispatched
-            ON r_dispatched.dispatcher_id = u.id
-               AND r_dispatched.issue_date >= :from
-               AND r_dispatched.issue_date < :toExclusive
-
+            COALESCE(c.cnt, 0)   AS created,
+            COALESCE(j.cnt, 0)   AS joined,
+            COALESCE(ba.bided, 0) AS bided,
+            COALESCE(asp.cnt, 0) AS acceptedSpot,
+            COALESCE(ac.cnt, 0)  AS acceptedContract,
+            COALESCE(d.cnt, 0)   AS dispatched,
+            COALESCE(ba.avg_response, 0) AS avgResponseMinutes
+            FROM users u
+            LEFT JOIN created c          ON c.user_id = u.id
+            LEFT JOIN joined j           ON j.user_id = u.id
+            LEFT JOIN bids_agg ba        ON ba.user_id = u.id
+            LEFT JOIN accepted_spot asp  ON asp.user_id = u.id
+            LEFT JOIN accepted_contract ac ON ac.user_id = u.id
+            LEFT JOIN dispatched d       ON d.user_id = u.id
         WHERE u.id = ANY(:userIds)
-        GROUP BY u.id, u.name, u.surname
         """, nativeQuery = true)
     List<UserStatsRow> userStats(
             @Param("from") Instant from,
