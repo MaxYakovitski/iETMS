@@ -1,5 +1,6 @@
 package com.mayak.ietms.ui.crm;
 
+import com.mayak.ietms.common.util.UnicodeNormalizer;
 import com.mayak.ietms.integration.api.CompanyClient;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.company.dto.CompanyCreateDto;
@@ -10,7 +11,6 @@ import com.mayak.ietms.ui.home.HomeController;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
 import com.mayak.ietms.infrastructure.common.ResetUtils;
-import com.mayak.ietms.infrastructure.common.TextUtils;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
@@ -43,10 +43,9 @@ public class CompanyController extends AbstractSettingsController<CompanyDto, Co
 
     @FXML
     public void initialize() {
-        TextUtils.allowOnlyLatin(companyNameField);
         companiesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
-        companyNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().name()));
-
+        companyNameColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().name()));
         initValidation();
     }
 
@@ -85,17 +84,12 @@ public class CompanyController extends AbstractSettingsController<CompanyDto, Co
 
     @Override
     protected CompanyCreateDto buildCreateDto() {
-        return new CompanyCreateDto(
-                companyNameField.getText().trim().toUpperCase()
-        );
+        return new CompanyCreateDto(UnicodeNormalizer.normalize(companyNameField.getText()).toUpperCase());
     }
 
     @Override
     protected CompanyDto buildUpdateDto(Long id) {
-        return new CompanyDto(
-                id,
-                companyNameField.getText().trim().toUpperCase()
-        );
+        return new CompanyDto(id, UnicodeNormalizer.normalize(companyNameField.getText()).toUpperCase());
     }
 
     @Override
@@ -119,7 +113,8 @@ public class CompanyController extends AbstractSettingsController<CompanyDto, Co
         try {
             companyClient.delete(item.id());
         } catch (ApiException ex) {
-            AlertUtils.show(ApiErrorUtils.resolve(ex, "This company cannot be deleted because it is used in existing requests."));
+            AlertUtils.show(ApiErrorUtils.resolve(ex,
+                    "This company cannot be deleted because it is used in existing requests."));
         }
 
     }

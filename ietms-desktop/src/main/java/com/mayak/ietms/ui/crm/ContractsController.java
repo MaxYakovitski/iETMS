@@ -91,8 +91,7 @@ public class ContractsController implements SecuredView,ViewLifecycle {
 
 
     public void initialize() {
-        TextUtils.allowOnlyLatin(laneIdTextField, fromTextField, toTextField, priceTextField,
-                fuelSurchargeTextField);
+        TextUtils.allowOnlyLatin(laneIdTextField, fromTextField, toTextField, priceTextField, fuelSurchargeTextField);
         DatePickerUtils.setupDatePickers(validFrom, validTo);
 
         laneForm = new LaneForm(

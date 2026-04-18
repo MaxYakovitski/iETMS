@@ -1,5 +1,6 @@
 package com.mayak.ietms.ui.workspace.request.client;
 
+import com.mayak.ietms.common.util.UnicodeNormalizer;
 import com.mayak.ietms.domain.request.client.ClientRequestPolicy;
 import com.mayak.ietms.company.dto.CompanyDto;
 import com.mayak.ietms.infrastructure.fx.CompanyEventHandler;
@@ -173,7 +174,7 @@ public class ClientRequestsController extends AbstractRequestController {
     }
 
     private void setupFormFields() {
-        TextUtils.allowOnlyLatin(companyField, idField, weightTextField, loadingMeterTextField);
+        TextUtils.allowOnlyLatin(fromTextArea, toTextArea, idField, weightTextField, loadingMeterTextField);
         TextUtils.setupEnumComboBox(transportComboBox, TransportTypeDto.values(), TransportTypeDto::getLabel);
         setupListeners();
         setupDatePickersForCurrentState();
@@ -405,7 +406,7 @@ public class ClientRequestsController extends AbstractRequestController {
 
         companyField.textProperty().addListener((obs, o, n) -> {
             if (isRendering) return;
-            requestState.setCompanyName(n);
+            requestState.setCompanyName(UnicodeNormalizer.normalize(n));
         });
 
         startDate.valueProperty().addListener((obs, o, n) -> {
