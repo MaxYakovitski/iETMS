@@ -3,7 +3,6 @@ package com.mayak.ietms.infrastructure.toast;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -16,12 +15,23 @@ import lombok.NoArgsConstructor;
 
 import java.util.Objects;
 
+/**
+ * Displays non-blocking toast notifications in the bottom-right corner of the owner window.
+ */
 @NoArgsConstructor
 public final class ToastService {
 
     private static final Duration FADE_IN = Duration.millis(200);
     private static final Duration FADE_OUT = Duration.millis(300);
 
+    /**
+     * Shows an informational toast notification with a fade-in/fade-out animation.
+     * The notification can be dismissed manually via the close button.
+     *
+     * @param owner   the stage in which the toast will be displayed; does nothing if null or not showing
+     * @param title   bold header text of the notification
+     * @param message body text of the notification
+     */
     public static void showInfo(Stage owner, String title, String message) {
         if (owner == null || !owner.isShowing()) return;
 
@@ -30,7 +40,7 @@ public final class ToastService {
             popup.setAutoFix(true);
             popup.setAutoHide(false);
 
-            VBox content = buildContent(title, message, () -> {});
+            VBox content = buildContent(title, message);
 
             popup.getContent().add(content);
             popup.show(owner);
@@ -52,7 +62,7 @@ public final class ToastService {
         });
     }
 
-    private static VBox buildContent(String title, String message, Runnable onClose) {
+    private static VBox buildContent(String title, String message) {
         Label titleLabel = new Label(title);
         titleLabel.setStyle("""
             -fx-font-weight: bold;
@@ -81,8 +91,6 @@ public final class ToastService {
                         new BackgroundSize(12, 12, false, false, false, false)
                 )
         ));
-        closeLabel.setCursor(Cursor.HAND);
-
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -95,12 +103,17 @@ public final class ToastService {
         box.setOpacity(0);
 
         box.setBackground(new Background(
-                new BackgroundFill(Color.rgb(40, 40, 40, 0.95), new CornerRadii(6), Insets.EMPTY)
-        ));
+                new BackgroundFill(
+                        Color.rgb(40, 40, 40, 0.95),
+                        new CornerRadii(6),
+                        Insets.EMPTY)));
 
         box.setBorder(new Border(
                 new BorderStroke(
-                Color.rgb(80, 80, 80), BorderStrokeStyle.SOLID, new CornerRadii(6), BorderWidths.DEFAULT)));
+                        Color.rgb(80, 80, 80),
+                        BorderStrokeStyle.SOLID,
+                        new CornerRadii(6),
+                        BorderWidths.DEFAULT)));
 
         return box;
     }

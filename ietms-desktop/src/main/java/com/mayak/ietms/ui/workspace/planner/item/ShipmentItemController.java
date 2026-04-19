@@ -16,7 +16,6 @@ import com.mayak.ietms.infrastructure.window.WindowService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -27,7 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-
+/**
+ * Controller for a single shipment list item.
+ * Handles rendering, visibility, status display, and comments for one {@link ShipmentListItemDto}.
+ */
 @Controller
 @Scope("prototype")
 @Slf4j
@@ -36,11 +38,10 @@ public class ShipmentItemController implements ViewLifecycle {
 
     @FXML public HBox requestPane;
     @FXML public VBox fromISOContainer, toISOContainer, fromPointContainer, toPointContainer;
-    @FXML public Label customer, dataStart, dataEnd, shipmentType, transportType, dangerousCheck,
-            temperature, weight, loadingMeters, rIDLabel, tIdLabel, requestTypeLabel, customerPriceLabel,
+    @FXML public Label customerReference, customer, dataStart, dataEnd, shipmentType, transportType, dangerousCheck,
+            temperature, weight, loadingMeters, rIDLabel, rId, tIdLabel, tId, requestTypeLabel, customerPriceLabel,
             carrierLabel, carrierPriceLabel, authorName, authorSurname, statusLabel;
     @FXML public Button commentsButton;
-    @FXML public TextField customerReference, rId, tId;
 
     private static final String COMMENTS_ICON = "/icons/comments.png";
 
@@ -62,13 +63,14 @@ public class ShipmentItemController implements ViewLifecycle {
 
     @FXML
     private void initialize() {
-        LabelTooltipUtils.attachAutoTooltip(customer, carrierLabel, authorName);
-
-        ControlSizingUtils.fitTextFieldToDigits(customerReference);
-        ControlSizingUtils.fitTextFieldToDigits(rId);
-        ControlSizingUtils.fitTextFieldToDigits(tId);
+        LabelTooltipUtils.attachAutoTooltip(customerReference, customer, rId, tId, carrierLabel, authorName);
+        ClipboardUtils.copyOnClick(customerReference, rId, tId);
     }
 
+    /**
+     * Applies one-time style initialisation. Must be called before the item becomes visible.
+     * Subsequent calls are ignored.
+     */
     public void onShowOnce() {
         if (initialized) return;
         initialized = true;
@@ -76,6 +78,12 @@ public class ShipmentItemController implements ViewLifecycle {
         applyStyles();
     }
 
+    /**
+     * Binds the given DTO to this item and refreshes all visual state.
+     * Passing {@code null} clears the item without throwing.
+     *
+     * @param dto shipment data to display; may be null
+     */
     public void updateItem(ShipmentListItemDto dto) {
         this.dto = dto;
         this.shipmentId = dto != null ? dto.id() : null;
@@ -125,10 +133,10 @@ public class ShipmentItemController implements ViewLifecycle {
 
     private void applyStyles() {
         ItemStyleUtils.applyDefaultTextColor(
-                customer, dataStart, dataEnd,
+                customerReference, customer, dataStart, dataEnd,
                 shipmentType, transportType,
                 temperature, weight, loadingMeters,
-                rIDLabel, tIdLabel, requestTypeLabel,
+                rIDLabel, rId, tIdLabel, tId, requestTypeLabel,
                 customerPriceLabel, carrierLabel, carrierPriceLabel,
                 authorName, authorSurname
         );
@@ -187,5 +195,4 @@ public class ShipmentItemController implements ViewLifecycle {
                 this.stage
         );
     }
-
 }

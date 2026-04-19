@@ -21,8 +21,8 @@
         </VBox>
         <VBox fx:id="toISOContainer" prefWidth="20" minHeight="60" spacing="5" alignment="CENTER"/>
 
-        <VBox prefWidth="90" minHeight="60" spacing="5" fillWidth="false" alignment="CENTER_LEFT">
-            <TextField fx:id="customerReference" focusTraversable="false" editable="false" styleClass="request-textfield"/>
+        <VBox prefWidth="90" minHeight="60" spacing="5" fillWidth="false" alignment="CENTER">
+            <Label fx:id="customerReference"/>
             <Label fx:id="customer"/>
         </VBox>
 
@@ -159,11 +159,12 @@
         <VBox minHeight="60" alignment="CENTER" minWidth="115" prefWidth="115" maxWidth="115">
             <HBox alignment="CENTER_LEFT">
                 <Label fx:id="rIDLabel" text="r.ID:" minWidth="25"/>
-                <TextField fx:id="rId" focusTraversable="false" editable="false" styleClass="request-textfield"/>
+                <Label fx:id="rId"/>
             </HBox>
             <HBox alignment="CENTER_LEFT">
                 <Label fx:id="tIdLabel" text="t.ID:" minWidth="25"/>
-                <TextField fx:id="tId"  focusTraversable="false" editable="false" styleClass="request-textfield"/>
+                <Label fx:id="tId">
+                </Label>
             </HBox>
         </VBox>
 

@@ -45,15 +45,19 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Controller for a single request list item.
+ * Manages two-phase rendering: static view (immutable data) and dynamic view (status, actions, prices).
+ */
 @Controller
 @Scope("prototype")
 @Slf4j
 @RequiredArgsConstructor
 public class RequestItemController implements ViewLifecycle, SecuredView {
 
-    @FXML public Label customer, rIDLabel, tIdLabel, dataStart, dataEnd, requestTypeLabel, shipmentType, transportType,
-            dangerousCheck, temperature, weight, loadingMeters, status, customerPriceLabel, authorFullName, requestDateTime;
-    @FXML public TextField customerReference, rId, tId;
+    @FXML public Label customerReference, customer, rIDLabel, rId, tIdLabel, tId, dataStart, dataEnd,
+            requestTypeLabel, shipmentType, transportType, dangerousCheck, temperature, weight,
+            loadingMeters, status, customerPriceLabel, authorFullName, requestDateTime;
     @Getter
     @FXML public HBox requestPane;
     @FXML public Button commentsButton, joinButton, bidButton, priceButton, confirmedAndOfferedButton, acceptButton,
@@ -84,12 +88,9 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
 
     @FXML
     void initialize() {
-        LabelTooltipUtils.attachAutoTooltip(customer, authorFullName);
+        LabelTooltipUtils.attachAutoTooltip(customerReference, customer, rId, tId, authorFullName);
+        ClipboardUtils.copyOnClick(customerReference, rId, tId);
         priceButton.setOnAction(event -> showBidHistory());
-
-        ControlSizingUtils.fitTextFieldToDigits(customerReference);
-        ControlSizingUtils.fitTextFieldToDigits(rId);
-        ControlSizingUtils.fitTextFieldToDigits(tId);
     }
 
     /**
@@ -104,6 +105,10 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         this.initialized = false;
     }
 
+    /**
+     * Clears all user-visible fields and disables action buttons.
+     * Called before data is loaded to avoid stale content during async fetch.
+     */
     public void renderSkeleton() {
         customerReference.setText("");
         customer.setText("");
@@ -129,7 +134,10 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         updateDynamicView();
     }
 
-    //========= RENDER =======
+    /**
+     * Renders immutable request data: locations, dates, cargo, author.
+     * Called once on first bind; subsequent updates go through {@link #updateDynamicView()}.
+     */
     public void initStaticView() {
         if (requestId == null || dto == null) return;
 
@@ -162,10 +170,10 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         requestDateTime.setText(localDateTime.format(TextUtils.DATE_TIME_FORMATTER));
 
         ItemStyleUtils.applyDefaultTextColor(
-                customer, dataStart,
+                customerReference, customer, dataStart,
                 dataEnd, shipmentType, transportType,
                 temperature, weight, loadingMeters,
-                rIDLabel, tIdLabel, customerPriceLabel,
+                rIDLabel, rId, tIdLabel, tId, customerPriceLabel,
                 requestTypeLabel, authorFullName, requestDateTime);
 
         status.setTextFill(StatusColorMapper.toColor(dto.status()));
@@ -176,6 +184,10 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
                 rId, tIdLabel, tId, requestTypeLabel, customerPriceLabel);
     }
 
+    /**
+     * Refreshes state-dependent UI: status, action buttons, price, transport ID.
+     * Requires both {@code dto} and {@code loggedInUser} to be set; does nothing otherwise.
+     */
     public void updateDynamicView() {
         if (dto == null || loggedInUser == null) return;
 
@@ -207,7 +219,6 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         VisibilityUtils.hideIfEmpty(requestTypeLabel, customerPriceLabel);
     }
 
-    //========= EVENT HANDLERS =======
     @FXML
     public void handleJoin() {
         if (requestId == null || dto == null) return;
