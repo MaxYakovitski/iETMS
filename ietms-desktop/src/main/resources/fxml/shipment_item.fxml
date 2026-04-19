@@ -17,11 +17,11 @@
 
         <Label fx:id="statusLabel" prefWidth="70" textAlignment="CENTER"/>
 
-        <VBox fx:id="fromISOContainer" prefWidth="18" minHeight="60" spacing="5" alignment="CENTER"/>
+        <VBox fx:id="fromISOContainer" prefWidth="20" minHeight="60" spacing="5" alignment="CENTER"/>
         <VBox prefWidth="10" minHeight="60" alignment="CENTER">
             <Line startX="-100" endX="-90"/>
         </VBox>
-        <VBox fx:id="toISOContainer" prefWidth="18" minHeight="60" spacing="5" alignment="CENTER"/>
+        <VBox fx:id="toISOContainer" prefWidth="20" minHeight="60" spacing="5" alignment="CENTER"/>
         
         <VBox prefWidth="90" minHeight="60" spacing="5" fillWidth="false" alignment="CENTER">
             <Label fx:id="customerReference"/>
