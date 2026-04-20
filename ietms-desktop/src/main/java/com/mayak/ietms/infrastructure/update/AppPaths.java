@@ -50,11 +50,17 @@ public final class AppPaths {
     }
 
     public static Path tokenFile() {
-        return Path.of(System.getenv("LOCALAPPDATA"), APP_NAME, "native-host", "token");
+        if (OsUtils.isWindows()) {
+            return Path.of(System.getenv("LOCALAPPDATA"), APP_NAME, "native-host", "token");
+        }
+        return Path.of(System.getProperty("user.home"), "." + APP_NAME.toLowerCase(), "native-host", "token");
     }
 
     public static Path nativeHostManifest() {
-        return Path.of(System.getenv("LOCALAPPDATA"), APP_NAME, "native-host", "manifest.json");
+        if (OsUtils.isWindows()) {
+            return Path.of(System.getenv("LOCALAPPDATA"), APP_NAME, "native-host", "manifest.json");
+        }
+        return Path.of(System.getProperty("user.home"), "." + APP_NAME.toLowerCase(), "native-host", "manifest.json");
     }
 
     private static Path installDir() {
