@@ -1,4 +1,4 @@
-package com.mayak.ietms.integration.bridge;
+package com.mayak.ietms.nativehost;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 
 /**
  * Native messaging host for the browser extension.
@@ -20,7 +19,7 @@ public class NativeMessagingHost {
     /**
      * Reads a single native messaging request from stdin,
      * responds with the current user's JWT token from
-     * {@code %LOCALAPPDATA%\iETMS\token}, then exits.
+     * {@code %LOCALAPPDATA%\iETMS\native-host\token}, then exits.
      */
     public static void run () throws IOException {
         DataInputStream in = new DataInputStream(System.in);
@@ -42,7 +41,7 @@ public class NativeMessagingHost {
 
     private static String readTokenFile() {
         try {
-            Path path = Path.of(System.getenv("LOCALAPPDATA"), "iETMS", "token");
+            Path path = Path.of(System.getenv("LOCALAPPDATA"), "iETMS", "native-host", "token");
             return Files.readString(path, StandardCharsets.UTF_8).trim();
         } catch (IOException e) {
             return null;

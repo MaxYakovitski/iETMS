@@ -1,5 +1,6 @@
 package com.mayak.ietms.integration.auth;
 
+import com.mayak.ietms.infrastructure.update.AppPaths;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,7 @@ import java.nio.file.Path;
  * Holds the authentication state of the current user.
  * <p>
  * The token is stored both in memory (for use within the application)
- * and in {@code %LOCALAPPDATA%\iETMS\token} file —
+ * and in {@code %LOCALAPPDATA%\iETMS\native-host\token} file —
  * to be read by the browser extension's native messaging host.
  */
 @Component
@@ -38,15 +39,12 @@ public class AuthState {
     }
 
     private Path tokenFilePath() {
-        String localAppData = System.getenv("LOCALAPPDATA");
-        if (localAppData == null) return null;
-        return Path.of(localAppData, "iETMS", "token");
+        return AppPaths.tokenFile();
     }
 
     private void writeTokenFile(String token) {
         try {
             Path path = tokenFilePath();
-            if (path == null) return;
             Files.createDirectories(path.getParent());
             Files.writeString(path, token, StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -57,7 +55,7 @@ public class AuthState {
     private void deleteTokenFile() {
         try {
             Path path = tokenFilePath();
-            if (path != null) Files.deleteIfExists(path);
+            Files.deleteIfExists(path);
         } catch (IOException ignored) {}
     }
 }

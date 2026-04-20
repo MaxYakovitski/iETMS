@@ -20,6 +20,13 @@ public class UpdateController {
     @Setter
     private UpdateService updateService;
 
+    /**
+     * Initiates the update flow based on the given check result.
+     * Does nothing if no update is required.
+     * If the update is mandatory, starts a background download and installation.
+     *
+     * @param result the result of the version check
+     */
     public void start(UpdateCheckResult result) {
         showChecking();
 
@@ -34,7 +41,6 @@ public class UpdateController {
     }
 
     private void startMandatoryUpdate(UpdateCheckResult result) {
-
         updateService.setListener(new UpdateListener() {
 
             @Override

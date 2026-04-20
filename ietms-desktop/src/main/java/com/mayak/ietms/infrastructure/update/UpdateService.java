@@ -89,7 +89,7 @@ public class UpdateService {
     public void startMandatoryUpdate(UpdateCheckResult result) {
         setState(UpdateState.DOWNLOADING);
 
-        Path targetFile = UpdatePaths.msiFile(result.latestVersion());
+        Path targetFile = AppPaths.msiFile(result.latestVersion());
 
         new Thread(() -> {
             if (listener != null) {

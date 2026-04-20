@@ -1,5 +1,6 @@
 package com.mayak.ietms.integration.nativemessaging;
 
+import com.mayak.ietms.infrastructure.update.AppPaths;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +13,7 @@ import java.nio.file.Path;
 /**
  * Registers the native messaging host manifest for the browser extension.
  * <p>
- * Writes the manifest JSON to {@code %LOCALAPPDATA%\iETMS\native-host-manifest.json}
+ * Writes the manifest JSON to {@code %LOCALAPPDATA%\iETMS\native-host\manifest.json}
  * and registers it in {@code HKCU\Software\Google\Chrome\NativeMessagingHosts}
  * so that Chrome can launch this application as a native messaging host.
  * Registration is per-user, ensuring token isolation in multi-user environments.
@@ -34,8 +35,8 @@ public class NativeMessagingRegistrar {
         }
 
         try {
-            Path exePath = Path.of(System.getenv("PROGRAMFILES"), "iETMS", "app", "app", "native-host", "iETMS-NativeHost", "iETMS-NativeHost.exe");
-            Path manifestPath = Path.of(System.getenv("LOCALAPPDATA"), "iETMS", "native-host-manifest.json");
+            Path exePath = AppPaths.nativeHostExe();
+            Path manifestPath = AppPaths.nativeHostManifest();
 
             String manifest = """
                 {
@@ -58,7 +59,6 @@ public class NativeMessagingRegistrar {
             new ProcessBuilder("reg", "add", regKey,
                     "/ve", "/t", "REG_SZ", "/d", manifestPath.toString(), "/f")
                     .inheritIO().start().waitFor();
-
         } catch (Exception e) {
             log.warn("[native-messaging] Registration failed", e);
         }

@@ -14,7 +14,7 @@
     </parent>
 
     <artifactId>ietms-desktop</artifactId>
-    <version>0.1.12</version>
+    <version>0.1.13</version>
     <packaging>jar</packaging>
 
     <name>ietms-desktop</name>
@@ -154,7 +154,7 @@
                                 </goals>
                                 <configuration>
                                     <outputDirectory>
-                                        ${project.build.directory}/jpackage-input/app/updater
+                                        ${project.build.directory}/jpackage-input/updater
                                     </outputDirectory>
                                     <resources>
                                         <resource>
@@ -174,7 +174,7 @@
                                 </goals>
                                 <configuration>
                                     <outputDirectory>
-                                        ${project.build.directory}/jpackage-input/app/native-host/iETMS-NativeHost
+                                        ${project.build.directory}/jpackage-input/native-host
                                     </outputDirectory>
                                     <resources>
                                         <resource>

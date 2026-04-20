@@ -1,6 +1,6 @@
 package com.mayak.ietms.infrastructure.update.installer;
 
-import com.mayak.ietms.infrastructure.update.UpdatePaths;
+import com.mayak.ietms.infrastructure.update.AppPaths;
 import com.mayak.ietms.infrastructure.util.OsUtils;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +19,12 @@ public class WindowsMsiInstaller implements UpdateInstaller {
             throw new IllegalArgumentException("MSI file not found: " + msiFile);
         }
 
-        Path updaterExe = UpdatePaths.updaterExe();
+        Path updaterExe = AppPaths.updaterExe();
         if (!Files.exists(updaterExe)) {
             throw new IllegalStateException("Updater EXE not found: " + updaterExe);
         }
 
-        Path logFile = UpdatePaths.logsDir().resolve("installer-launch.log");
+        Path logFile = AppPaths.logsDir().resolve("installer-launch.log");
         Files.createDirectories(logFile.getParent());
 
         String now = java.time.LocalDateTime.now().toString();
