@@ -22,7 +22,7 @@ public interface RequestRepository
     /**
      * Returns all non-archived requests sorted by status priority
      * (NEW → IN_PROGRESS → BIDDING → OFFERED → ACCEPTED → REFUSED),
-     * then by issue date descending within each status group.
+     * then by updatedAt date descending within each status group.
      */
     @Query("""         
 SELECT r FROM Request r
@@ -37,7 +37,7 @@ ORDER BY
             WHEN REFUSED THEN 6
             ELSE 7
             END ,
-            r.issueDate DESC
+            r.updatedAt DESC
 """)
     Page<Request> findAllActiveSorted(Pageable pageable);
 
@@ -59,7 +59,7 @@ ORDER BY
         WHEN REFUSED THEN 6
         ELSE 7
     END,
-    r.issueDate DESC
+    r.updatedAt DESC
 """)
     Page<Request> findAllByType(@Param("clazz") Class<? extends Request> clazz, Pageable pageable);
 

@@ -10,6 +10,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
@@ -17,6 +18,10 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
+/**
+ * Base class for all request types (spot and contract).
+ * Uses single-table inheritance with {@code request_type} discriminator column.
+ */
 @Entity
 @Table(name = "requests")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -109,6 +114,10 @@ public abstract class Request {
     @Column(nullable = false, updatable = false)
     private Instant issueDate;
 
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Instant updatedAt;
+
     @Column(precision = 7, scale = 2)
     private BigDecimal clientPrice;
 
@@ -133,14 +142,23 @@ public abstract class Request {
     // ---------- AUTHOR LOGIC ----------
     public boolean isAuthoredBy(Long userId) { return authorId != null && authorId.equals(userId); }
 
-    // ---------- COMPETITOR LOGIC ----------
+    /**
+     * Adds a user to the competitors set. Does nothing if {@code userId} is null.
+     */
     public void addCompetitor(Long userId) {
         if (userId != null) competitorsId.add(userId);
     }
+
+    /**
+     * Removes a user from the competitors set. Does nothing if {@code userId} is null.
+     */
     public void removeCompetitor(Long userId) {
         if (userId != null) competitorsId.remove(userId);
     }
 
+    /**
+     * Sets the refuse reason by code. Passing {@code null} clears the reason.
+     */
     @Transient
     public void setReason(RefuseReason reason) {
         if (reason == null) {
@@ -150,6 +168,11 @@ public abstract class Request {
         this.refuseReason = reason.getCode();
     }
 
+    /**
+     * Returns the request type as a DTO enum based on the concrete subclass.
+     *
+     * @throws IllegalStateException if the subclass is unknown
+     */
     @Transient
     public RequestTypeDto getRequestTypeDto() {
         if (this instanceof ContractRequest) return RequestTypeDto.CONTRACT;
