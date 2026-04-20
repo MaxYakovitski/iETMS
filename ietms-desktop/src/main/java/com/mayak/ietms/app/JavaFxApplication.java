@@ -171,6 +171,7 @@ public class JavaFxApplication extends Application {
         } else if (t instanceof SocketException) {
             AlertUtils.showError("No internet connection or cannot reach server. Please check your network!");
         } else {
+            log.error("[login] Unexpected error", ex);
             AlertUtils.showError("Login failed. Please try again.");
         }
     }

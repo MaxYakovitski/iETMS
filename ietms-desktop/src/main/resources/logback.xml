@@ -1,6 +1,6 @@
 <configuration>
 
-    <property name="LOG_DIR" value="${user.home}/.ietms/logs"/>
+    <property name="LOG_DIR" value="${ietms.logs.dir}"/>
     <property name="LOG_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"/>
 

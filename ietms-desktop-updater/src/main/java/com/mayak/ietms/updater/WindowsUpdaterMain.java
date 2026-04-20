@@ -58,17 +58,13 @@ public class WindowsUpdaterMain {
     }
 
     private static void initLogger() throws IOException {
-        Path logDir = Path.of(System.getenv("LOCALAPPDATA"), "iETMS");
+        Path logDir = Path.of(System.getenv("LOCALAPPDATA"), "iETMS", "logs");
         Files.createDirectories(logDir);
 
         Path logFile = logDir.resolve("updater.log");
 
         log = new PrintWriter(
-                Files.newBufferedWriter(
-                        logFile,
-                        StandardOpenOption.CREATE,
-                        StandardOpenOption.APPEND
-                ),
+                Files.newBufferedWriter(logFile, StandardOpenOption.CREATE, StandardOpenOption.APPEND),
                 true
         );
     }
