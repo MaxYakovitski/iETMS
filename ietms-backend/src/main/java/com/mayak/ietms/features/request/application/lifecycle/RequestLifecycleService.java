@@ -366,7 +366,6 @@ public class RequestLifecycleService {
 
         if (request.getStatus() != before) {
             requestRepository.save(request);
-            requestNotificationService.publishEvent(RequestEvent.EventType.UPDATED, request);
         }
     }
 
