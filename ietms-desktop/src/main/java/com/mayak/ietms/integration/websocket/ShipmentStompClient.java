@@ -9,14 +9,12 @@ import com.mayak.ietms.shipment.event.ShipmentEvent;
 import com.mayak.ietms.integration.auth.AuthState;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHttpHeaders;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
@@ -44,8 +42,7 @@ public class ShipmentStompClient extends AbstractStompClient {
     public ShipmentStompClient(AuthState authState, BackendProperties backendProperties) {
         this.authState = authState;
         this.wsUrl = backendProperties.getWsUrl();
-        this.stompClient = new WebSocketStompClient(new StandardWebSocketClient());
-        this.stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        this.stompClient = buildStompClient();
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }
 

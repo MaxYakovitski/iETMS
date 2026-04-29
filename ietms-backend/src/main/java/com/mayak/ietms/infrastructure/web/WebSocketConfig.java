@@ -10,6 +10,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -81,10 +82,22 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      *   <li>{@code /app} — application destination prefix for {@code @MessageMapping}</li>
      *   <li>{@code /user} — user destination prefix for {@code convertAndSendToUser}</li>
      * </ul>
+     *
+     * <p>Heartbeat is set to 25 s in both directions to keep the underlying
+     * TCP connection alive through NAT and firewall idle-timeout eviction. A dedicated
+     * {@link ThreadPoolTaskScheduler} is required by {@code SimpleBrokerMessageHandler}
+     * to dispatch heartbeat frames and must be explicitly initialized before use.
      */
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic", "/queue");
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("ws-heartbeat-");
+        scheduler.initialize();
+
+        registry.enableSimpleBroker("/topic", "/queue")
+                .setHeartbeatValue(new long[]{25_000, 25_000})
+                .setTaskScheduler(scheduler);;
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
     }

@@ -2,7 +2,10 @@ package com.mayak.ietms.integration.websocket;
 
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -23,6 +26,18 @@ public class AbstractStompClient {
         t.setName(getClass().getSimpleName() + "-reconnect");
         return t;
     });
+
+    /**
+     * Creates a pre-configured {@link WebSocketStompClient} shared by all
+     * subclasses. Heartbeat is set to 25 s in both directions to keep the
+     * underlying TCP connection alive through NAT idle-timeout eviction.
+     */
+    protected static WebSocketStompClient buildStompClient() {
+        WebSocketStompClient client = new WebSocketStompClient(new StandardWebSocketClient());
+        client.setMessageConverter(new MappingJackson2MessageConverter());
+        client.setDefaultHeartbeat(new long[]{25_000, 25_000});
+        return client;
+    }
 
     /**
      * Request WS to stay connected for the lifetime of the session.
