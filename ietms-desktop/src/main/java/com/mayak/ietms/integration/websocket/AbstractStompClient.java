@@ -4,6 +4,7 @@ import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
@@ -31,10 +32,19 @@ public class AbstractStompClient {
      * Creates a pre-configured {@link WebSocketStompClient} shared by all
      * subclasses. Heartbeat is set to 25 s in both directions to keep the
      * underlying TCP connection alive through NAT idle-timeout eviction.
+     * A dedicated {@link ThreadPoolTaskScheduler} is required by
+     * {@link WebSocketStompClient} to dispatch heartbeat frames and must be
+     * explicitly initialized before use.
      */
     protected static WebSocketStompClient buildStompClient() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("ws-heartbeat-");
+        scheduler.initialize();
+
         WebSocketStompClient client = new WebSocketStompClient(new StandardWebSocketClient());
         client.setMessageConverter(new MappingJackson2MessageConverter());
+        client.setTaskScheduler(scheduler);
         client.setDefaultHeartbeat(new long[]{25_000, 25_000});
         return client;
     }
