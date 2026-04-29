@@ -4,32 +4,40 @@ import com.mayak.ietms.integration.api.RequestClient;
 import com.mayak.ietms.request.dto.enums.RequestTypeDto;
 import com.mayak.ietms.integration.websocket.RequestStompClient;
 import com.mayak.ietms.ui.workspace.request.base.AbstractRequestController;
-import com.mayak.ietms.ui.workspace.request.base.ParentType;
 import com.mayak.ietms.support.state.RequestFilterState;
 import com.mayak.ietms.infrastructure.window.WindowService;
+import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+
+import java.util.Objects;
 
 @Controller
 @Scope("prototype")
 @Slf4j
 public class TransportRequestController extends AbstractRequestController {
 
-    @FXML public Button filterActiveButton;
+    // ==================== Constants ====================
+    private static final String FILTER_ICON_DEFAULT = "/icons/filter-default.png";
+    private static final String FILTER_ICON_ACTIVE  = "/icons/filter-active.png";
 
-    public void setRequestType(RequestTypeDto type) {
-        this.requestType = type;
-    }
+    // ==================== FXML ====================
+    @FXML private Button filterButton;
+    @FXML private ImageView filterImageView;
+    @FXML private TextField searchField;
 
-    @Override
-    public ParentType getParentType() {
-        return ParentType.TRANSPORT;
-    }
+    // ==================== Fields ====================
+    private final PauseTransition searchDebounce = new PauseTransition(Duration.millis(300));
 
+    // ==================== Constructor ====================
     public TransportRequestController(
             RequestClient requestClient,
             WindowService windowService,
@@ -38,21 +46,30 @@ public class TransportRequestController extends AbstractRequestController {
         super(requestClient, windowService, filterStateService,  wsClient);
     }
 
+    // ==================== FXML Lifecycle ====================
+
     @FXML
     public void initialize() {
-        filterActiveButton.setOnAction(event -> onFilterHotkey());
+        searchDebounce.setOnFinished(e -> applySearch(searchField.getText()));
+        searchField.textProperty().addListener((obs, o, n) -> searchDebounce.playFromStart());
     }
 
+    // ==================== Lifecycle ====================
+
+    /**
+     * Guards against premature calls — requestType is set externally after construction.
+     */
     @Override
     public void onShow() {
-        if (requestType == null) {
-            return;
-        }
-
+        if (requestType == null) return;
         filterState.clear();
         super.onShow();
     }
 
+    /**
+     * Transport opens in a separate window. Re-registers the active RequestsParent
+     * on focus because multiple transport windows can be open simultaneously.
+     */
     @Override
     public void setStage(Stage stage) {
         super.setStage(stage);
@@ -64,10 +81,28 @@ public class TransportRequestController extends AbstractRequestController {
         });
     }
 
-    public void setFilterActive(boolean active) {
-        filterActiveButton.setVisible(active);
-        filterActiveButton.setManaged(active);
+    // ==================== Public API ====================
+
+    public void setRequestType(RequestTypeDto type) {
+        this.requestType = type;
     }
+
+    public void setFilterActive(boolean active) {
+        String path = active ? FILTER_ICON_ACTIVE : FILTER_ICON_DEFAULT;
+        filterImageView.setImage(new Image(
+                Objects.requireNonNull(getClass().getResource(path)).toExternalForm()
+        ));
+        filterButton.setOpacity(active ? 1.0 : 0.65);
+    }
+
+    // ==================== FXML Handlers ====================
+
+    @FXML
+    public void handleFilter() {
+        onFilterHotkey();
+    }
+
+    // ==================== Overrides ====================
 
     @Override
     protected boolean allowDuplicateHotkey() {
@@ -75,16 +110,8 @@ public class TransportRequestController extends AbstractRequestController {
     }
 
     @Override
-    protected boolean supportsFilterHotkey() { return true; }
-
-    @Override
-    protected boolean supportsSearchHotkey() { return true; }
-
-    @Override
-    protected void onSearchHotkey() {
-        if (getHomeController() != null) {
-            getHomeController().handleSearchHotkey(getStage());
-        }
+    protected boolean supportsFilterHotkey() {
+        return true;
     }
 
     @Override

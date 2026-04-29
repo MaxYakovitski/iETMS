@@ -16,7 +16,6 @@ import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.integration.exception.ApiValidationException;
 import com.mayak.ietms.integration.websocket.RequestStompClient;
 import com.mayak.ietms.ui.workspace.request.base.AbstractRequestController;
-import com.mayak.ietms.ui.workspace.request.base.ParentType;
 import com.mayak.ietms.ui.workspace.request.form.ClientRequestFormState;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
@@ -51,36 +50,33 @@ public class ClientRequestsController extends AbstractRequestController {
     @FXML private CheckBox dangerousCheckBox;
     @FXML public Button laneButton;
 
-    private final ClientRequestPolicy requestPolicy = new ClientRequestPolicy();
-    private final ClientRequestFormState requestState = new ClientRequestFormState();
-
-    private final ToggleGroup requestTypeGroup = new ToggleGroup();
-    private final ToggleGroup shipmentTypeGroup = new ToggleGroup();
-
-    private final Set<String> companySuggestions = ConcurrentHashMap.newKeySet();
-
+    // ==================== Dependencies ====================
     private final CompanyClient companyClient;
     private final LaneClient laneClient;
-    private ValidationUIHelper validationUI;
-
     private final CompanyStompClient companyStompClient;
 
-    @Setter
-    private Long renewedRequest;
+    // ==================== State ====================
+    private final ClientRequestPolicy requestPolicy = new ClientRequestPolicy();
+    private final ClientRequestFormState requestState = new ClientRequestFormState();
+    private final ToggleGroup requestTypeGroup = new ToggleGroup();
+    private final ToggleGroup shipmentTypeGroup = new ToggleGroup();
+    private final Set<String> companySuggestions = ConcurrentHashMap.newKeySet();
 
+    private ValidationUIHelper validationUI;
     private ClientCompanyLaneCoordinator laneCoordinator;
     private ClientRequestSubmitService submitService;
-
     private Runnable companyWsUnsubscribe;
 
+    /** The original request being replaced — deleted after the new one is submitted successfully. */
+    @Setter private Long renewedRequest;
+
+    /** Suppresses listener callbacks during programmatic state writes. */
     private boolean isRendering = false;
+
+    /** Suppresses automatic lane lookup when filling the form from an existing request. */
     private boolean allowLaneLookup = true;
 
-    @Override
-    public ParentType getParentType() {
-        return ParentType.CLIENT;
-    }
-
+    // ==================== Constructor ====================
     public ClientRequestsController(
             RequestClient requestClient,
             WindowService windowService,
@@ -96,6 +92,7 @@ public class ClientRequestsController extends AbstractRequestController {
         this.companyStompClient = companyStompClient;
     }
 
+    // ==================== FXML Lifecycle ====================
     @FXML
     public void initialize() {
         spotRadioButton.setToggleGroup(requestTypeGroup);
@@ -157,6 +154,7 @@ public class ClientRequestsController extends AbstractRequestController {
         submitService = new ClientRequestSubmitService();
     }
 
+    // ==================== Lifecycle ====================
     @Override
     public void onShow() {
         super.onShow();
@@ -173,6 +171,7 @@ public class ClientRequestsController extends AbstractRequestController {
         }
     }
 
+    // ==================== Setup ====================
     private void setupFormFields() {
         TextUtils.allowOnlyLatin(fromTextArea, toTextArea, idField, weightTextField, loadingMeterTextField);
         TextUtils.setupEnumComboBox(transportComboBox, TransportTypeDto.values(), TransportTypeDto::getLabel);
@@ -239,6 +238,64 @@ public class ClientRequestsController extends AbstractRequestController {
         }
     }
 
+    private void bindState() {
+        fromTextArea.textProperty().addListener((obs, o, n) -> {
+            if (isRendering) return;
+            requestState.setFrom(n);
+        });
+
+        toTextArea.textProperty().addListener((obs, o, n) -> {
+            if (isRendering) return;
+            requestState.setTo(n);
+        });
+
+        idField.textProperty().addListener((obs, o, n) -> {
+            if (isRendering) return;
+            requestState.setCustomerReference(n);
+        });
+
+        companyField.textProperty().addListener((obs, o, n) -> {
+            if (isRendering) return;
+            requestState.setCompanyName(UnicodeNormalizer.normalize(n));
+        });
+
+        startDate.valueProperty().addListener((obs, o, n) -> {
+            if (isRendering) return;
+            requestState.setStartDate(n);
+        });
+
+        endDate.valueProperty().addListener((obs, o, n) -> {
+            if (isRendering) return;
+            requestState.setEndDate(n);
+        });
+
+        temperatureTextField.textProperty().addListener((obs, o, n) -> {
+            if (isRendering) return;
+            requestState.setTemperature(n);
+        });
+
+        dangerousCheckBox.selectedProperty().addListener((obs, o, n) -> {
+            if (isRendering) return;
+            requestState.setDangerous(n);
+        });
+
+        weightTextField.textProperty().addListener((obs, o, n) -> {
+            if (isRendering) return;
+            requestState.setWeight(n);
+        });
+
+        loadingMeterTextField.textProperty().addListener((obs, o, n) -> {
+            if (isRendering) return;
+            requestState.setLoadingMeter(n);
+        });
+
+        commentsTextArea.textProperty().addListener((obs, o, n) -> {
+            if (isRendering) return;
+            requestState.setComments(n);
+        });
+    }
+
+    // ==================== Render ====================
     private void render() {
         isRendering = true;
         try {
@@ -324,7 +381,33 @@ public class ClientRequestsController extends AbstractRequestController {
         weightTextField.setDisable(hasLane);
     }
 
-    // ==================== FORM SUBMIT ====================
+    // ==================== Public API ====================
+
+    /**
+     * Fills the form with data from an existing request.
+     * allowLaneLookup is suppressed to prevent an automatic lane fetch
+     * that would overwrite the pre-filled dates and fields.
+     */
+    @Override
+    public void fillFormWithRequest(RequestDetailsDto request) {
+        allowLaneLookup = false;
+        try {
+            requestPolicy.applyRequest(requestState, request);
+            renewedRequest = null;
+            render();
+            setupDatePickersForCurrentState();
+        } finally {
+            allowLaneLookup = true;
+        }
+    }
+
+    private void resetFormFields() {
+        requestState.reset();
+        render();
+    }
+
+
+    // ==================== FXML Handlers ====================
     @FXML private void submitRequestForm() {
         SubmitResult result = submitService.prepare(requestState);
 
@@ -362,24 +445,12 @@ public class ClientRequestsController extends AbstractRequestController {
         }
     }
 
-    @Override
-    public void fillFormWithRequest(RequestDetailsDto request) {
-        allowLaneLookup = false;
-        try {
-            requestPolicy.applyRequest(requestState, request);
-            renewedRequest = null;
-            render();
-            setupDatePickersForCurrentState();
-        } finally {
-            allowLaneLookup = true;
-        }
+    @FXML
+    public void handleLaneSelect() {
+        laneCoordinator.onCompanyConfirmed();
     }
 
-    private void resetFormFields() {
-        requestState.reset();
-        render();
-    }
-
+    // ==================== Overrides ====================
     @Override
     protected boolean allowDuplicateHotkey() {
         return true;
@@ -387,67 +458,4 @@ public class ClientRequestsController extends AbstractRequestController {
 
     @Override
     protected boolean supportsFilterHotkey() { return true; }
-
-    private void bindState() {
-        fromTextArea.textProperty().addListener((obs, o, n) -> {
-            if (isRendering) return;
-            requestState.setFrom(n);
-        });
-
-        toTextArea.textProperty().addListener((obs, o, n) -> {
-            if (isRendering) return;
-            requestState.setTo(n);
-        });
-
-        idField.textProperty().addListener((obs, o, n) -> {
-            if (isRendering) return;
-            requestState.setCustomerReference(n);
-        });
-
-        companyField.textProperty().addListener((obs, o, n) -> {
-            if (isRendering) return;
-            requestState.setCompanyName(UnicodeNormalizer.normalize(n));
-        });
-
-        startDate.valueProperty().addListener((obs, o, n) -> {
-            if (isRendering) return;
-            requestState.setStartDate(n);
-        });
-
-        endDate.valueProperty().addListener((obs, o, n) -> {
-            if (isRendering) return;
-            requestState.setEndDate(n);
-        });
-
-        temperatureTextField.textProperty().addListener((obs, o, n) -> {
-            if (isRendering) return;
-            requestState.setTemperature(n);
-        });
-
-        dangerousCheckBox.selectedProperty().addListener((obs, o, n) -> {
-            if (isRendering) return;
-            requestState.setDangerous(n);
-        });
-
-        weightTextField.textProperty().addListener((obs, o, n) -> {
-            if (isRendering) return;
-            requestState.setWeight(n);
-        });
-
-        loadingMeterTextField.textProperty().addListener((obs, o, n) -> {
-            if (isRendering) return;
-            requestState.setLoadingMeter(n);
-        });
-
-        commentsTextArea.textProperty().addListener((obs, o, n) -> {
-            if (isRendering) return;
-            requestState.setComments(n);
-        });
-
-    }
-
-    @FXML
-    public void handleLaneSelect() {
-        laneCoordinator.onCompanyConfirmed();
-    }
 }
