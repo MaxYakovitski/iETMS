@@ -28,23 +28,27 @@ public class AbstractStompClient {
         return t;
     });
 
-    /**
-     * Creates a pre-configured {@link WebSocketStompClient} shared by all
-     * subclasses. Heartbeat is set to 25 s in both directions to keep the
-     * underlying TCP connection alive through NAT idle-timeout eviction.
-     * A dedicated {@link ThreadPoolTaskScheduler} is required by
-     * {@link WebSocketStompClient} to dispatch heartbeat frames and must be
-     * explicitly initialized before use.
-     */
-    protected static WebSocketStompClient buildStompClient() {
+    /** Scheduler used exclusively to dispatch STOMP heartbeat frames. */
+    protected final ThreadPoolTaskScheduler heartbeatScheduler = buildScheduler();
+
+    private static ThreadPoolTaskScheduler buildScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setPoolSize(1);
         scheduler.setThreadNamePrefix("ws-heartbeat-");
+        scheduler.setDaemon(true);
         scheduler.initialize();
+        return scheduler;
+    }
 
+    /**
+     * Creates a pre-configured {@link WebSocketStompClient} for use by subclasses.
+     * Heartbeat is set to 25 s in both directions to keep the underlying TCP
+     * connection alive through NAT idle-timeout eviction.
+     */
+    protected WebSocketStompClient buildStompClient() {
         WebSocketStompClient client = new WebSocketStompClient(new StandardWebSocketClient());
         client.setMessageConverter(new MappingJackson2MessageConverter());
-        client.setTaskScheduler(scheduler);
+        client.setTaskScheduler(heartbeatScheduler);
         client.setDefaultHeartbeat(new long[]{25_000, 25_000});
         return client;
     }
@@ -87,6 +91,7 @@ public class AbstractStompClient {
         shuttingDown = true;
         desiredConnected = false;
         reconnectExecutor.shutdownNow();
+        heartbeatScheduler.shutdown();
         disconnectSession();
         log.info("{} WS executor shutdown", getClass().getSimpleName());
     }
