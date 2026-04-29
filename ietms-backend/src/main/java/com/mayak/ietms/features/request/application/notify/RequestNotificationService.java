@@ -34,7 +34,7 @@ public class RequestNotificationService {
                     dto
             );
             messagingTemplate.convertAndSend(TOPIC_REQUESTS, event);
-            log.info("WS event {} sent for request {}", type, request.getId());
+            log.info("WS request event {} sent for request {}", type, request.getId());
         } catch (Exception e) {
             log.warn("WS publish failed for request {}: {}",
                     request.getId(), e.toString());
