@@ -47,59 +47,53 @@ import java.util.concurrent.*;
 @Slf4j
 public abstract class AbstractRequestController implements ViewLifecycle, SecuredView, RequestsParent {
 
+    // ==================== Constants ====================
+    protected static final int PAGE_SIZE = 100;
+    private static final int PREFETCH_RADIUS = 50;
+
+    // ==================== FXML ====================
     @FXML protected ListView<RequestListItemDto> requestsListView;
     @FXML protected StackPane loadingOverlay;
     @FXML protected ProgressIndicator loadingIndicator;
     @FXML protected Label emptyMessageLabel;
 
+    // ==================== Dependencies ====================
     protected final RequestClient requestClient;
     protected final WindowService windowService;
     protected final RequestFilterState filterState;
     protected final RequestStompClient wsClient;
 
-    @Getter @Setter
-    HomeController homeController;
+    // ==================== State ====================
+    @Getter @Setter HomeController homeController;
+    @Getter private UserResponseDto loggedInUser;
+    @Getter @Setter protected RequestTypeDto requestType;
+    @Getter @Setter protected Stage stage;
 
-    @Getter
-    private UserResponseDto loggedInUser;
-
-    @Getter
     protected final ObservableList<RequestListItemDto> requestItems = FXCollections.observableArrayList();
     private final ConcurrentMap<Long, RequestItemController> visible = new ConcurrentHashMap<>();
+    protected final ConcurrentMap<Long, CompletableFuture<RequestDetailsDto>> detailsCache = new ConcurrentHashMap<>();
 
     protected RequestFilterDto activeFilter;
     protected String activeSearchQuery;
 
-    @Getter @Setter
-    protected RequestTypeDto requestType;
-
-    @Getter @Setter
-    protected Stage stage;
-
-    private Runnable wsUnsubscribe;
-
-    protected static final int PAGE_SIZE = 100;
-
+    // ==================== Pagination ====================
     protected int currentPage = 0;
     protected boolean loading = false;
     protected boolean allLoaded = false;
 
-    private boolean overlayVisible = false;
-    private boolean hotkeysRegistered = false;
-
+    // ==================== Concurrency ====================
     protected volatile boolean active = true;
     protected volatile boolean pauseUpdates = false;
 
+    private boolean overlayVisible = false;
+
+    /** Deferred to onShow() — scene is not yet attached during initialize(). */
+    private boolean hotkeysRegistered = false;
+
     protected ScheduledExecutorService uiUpdater;
-
     private ScheduledExecutorService wsDebouncer;
-
     private ScheduledFuture<?> pendingReload;
-
-    protected final ConcurrentMap<Long, CompletableFuture<RequestDetailsDto>> detailsCache = new ConcurrentHashMap<>();
-
-    private static final int PREFETCH_RADIUS = 50;
-
+    private Runnable wsUnsubscribe;
 
     @Override
     public void setLoggedInUser(UserResponseDto user) {
@@ -111,6 +105,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         return Optional.ofNullable(activeFilter);
     }
 
+    // ==================== Lifecycle ====================
     @Override
     public void onShow() {
         setupListView();
@@ -174,6 +169,8 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
             return cell;
         });
 
+        // Scroll bar does not exist until the skin is applied — attach the
+        // pagination listener only after skinProperty fires.
         requestsListView.skinProperty().addListener((obs, oldSkin, newSkin) -> {
             ScrollBar verticalBar = getVerticalScrollBar(requestsListView);
             if (verticalBar != null) {
@@ -210,66 +207,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         return null;
     }
 
-    public CompletableFuture<RequestDetailsDto> getDetailsAsync(Long id) {
-        return detailsCache.computeIfAbsent(id,
-                key -> CompletableFuture.supplyAsync(() -> requestClient.getDetails(key))
-        );
-    }
-
-    @Override
-    public void invalidateRequest(Long requestId) {
-        if (!active || requestId == null) return;
-        detailsCache.remove(requestId);
-        refreshOne(requestId);
-    }
-
-    public void registerVisible(Long id, RequestItemController c) {
-        if (id != null && c != null) visible.put(id, c);
-    }
-
-    public void unregisterVisible(Long id) {
-        if (id == null) return;
-        visible.remove(id);
-    }
-
-    private void refreshOne(Long id) {
-        RequestItemController c = visible.get(id);
-        if (c == null) return;
-
-        CompletableFuture
-                .supplyAsync(() -> requestClient.getDetails(id))
-                .thenAccept(dto -> Platform.runLater(() -> {
-                    if (!Objects.equals(c.getRequestId(), id)) return;
-                    c.attachDetails(dto);
-                }))
-                .exceptionally(ex -> {
-                    Throwable cause = ex.getCause();
-
-                    if (cause instanceof ApiException apiEx && apiEx.getStatus() != null && apiEx.getStatus().value() == 404) {
-                        log.debug("Request {} not found anymore, removing from visible", id);
-                        Platform.runLater(() -> visible.remove(id));
-                        return null;
-                    }
-
-                    log.warn("Failed to refresh request {}", id, ex);
-                    return null;
-                });
-    }
-
-    protected void prefetchAroundIndex(int center) {
-        int size = requestItems.size();
-        if (size == 0) return;
-
-        int from = Math.max(0, center - PREFETCH_RADIUS);
-        int to   = Math.min(size - 1, center + PREFETCH_RADIUS);
-
-        for (int i = from; i <= to; i++) {
-            Long id = requestItems.get(i).id();
-            getDetailsAsync(id);
-        }
-    }
-
-    // ==================== Pagination API ====================
+    // ==================== Pagination ====================
     protected void loadDefaultPage() {
         resetPagination();
         showLoading(true);
@@ -281,6 +219,9 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         loading = true;
         showLoading(true);
 
+        // Snapshot filter/search before the async call. After the result
+        // arrives we compare against the current values to discard responses
+        // that belong to a superseded query.
         int pageToLoad = currentPage;
         RequestFilterDto filterSnapshot = activeFilter;
         String searchSnapshot = activeSearchQuery;
@@ -329,8 +270,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
 
     protected void onPageLoaded() {}
 
-
-    // ==================== Filter / search API ====================
+    // ==================== Filter / Search ====================
     public void applyFilter(RequestFilterDto filter) {
         safeUpdate(() -> {
             if (!active) return;
@@ -379,6 +319,71 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         });
     }
 
+    // ==================== Cache ====================
+    public CompletableFuture<RequestDetailsDto> getDetailsAsync(Long id) {
+        return detailsCache.computeIfAbsent(id,
+                key -> CompletableFuture.supplyAsync(() -> requestClient.getDetails(key))
+        );
+    }
+
+    @Override
+    public void invalidateRequest(Long requestId) {
+        if (!active || requestId == null) return;
+        detailsCache.remove(requestId);
+        refreshOne(requestId);
+    }
+
+    public void registerVisible(Long id, RequestItemController c) {
+        if (id != null && c != null) visible.put(id, c);
+    }
+
+    public void unregisterVisible(Long id) {
+        if (id == null) return;
+        visible.remove(id);
+    }
+
+    private void refreshOne(Long id) {
+        RequestItemController c = visible.get(id);
+        if (c == null) return;
+
+        CompletableFuture
+                .supplyAsync(() -> requestClient.getDetails(id))
+                .thenAccept(dto -> Platform.runLater(() -> {
+                    if (!Objects.equals(c.getRequestId(), id)) return;
+                    c.attachDetails(dto);
+                }))
+                .exceptionally(ex -> {
+                    Throwable cause = ex.getCause();
+
+                    if (cause instanceof ApiException apiEx && apiEx.getStatus() != null && apiEx.getStatus().value() == 404) {
+                        log.debug("Request {} not found anymore, removing from visible", id);
+                        Platform.runLater(() -> visible.remove(id));
+                        return null;
+                    }
+
+                    log.warn("Failed to refresh request {}", id, ex);
+                    return null;
+                });
+    }
+
+    /**
+     * Eagerly fetches details for items within PREFETCH_RADIUS of the visible
+     * center so that opening a row feels instantaneous.
+     */
+    protected void prefetchAroundIndex(int center) {
+        int size = requestItems.size();
+        if (size == 0) return;
+
+        int from = Math.max(0, center - PREFETCH_RADIUS);
+        int to   = Math.min(size - 1, center + PREFETCH_RADIUS);
+
+        for (int i = from; i <= to; i++) {
+            Long id = requestItems.get(i).id();
+            getDetailsAsync(id);
+        }
+    }
+
+    // ==================== Form ====================
     protected void loadDetailsAndFillForm(Long requestId) {
         CompletableFuture
                 .supplyAsync(() -> requestClient.getDetails(requestId))
@@ -436,17 +441,25 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     @Override
     public void resumeUpdates() {pauseUpdates = false;}
 
+    /**
+     * Wraps filter/search resets in a pause-resume bracket so that any
+     * in-flight WebSocket events do not interleave with the reset logic.
+     */
     @Override
     public void safeUpdate(Runnable resetLogic) {
         pauseUpdates();
         try {resetLogic.run();} finally {resumeUpdates();}
     }
 
-    // ==================== WEB SOCKET EVENT HANDLING ====================
+        // ==================== WebSocket ====================
     protected void initRealtimeUpdates() {
         wsUnsubscribe = wsClient.connect(event -> handleEventReceived(List.of(event)), this::handleUserEvent);
     }
 
+    /**
+     * A sorted reload is triggered when any event carries a status change,
+     * since a status change may affect the item's position in the sorted list.
+     */
     private void handleEventReceived(List<RequestEvent<RequestEventDto>> events) {
         if (!active || pauseUpdates || events.isEmpty()) return;
 
@@ -519,25 +532,17 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
 
             if (!shortcut) return;
 
-            switch (event.getCode()) {
-
-                case F -> {
-                    if (supportsFilterHotkey()) {
+            if (event.getCode() == KeyCode.F && supportsFilterHotkey()) {
                         onFilterHotkey();
                         event.consume();
-                    }
-                }
-
-                case S -> {
-                    if (supportsSearchHotkey()) {
-                        onSearchHotkey();
-                        event.consume();
-                    }
-                }
             }
         });
     }
 
+    /**
+     * When true, the list also handles Ctrl+D to fill the form from the
+     * selected item. Subclasses that own a form panel should override this.
+     */
     protected boolean allowDuplicateHotkey() {
         return false;
     }
@@ -548,8 +553,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         }
     }
 
-    protected void onSearchHotkey() {}
-
-    protected boolean supportsFilterHotkey() {return false;}
-    protected boolean supportsSearchHotkey() {return false;}
+    protected boolean supportsFilterHotkey() {
+        return false;
+    }
 }

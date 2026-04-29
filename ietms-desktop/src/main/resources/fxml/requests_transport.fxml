@@ -4,21 +4,32 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
-<?import javafx.geometry.Insets?>
 <?import java.lang.String?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/21.0.7"
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.mayak.ietms.ui.workspace.request.transport.TransportRequestController"
             prefWidth="1520" prefHeight="540"
             stylesheets="@/css/styles.css"
             styleClass="app-root">
 
-    <StackPane style="-fx-background-color: #ffffff"
-               AnchorPane.topAnchor="0"
-               AnchorPane.leftAnchor="0"
-               AnchorPane.rightAnchor="0"
-               AnchorPane.bottomAnchor="0">
+    <HBox minHeight="40" maxHeight="40.0" alignment="CENTER_RIGHT" spacing="5"
+          style="-fx-background-color: #c8c8c8; -fx-background-radius: 5; -fx-background-insets: 5; -fx-padding: 6;">
+        <Button fx:id="filterButton" opacity="0.65" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false"
+                prefHeight="20.0" prefWidth="20.0"
+                style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;" onAction="#handleFilter">
+            <graphic>
+                <ImageView fx:id="filterImageView" fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                    <Image url="@/icons/filter-default.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+        <TextField fx:id="searchField" promptText="search" prefHeight="28" prefWidth="250.0"
+                   style="-fx-background-color: #ffffff; -fx-background-radius: 0 4 4 0; -fx-border-width: 0">
+        </TextField>
+    </HBox>
+
+    <StackPane style="-fx-background-color: #ffffff" VBox.vgrow="ALWAYS">
 
         <ListView fx:id="requestsListView">
             <styleClass>
@@ -40,25 +51,5 @@
                 <Label text="loading..."/>
             </VBox>
         </StackPane>
-        <Button fx:id="filterActiveButton"
-                StackPane.alignment="TOP_RIGHT"
-                visible="false" managed="false"
-                contentDisplay="GRAPHIC_ONLY"
-                alignment="CENTER"
-                prefWidth="30" prefHeight="30"
-                minWidth="30"  minHeight="30"
-                maxWidth="30"  maxHeight="30"
-                style="-fx-background-color: #c8c8c8; -fx-background-radius: 5; -fx-cursor: hand;">
-
-            <StackPane.margin>
-                <Insets top="15" right="10"/>
-            </StackPane.margin>
-
-            <graphic>
-                <ImageView fitHeight="18.0" fitWidth="18.0" preserveRatio="true">
-                    <Image url="@/icons/filter-active.png"/>
-                </ImageView>
-            </graphic>
-        </Button>
     </StackPane>
-</AnchorPane>
+</VBox>
