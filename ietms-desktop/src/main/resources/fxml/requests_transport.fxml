@@ -6,12 +6,13 @@
 <?import javafx.scene.image.Image?>
 <?import java.lang.String?>
 
+<?import javafx.geometry.Insets?>
 <VBox xmlns="http://javafx.com/javafx/21.0.7"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.mayak.ietms.ui.workspace.request.transport.TransportRequestController"
-            prefWidth="1520" prefHeight="540"
-            stylesheets="@/css/styles.css"
-            styleClass="app-root">
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.ietms.ui.workspace.request.transport.TransportRequestController"
+      prefWidth="1520" prefHeight="540"
+      stylesheets="@/css/styles.css"
+      styleClass="app-root">
 
     <HBox minHeight="40" maxHeight="40.0" alignment="CENTER_RIGHT" spacing="5"
           style="-fx-background-color: #c8c8c8; -fx-background-radius: 5; -fx-background-insets: 5; -fx-padding: 6;">
@@ -30,6 +31,9 @@
     </HBox>
 
     <StackPane style="-fx-background-color: #ffffff" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets left="5"/>
+        </padding>
 
         <ListView fx:id="requestsListView">
             <styleClass>
