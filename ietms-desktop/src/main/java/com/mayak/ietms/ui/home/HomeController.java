@@ -16,8 +16,6 @@ import com.mayak.ietms.ui.workspace.request.filter.RequestFilterController;
 import com.mayak.ietms.ui.workspace.request.base.RequestsParent;
 import com.mayak.ietms.ui.workspace.WorkspacePopupController;
 import com.mayak.ietms.ui.administration.AdministrationPopupController;
-import com.mayak.ietms.ui.workspace.request.search.SearchController;
-import com.mayak.ietms.ui.workspace.request.transport.TransportRequestController;
 import com.mayak.ietms.infrastructure.window.WindowService;
 import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
@@ -49,35 +47,39 @@ import java.util.Optional;
 @Slf4j
 public class HomeController {
 
-    @FXML
-    @Getter private AnchorPane contentArea;
-    @FXML public Button filterButton;
-    @FXML public TextField searchField;
-    @FXML public ImageView filterImageView;
-    @FXML public Button administrationButton;
+    // ==================== Constants ====================
+    private static final String USER_ICON = "/icons/user.png";
+    private static final String FILTER_ICON_DEFAULT = "/icons/filter-default.png";
+    private static final String FILTER_ICON_ACTIVE = "/icons/filter-active.png";
+    private static final String ABOUT_ICON = "/icons/info.png";
 
+    // ==================== FXML ====================
+    @FXML @Getter private AnchorPane contentArea;
+    @FXML private Button filterButton;
+    @FXML private TextField searchField;
+    @FXML private ImageView filterImageView;
+    @FXML private Button administrationButton;
+
+    // ==================== Dependencies ====================
     private final UserClient userClient;
     private final WindowService windowService;
     @Getter private NavigationService navigation;
 
-    private final PauseTransition searchDebounce = new PauseTransition(Duration.millis(300));
-
+    // ==================== State ====================
     @Setter private RequestsParent requestsParent;
     private ViewLifecycle currentViewController;
     private UserResponseDto loggedInUser;
     private UserPermissions permissions;
-    private Stage searchWindow;
 
+    private final PauseTransition searchDebounce = new PauseTransition(Duration.millis(300));
+
+    // ==================== Popups ====================
     private Popup workspacePopup;
     private Popup crmPopup;
     private Popup administrationPopup;
     private Popup analyticsPopup;
 
-    private static final String USER_ICON = "/icons/user.png";
-    private static final String FILTER_ICON_DEFAULT = "/icons/filter-default.png";
-    private static final String FILTER_ICON_ACTIVE = "/icons/filter-active.png";
-    private static final String SEARCH_ICON = "/icons/search.png";
-    private static final String ABOUT_ICON = "/icons/info.png";
+    // ==================== FXML Lifecycle ====================
 
     @FXML
     public void initialize() {
@@ -91,15 +93,80 @@ public class HomeController {
             log.error("Failed to load current user", e);
         }
 
-        searchField.textProperty().addListener((obs, oldText, newText) -> {
-            searchDebounce.setOnFinished(event -> {
-                if (requestsParent != null) {
-                    handleSearch(newText);
-                }
-            });
-            searchDebounce.playFromStart();
-        });
+        searchDebounce.setOnFinished(e -> {if (requestsParent != null) handleSearch(searchField.getText());});
+        searchField.textProperty().addListener((obs, o, n) -> searchDebounce.playFromStart());
     }
+
+    // ==================== Navigation ====================
+
+    /**
+     * Loads a view into the content area, managing the full lifecycle:
+     * hides the current view, wires up SecuredView/ViewLifecycle/RequestsParent,
+     * and toggles the toolbar request buttons.
+     */
+    public void loadView(View view) {
+        if (loggedInUser != null && !canOpenView(view)) {
+            log.warn("User {} attempted to open {} without permission", loggedInUser.email(), view);
+            view = View.DASHBOARD;
+        }
+
+        if (currentViewController != null) {
+            currentViewController.onHide();
+        }
+        WindowService.Loaded<?> loaded = windowService.loadControllerWithNode(view.getPath());
+        Node node = loaded.node();
+        Object controller = loaded.controller();
+
+        contentArea.getChildren().setAll(node);
+
+        AnchorPane.setTopAnchor(node, 0.0);
+        AnchorPane.setRightAnchor(node, 0.0);
+        AnchorPane.setBottomAnchor(node, 0.0);
+        AnchorPane.setLeftAnchor(node, 0.0);
+
+        currentViewController = null;
+        requestsParent = null;
+
+        if (controller instanceof SecuredView secured) {
+            secured.setLoggedInUser(loggedInUser);
+        }
+
+        if (controller instanceof ViewLifecycle lifecycle) {
+            lifecycle.onShow();
+            currentViewController = lifecycle;
+        }
+
+        if (controller instanceof RequestsParent rp) {
+            this.requestsParent = rp;
+            rp.setHomeController(this);
+        }
+
+        showRequestButtons(view == View.REQUESTS_CLIENT || view == View.REQUESTS_TRANSPORT);
+    }
+
+    private boolean canOpenView(View view) {
+        return switch (view) {
+
+            case REQUESTS_CLIENT ->
+                    permissions.canViewClientRequests();
+
+            case REQUESTS_TRANSPORT ->
+                    permissions.canViewTransportRequests();
+
+            case CRM_POPUP ->
+                    permissions.canViewCrm();
+
+            case ANALYTICS_POPUP ->
+                    permissions.canViewAnalytics();
+
+            case ADMINISTRATION_POPUP ->
+                    permissions.canViewAdministration();
+
+            default -> true;
+        };
+    }
+
+    // ==================== FXML Handlers ====================
 
     @FXML
     public void handleHome() {
@@ -185,6 +252,9 @@ public class HomeController {
         handleFilter(null);
     }
 
+    // ==================== Public API ====================
+
+    /** Opens the filter modal anchored to the given owner stage (or primary if null). */
     public void handleFilter(Stage owner) {
         windowService.openModalWindow(
                 View.FILTER.getPath(),
@@ -202,97 +272,22 @@ public class HomeController {
         );
     }
 
-    public void handleSearchHotkey(Stage owner) {
-        if (requestsParent instanceof TransportRequestController trc) {
-            openSearchWindow(trc, owner);
-            return;
-        }
-        searchField.requestFocus();
+    /** Updates the filter button icon to reflect whether a filter is currently active. */
+    public void updateFilterState(boolean active) {
+        setFilterButtonActive(active);
     }
 
-    private void openSearchWindow(TransportRequestController trc, Stage owner) {
-        if (searchWindow != null && searchWindow.isShowing()) {
-            searchWindow.requestFocus();
-            return;
-        }
-
-        windowService.openModalWindow(
-                View.SEARCH.getPath(),
-                SearchController.class,
-                controller -> {
-                    controller.init(trc);
-                    this.searchWindow = controller.getStage();
-                },
-                "Search",
-                SEARCH_ICON,
-                owner
-        );
+    public void showRequestButtons(boolean show) {
+        filterButton.setVisible(show);
+        filterButton.setManaged(show);
+        searchField.setVisible(show);
+        searchField.setManaged(show);
     }
+
+    // ==================== Private Helpers ====================
 
     private void handleSearch(String query) {
         Optional.ofNullable(requestsParent).ifPresent(rp -> rp.applySearch(query));
-    }
-
-    public void loadView(View view) {
-        if (loggedInUser != null && !canOpenView(view)) {
-            log.warn("User {} attempted to open {} without permission", loggedInUser.email(), view);
-            view = View.DASHBOARD;
-        }
-
-        if (currentViewController != null) {
-            currentViewController.onHide();
-        }
-        WindowService.Loaded<?> loaded = windowService.loadControllerWithNode(view.getPath());
-        Node node = loaded.node();
-        Object controller = loaded.controller();
-
-        contentArea.getChildren().setAll(node);
-
-        AnchorPane.setTopAnchor(node, 0.0);
-        AnchorPane.setRightAnchor(node, 0.0);
-        AnchorPane.setBottomAnchor(node, 0.0);
-        AnchorPane.setLeftAnchor(node, 0.0);
-
-        currentViewController = null;
-        requestsParent = null;
-
-        if (controller instanceof SecuredView secured) {
-            secured.setLoggedInUser(loggedInUser);
-        }
-
-        if (controller instanceof ViewLifecycle lifecycle) {
-            lifecycle.onShow();
-            currentViewController = lifecycle;
-        }
-
-        if (controller instanceof RequestsParent rp) {
-            this.requestsParent = rp;
-            rp.setHomeController(this);
-        }
-
-        showRequestButtons(view == View.REQUESTS_CLIENT || view == View.REQUESTS_TRANSPORT);
-    }
-
-    private boolean canOpenView(View view) {
-        return switch (view) {
-
-            case REQUESTS_CLIENT ->
-                    permissions.canViewClientRequests();
-
-            case REQUESTS_TRANSPORT ->
-                    permissions.canViewTransportRequests();
-
-            case CRM_POPUP ->
-                    permissions.canViewCrm();
-
-            case ANALYTICS_POPUP ->
-                    permissions.canViewAnalytics();
-
-            case ADMINISTRATION_POPUP ->
-                    permissions.canViewAdministration();
-
-            default -> true;
-        };
     }
 
     private <T> Popup createPopupIfAbsent(Popup popup, View view, Class<T> controllerClass) {
@@ -312,17 +307,6 @@ public class HomeController {
         popup.setAutoHide(true);
 
         return popup;
-    }
-
-    public void updateFilterState(boolean active) {
-        setFilterButtonActive(active);
-    }
-
-    public void showRequestButtons(boolean show) {
-        filterButton.setVisible(show);
-        filterButton.setManaged(show);
-        searchField.setVisible(show);
-        searchField.setManaged(show);
     }
 
     private void setFilterButtonActive(boolean active) {

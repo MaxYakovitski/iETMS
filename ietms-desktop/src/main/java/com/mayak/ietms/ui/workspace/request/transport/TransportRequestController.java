@@ -50,7 +50,11 @@ public class TransportRequestController extends AbstractRequestController {
 
     @FXML
     public void initialize() {
-        searchDebounce.setOnFinished(e -> applySearch(searchField.getText()));
+        searchDebounce.setOnFinished(e -> {
+            String value = searchField.getText();
+            String query = (value == null || value.isBlank()) ? null : value.trim();
+            applySearch(query);
+        });
         searchField.textProperty().addListener((obs, o, n) -> searchDebounce.playFromStart());
     }
 
