@@ -9,10 +9,8 @@ import com.mayak.ietms.company.event.CompanyEvent;
 import com.mayak.ietms.integration.auth.AuthState;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.messaging.simp.stomp.StompFrameHandler;
-import org.springframework.messaging.simp.stomp.StompHeaders;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.lang.Nullable;
+import org.springframework.messaging.simp.stomp.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
@@ -49,7 +47,7 @@ public class CompanyStompClient extends AbstractStompClient{
     public Runnable connect(Consumer<CompanyEvent<CompanyDto>> onEvent) {
         handlers.add(onEvent);
         requestConnect();
-        if (!connected && !shuttingDown) {
+        if (!connected && !connecting && !shuttingDown) {
             doConnect();
         }
 
@@ -60,28 +58,51 @@ public class CompanyStompClient extends AbstractStompClient{
     }
 
     private synchronized void doConnect() {
-        if (connected || shuttingDown || !desiredConnected) return;
+        if (connected || connecting || shuttingDown || !desiredConnected) return;
+        connecting = true;
+
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         if (authState.isAuthenticated()) {
             headers.setBearerAuth(authState.getToken());
+            log.info("WS auth header set");
+        } else {
+            log.warn("WS connection without auth token");
         }
 
-        stompClient.connectAsync(wsUrl, headers, new StompSessionHandlerAdapter() {
+        try {
+            stompClient.connectAsync(wsUrl, headers, new StompSessionHandlerAdapter() {
 
-            @Override
-            public void afterConnected(@NotNull StompSession session, @NotNull StompHeaders headers) {
-                CompanyStompClient.this.session = session;
-                connected = true;
-                session.subscribe(TOPIC_COMPANIES, frameHandler(e -> handlers.forEach(h -> h.accept(e))));
-            }
+                @Override
+                public void afterConnected(@NotNull StompSession session, @NotNull StompHeaders headers) {
+                    CompanyStompClient.this.session = session;
+                    connected = true;
+                    connecting = false;
+                    session.subscribe(TOPIC_COMPANIES, frameHandler(e -> handlers.forEach(h -> h.accept(e))));
+                }
 
-            @Override
-            public void handleTransportError(@NotNull StompSession session, @NotNull Throwable exception) {
-                connected = false;
-                log.warn("WS transport error", exception);
-                if (!shuttingDown) scheduleReconnect();
-            }
-        });
+                @Override
+                public void handleTransportError(@NotNull StompSession session, @NotNull Throwable exception) {
+                    connecting = false;
+                    connected = false;
+                    log.warn("WS transport error", exception);
+                    if (!shuttingDown && desiredConnected) scheduleReconnect();
+                }
+
+                @Override
+                public void handleException(@NotNull StompSession session, StompCommand command,
+                                            @NotNull StompHeaders headers, @Nullable byte[] payload, @NotNull Throwable exception) {
+                    connecting = false;
+                    connected = false;
+                    log.warn("WS STOMP exception", exception);
+                    if (!shuttingDown && desiredConnected) scheduleReconnect();
+                }
+            });
+        } catch (Exception e) {
+            connecting = false;
+            log.warn("WS connectAsync failed", e);
+            if (!shuttingDown && desiredConnected) scheduleReconnect();
+        }
+
     }
 
     private void scheduleReconnect() {

@@ -16,6 +16,7 @@ public class AbstractStompClient {
 
     protected volatile StompSession session;
     protected volatile boolean connected;
+    protected volatile boolean connecting;
     protected volatile boolean shuttingDown;
 
     protected volatile boolean desiredConnected;
@@ -84,6 +85,7 @@ public class AbstractStompClient {
 
         session = null;
         connected = false;
+        connecting = false;
     }
 
     @PreDestroy
