@@ -7,6 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface RequestRepositoryCustom {
-    Page<Request> filterByQuery(RequestFilterDto filter, Pageable pageable);
-    Page<Request> searchByQuery(String query, RequestTypeDto type, Pageable pageable);
+    Page<Request> filterByQuery(RequestFilterDto filter, Long departmentId, Pageable pageable);
+    Page<Request> searchByQuery(String query, RequestTypeDto type, Long departmentId, Pageable pageable);
 }

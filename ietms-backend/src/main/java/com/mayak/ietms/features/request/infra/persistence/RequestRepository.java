@@ -43,6 +43,30 @@ ORDER BY
     Page<Request> findAllActiveSorted(Pageable pageable);
 
     /**
+     * Same as {@link #findAllActiveSorted} but restricted to requests
+     * authored by users in the given department.
+     */
+    @Query("""
+SELECT r FROM Request r
+JOIN Profile p ON p.user.id = r.authorId
+WHERE r.archived = false
+  AND p.department.id = :departmentId
+ORDER BY
+    CASE r.status
+        WHEN NEW THEN 1
+        WHEN IN_PROGRESS THEN 2
+        WHEN BIDDING THEN 3
+        WHEN OFFERED THEN 4
+        WHEN ACCEPTED THEN 5
+        WHEN REFUSED THEN 6
+        ELSE 7
+    END,
+    r.updatedAt DESC
+""")
+    Page<Request> findAllActiveSortedByDepartment(
+            @Param("departmentId") Long departmentId, Pageable pageable);
+
+    /**
      * Same ordering as {@link #findAllActiveSorted} but filtered by request type
      * ({@link SpotRequest} or {@link ContractRequest}).
      */
@@ -63,6 +87,33 @@ ORDER BY
     r.updatedAt DESC
 """)
     Page<Request> findAllByType(@Param("clazz") Class<? extends Request> clazz, Pageable pageable);
+
+    /**
+     * Same as {@link #findAllByType} but restricted to requests
+     * authored by users in the given department.
+     */
+    @Query("""
+SELECT r FROM Request r
+JOIN Profile p ON p.user.id = r.authorId
+WHERE r.archived = false
+  AND TYPE(r) = :clazz
+  AND p.department.id = :departmentId
+ORDER BY
+    CASE r.status
+        WHEN NEW THEN 1
+        WHEN IN_PROGRESS THEN 2
+        WHEN BIDDING THEN 3
+        WHEN OFFERED THEN 4
+        WHEN ACCEPTED THEN 5
+        WHEN REFUSED THEN 6
+        ELSE 7
+    END,
+    r.updatedAt DESC
+""")
+    Page<Request> findAllByTypeAndDepartment(
+            @Param("clazz") Class<? extends Request> clazz,
+            @Param("departmentId") Long departmentId,
+            Pageable pageable);
 
     @Query("""
         SELECT COUNT(r)

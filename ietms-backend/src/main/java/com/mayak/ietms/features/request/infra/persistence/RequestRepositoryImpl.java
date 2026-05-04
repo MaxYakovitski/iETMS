@@ -41,7 +41,7 @@ ORDER BY
 
     @Override
     @SuppressWarnings("unchecked")
-    public Page<Request> filterByQuery(RequestFilterDto filter, Pageable pageable) {
+    public Page<Request> filterByQuery(RequestFilterDto filter, Long departmentId, Pageable pageable) {
         if (pageable == null) pageable = Pageable.unpaged();
 
         StringBuilder sql = new StringBuilder("""
@@ -52,6 +52,17 @@ ORDER BY
     """);
 
         Map<String, Object> params = new HashMap<>();
+
+        if (departmentId != null) {
+            sql.append("""
+         AND r.author_id IN (
+             SELECT u.id FROM users u
+             JOIN profiles p ON p.id = u.id
+             WHERE p.department_id = :departmentId
+         )
+    """);
+            params.put("departmentId", departmentId);
+        }
 
         // --- From locations ---
         if (filter.getFromCountry() != null || filter.getFromZipCode() != null || filter.getFromPlace() != null) {
@@ -203,7 +214,7 @@ ORDER BY
 
     @Override
     @SuppressWarnings("unchecked")
-    public Page<Request> searchByQuery(String query, RequestTypeDto type, Pageable pageable) {
+    public Page<Request> searchByQuery(String query, RequestTypeDto type, Long departmentId, Pageable pageable) {
         if (pageable == null) pageable = Pageable.unpaged();
         if (query == null || query.isBlank()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
@@ -223,6 +234,17 @@ ORDER BY
         if (type != null) {
             sql.append(" AND r.request_type = :requestType");
             params.put("requestType", type.name());
+        }
+
+        if (departmentId != null) {
+            sql.append("""
+         AND r.author_id IN (
+             SELECT u.id FROM users u
+             JOIN profiles p ON p.id = u.id
+             WHERE p.department_id = :departmentId
+         )
+    """);
+            params.put("departmentId", departmentId);
         }
 
         sql.append("""

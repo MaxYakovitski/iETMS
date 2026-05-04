@@ -1,6 +1,8 @@
 package com.mayak.ietms.features.request.application;
 
 import com.mayak.ietms.common.dto.page.PageDto;
+import com.mayak.ietms.features.request.application.access.RequestVisibilityScope;
+import com.mayak.ietms.features.request.application.access.RequestVisibilityScopeResolver;
 import com.mayak.ietms.features.user.infra.persistence.ProfileRepository;
 import com.mayak.ietms.location.dto.LocationDto;
 import com.mayak.ietms.request.dto.enums.RequestTypeDto;
@@ -44,15 +46,22 @@ public class RequestQueryService {
     private final RequestDetailsAssembler detailsAssembler;
     private final RequestListItemAssembler listItemAssembler;
     private final LocationResolver locationResolver;
+    private final RequestVisibilityScopeResolver scopeResolver;
 
-    public PageDto<RequestListItemDto> findPage(int page, int size, RequestTypeDto type) {
-
+    public PageDto<RequestListItemDto> findPage(Long userId, int page, int size, RequestTypeDto type) {
+        RequestVisibilityScope scope = scopeResolver.resolve(userId);
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<Request> entityPage =
-                type == null
-                        ? requestRepository.findAllActiveSorted(pageable)
-                        : requestRepository.findAllByType(resolveType(type), pageable);
+        Page<Request> entityPage;
+        if (scope.isRestricted()) {
+            entityPage = type == null
+                    ? requestRepository.findAllActiveSortedByDepartment(scope.departmentId(), pageable)
+                    : requestRepository.findAllByTypeAndDepartment(resolveType(type), scope.departmentId(), pageable);
+        } else {
+            entityPage = type == null
+                    ? requestRepository.findAllActiveSorted(pageable)
+                    : requestRepository.findAllByType(resolveType(type), pageable);
+        }
 
         List<RequestListItemDto> content =
                 entityPage.getContent().stream()
@@ -62,10 +71,10 @@ public class RequestQueryService {
         return toPageDto(entityPage, content);
     }
 
-    public PageDto<RequestListItemDto> search(String query, int page, int size,  RequestTypeDto type) {
-
+    public PageDto<RequestListItemDto> search(Long userId, String query, int page, int size,  RequestTypeDto type) {
+        RequestVisibilityScope scope = scopeResolver.resolve(userId);
         Pageable pageable = PageRequest.of(page, size);
-        Page<Request> result = requestRepository.searchByQuery(query, type, pageable);
+        Page<Request> result = requestRepository.searchByQuery(query, type, scope.departmentId(), pageable);
 
         List<RequestListItemDto> content =
                 result.getContent().stream()
@@ -75,10 +84,10 @@ public class RequestQueryService {
         return toPageDto(result, content);
     }
 
-    public PageDto<RequestListItemDto> filter(RequestFilterDto filter, int page, int size) {
-
+    public PageDto<RequestListItemDto> filter(Long userId, RequestFilterDto filter, int page, int size) {
+        RequestVisibilityScope scope = scopeResolver.resolve(userId);
         Pageable pageable = PageRequest.of(page, size);
-        Page<Request> result = requestRepository.filterByQuery(filter, pageable);
+        Page<Request> result = requestRepository.filterByQuery(filter, scope.departmentId(), pageable);
 
         List<RequestListItemDto> content =
                 result.getContent().stream()

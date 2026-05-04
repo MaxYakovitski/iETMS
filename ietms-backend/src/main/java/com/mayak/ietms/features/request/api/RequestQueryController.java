@@ -22,30 +22,33 @@ public class RequestQueryController {
 
     @GetMapping
     public PageDto<RequestListItemDto> findPage(
+            @CurrentUserId Long userId,
             @RequestParam("page") int page,
             @RequestParam("size") int size,
             @RequestParam(value = "type", required = false) RequestTypeDto type
     ) {
-        return service.findPage(page, size, type);
+        return service.findPage(userId, page, size, type);
     }
 
     @GetMapping("/search")
     public PageDto<RequestListItemDto> search(
+            @CurrentUserId Long userId,
             @RequestParam("q") String query,
             @RequestParam("page") int page,
             @RequestParam("size") int size,
             @RequestParam(value = "type", required = false) RequestTypeDto type
     ) {
-        return service.search(query, page, size, type);
+        return service.search(userId, query, page, size, type);
     }
 
     @PostMapping("/filter")
     public PageDto<RequestListItemDto> filter(
+            @CurrentUserId Long userId,
             @RequestBody RequestFilterDto filter,
             @RequestParam("page") int page,
             @RequestParam("size") int size
     ) {
-        return service.filter(filter, page, size);
+        return service.filter(userId, filter, page, size);
     }
 
     @GetMapping("/{id}")
