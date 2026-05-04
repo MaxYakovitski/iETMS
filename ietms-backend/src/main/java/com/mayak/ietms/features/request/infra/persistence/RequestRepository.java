@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -287,7 +288,7 @@ ORDER BY
         WHERE r.status IN :statuses
           AND r.startDate < :threshold
     """)
-    List<Request> findExpiredRequests(@Param("statuses") Set<RequestStatus> statuses, @Param("threshold") Instant threshold);
+    List<Request> findExpiredRequests(@Param("statuses") Set<RequestStatus> statuses, @Param("threshold") LocalDateTime threshold);
 
     /**
      * Finds non-archived requests eligible for archiving by the scheduler.

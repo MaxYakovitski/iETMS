@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
@@ -31,7 +32,7 @@ public class RequestSchedulerService {
     }
 
     private void autoRefuseExpiredRequests(SchedulerMode mode) {
-        Instant threshold = Instant.now().minus(3, ChronoUnit.DAYS);
+        LocalDateTime threshold = LocalDateTime.now().minusDays(3);
 
         List<Request> expired = requestRepository.findExpiredRequests(
                 Set.of(RequestStatus.NEW, RequestStatus.IN_PROGRESS),
