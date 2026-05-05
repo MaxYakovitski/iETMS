@@ -1,9 +1,6 @@
 package com.mayak.ietms.features.user.api;
 
-import com.mayak.ietms.user.dto.ChangePasswordDto;
-import com.mayak.ietms.user.dto.UserCreateDto;
-import com.mayak.ietms.user.dto.UserResponseDto;
-import com.mayak.ietms.user.dto.UserUpdateDto;
+import com.mayak.ietms.user.dto.*;
 import com.mayak.ietms.features.user.application.UserCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,10 +21,7 @@ public class UserCommandController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
-    public UserResponseDto update(
-            @PathVariable("id") Long id,
-            @RequestBody UserUpdateDto dto
-    ) {
+    public UserResponseDto update(@PathVariable("id") Long id, @RequestBody UserUpdateDto dto) {
         return userService.update(id, dto);
     }
 
@@ -39,10 +33,13 @@ public class UserCommandController {
 
     @PatchMapping("/{id}/password")
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
-    public void changePassword(
-            @PathVariable("id") Long id,
-            @RequestBody ChangePasswordDto dto
-    ) {
+    public void changePassword(@PathVariable("id") Long id, @RequestBody ChangePasswordDto dto) {
         userService.changePassword(id, dto.newPassword());
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    public void changeStatus(@PathVariable("id") Long id, @RequestBody ChangeUserStatusDto dto) {
+        userService.changeStatus(id, dto.status());
     }
 }

@@ -2,11 +2,13 @@ package com.mayak.ietms.features.user.application;
 
 import com.mayak.ietms.features.user.domain.model.Profile;
 import com.mayak.ietms.features.user.domain.model.User;
+import com.mayak.ietms.features.user.domain.model.UserStatus;
 import com.mayak.ietms.user.dto.UserCreateDto;
 import com.mayak.ietms.user.dto.UserResponseDto;
 import com.mayak.ietms.user.dto.UserUpdateDto;
 import com.mayak.ietms.user.dto.enums.PriorityDto;
 import com.mayak.ietms.user.dto.enums.RoleDto;
+import com.mayak.ietms.user.dto.enums.UserStatusDto;
 import com.mayak.ietms.user.dto.enums.UserTypeDto;
 import com.mayak.ietms.features.user.domain.enums.Priority;
 import com.mayak.ietms.features.user.domain.enums.Role;
@@ -68,13 +70,7 @@ public class UserCommandService {
     }
 
     @Transactional
-    public User createInternal(
-            String name,
-            String surname,
-            String email,
-            String rawPassword,
-            UserType userType
-    ) {
+    public User createInternal(String name, String surname, String email, String rawPassword, UserType userType) {
         User user = new User();
         user.setName(name);
         user.setSurname(surname);
@@ -119,19 +115,26 @@ public class UserCommandService {
         log.info("Password changed for user id={}", userId);
     }
 
+    /**
+     * Changes the lifecycle status of a user.
+     * Increments token version to immediately invalidate active JWT tokens.
+     */
+    @Transactional
+    public void changeStatus(Long id, UserStatusDto statusDto) {
+        User user = getOrThrow(id);
+        user.setStatus(UserStatus.valueOf(statusDto.name()));
+        user.incrementTokenVersion();
+        log.info("User status changed: id={}, status={}", id, statusDto);
+    }
+
     // --- DELETE ---
     @Transactional
     public void delete(Long id) {
         User user = getOrThrow(id);
 
-        boolean usedAsAuthor =
-                requestRepository.existsByAuthorId(id);
-
-        boolean usedAsAssigned =
-                requestRepository.existsByDispatcherId(id);
-
-        boolean usedAsCompetitor =
-                requestRepository.existsByCompetitor(id);
+        boolean usedAsAuthor = requestRepository.existsByAuthorId(id);
+        boolean usedAsAssigned = requestRepository.existsByDispatcherId(id);
+        boolean usedAsCompetitor = requestRepository.existsByCompetitor(id);
 
         if (usedAsAuthor || usedAsAssigned || usedAsCompetitor) {
             throw new UserInUseException(id);
@@ -161,13 +164,7 @@ public class UserCommandService {
                 .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
-    private void applyProfile(
-            User user,
-            UserTypeDto userType,
-            Long departmentId,
-            RoleDto roleDto,
-            PriorityDto priorityDto
-    ) {
+    private void applyProfile(User user, UserTypeDto userType, Long departmentId, RoleDto roleDto, PriorityDto priorityDto) {
         Profile profile = user.getProfile();
         if (profile == null) {
             profile = new Profile();
@@ -176,9 +173,7 @@ public class UserCommandService {
         }
 
         if (departmentId != null) {
-            profile.setDepartment(
-                    departmentRepository.getReferenceById(departmentId)
-            );
+            profile.setDepartment(departmentRepository.getReferenceById(departmentId));
         }
 
         switch (userType) {

@@ -9,6 +9,7 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface UserUpdateMapper {
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status",  ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "profile", ignore = true)
     @Mapping(target = "password", ignore = true)

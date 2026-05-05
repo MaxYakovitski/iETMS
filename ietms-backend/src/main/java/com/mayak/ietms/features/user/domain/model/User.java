@@ -27,6 +27,11 @@ public class User {
     @EqualsAndHashCode.Include
     private Long id;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status =  UserStatus.ACTIVE;
+
     @Column(nullable = false)
     private String name;
 

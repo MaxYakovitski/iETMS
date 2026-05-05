@@ -2,6 +2,7 @@ package com.mayak.ietms.infrastructure.security.user;
 
 import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.features.user.domain.enums.Permission;
+import com.mayak.ietms.features.user.domain.model.UserStatus;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -45,6 +46,10 @@ public class UserPrincipal implements UserDetails {
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return true; }
+
+    @Override
+    public boolean isEnabled() {
+        return user.getStatus() == UserStatus.ACTIVE;
+    }
 
 }
