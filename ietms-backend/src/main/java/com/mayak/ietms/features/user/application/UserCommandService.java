@@ -1,8 +1,10 @@
 package com.mayak.ietms.features.user.application;
 
+import com.mayak.ietms.features.license.application.LicenseQueryService;
 import com.mayak.ietms.features.user.domain.model.Profile;
 import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.features.user.domain.model.UserStatus;
+import com.mayak.ietms.shared.exception.business.LicenseException;
 import com.mayak.ietms.user.dto.UserCreateDto;
 import com.mayak.ietms.user.dto.UserResponseDto;
 import com.mayak.ietms.user.dto.UserUpdateDto;
@@ -46,12 +48,19 @@ public class UserCommandService {
     private final UserCreateMapper userCreateMapper;
     private final UserUpdateMapper userUpdateMapper;
     private final UserResponseMapper userResponseMapper;
+    private final LicenseQueryService licenseQueryService;
 
 
     // --- CREATE ---
     @Transactional
     public UserResponseDto create(UserCreateDto dto) {
         validateCreate(dto);
+
+        int activeUsers = userRepository.countByStatusAndUserTypeNot(UserStatus.ACTIVE, UserType.ADMIN);
+        int maxUsers = licenseQueryService.getMaxUsers();
+        if (activeUsers >= maxUsers) {
+            throw new LicenseException("User limit reached for current license: " + maxUsers);
+        }
 
         User user = userCreateMapper.toEntity(dto);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));

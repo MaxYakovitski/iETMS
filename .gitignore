@@ -12,3 +12,6 @@ Thumbs.db
 
 .env
 .claude/
+
+# License generator — vendor-only tool, never committed
+ietms-license-generator/
