@@ -1,5 +1,9 @@
 package com.mayak.ietms.features.user.domain.enums;
 
+/**
+ * Defines fine-grained permissions used for access control across the application.
+ * ADMIN users are granted all permissions automatically.
+ */
 public enum Permission {
     VIEW_CRM,
     MANAGE_CRM,
@@ -18,4 +22,7 @@ public enum Permission {
     MANAGE_USERS,
     MANAGE_DEPARTMENTS,
     MANAGE_LOCATIONS,
+
+    /** Allows viewing and managing the system license. */
+    MANAGE_LICENSE,
 }

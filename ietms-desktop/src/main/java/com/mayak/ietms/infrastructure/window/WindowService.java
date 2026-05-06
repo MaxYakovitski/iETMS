@@ -32,6 +32,11 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+/**
+ * Central service for managing JavaFX windows and stages.
+ * Handles opening modal and detached windows, stage lifecycle, fade animations,
+ * connection overlays, and forced logout.
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -43,17 +48,24 @@ public class WindowService {
     private Parent connectionOverlay;
     private ConnectionOverlayController connectionOverlayController;
 
-    @Getter
-    private Stage primaryStage;
+    @Getter private Stage primaryStage;
 
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
         primaryStage.setOnCloseRequest(e -> closeAllDetachedWindows());
     }
 
-    @Setter
-    private Runnable loginCallback;
+    @Setter private Runnable loginCallback;
 
+    /**
+     * Opens a modal window owned by the primary stage.
+     *
+     * @param fxmlPath        path to the FXML resource
+     * @param controllerClass expected controller type
+     * @param initializer     optional callback to configure the controller before display
+     * @param title           window title
+     * @param iconPath        optional icon resource path, {@code null} to inherit from primary stage
+     */
     public <T> void openModalWindow(String fxmlPath,
                                     Class<T> controllerClass,
                                     Consumer<T> initializer,
@@ -90,6 +102,11 @@ public class WindowService {
         }
     }
 
+    /**
+     * Opens a modal window and blocks until it is closed, then returns the controller.
+     *
+     * @return the controller instance after the window is closed
+     */
     public <T> T openModalAndWait(String fxmlPath,
                                   Class<T> controllerClass,
                                   Consumer<T> initializer,
@@ -110,6 +127,12 @@ public class WindowService {
         }
     }
 
+    /**
+     * Opens a non-modal detached window. If a window with the given key is already open,
+     * brings it to the front instead of opening a new one.
+     *
+     * @param windowKey unique key for deduplication, may be {@code null} to skip tracking
+     */
     public <T> void openDetachedWindow(
             String fxmlPath,
             Class<T> controllerClass,
@@ -216,6 +239,16 @@ public class WindowService {
             }
             centerOnScreen(owner, stage);
             fadeIn(stage, 180);
+
+            if (controller instanceof ViewLifecycle lifecycle) {
+                lifecycle.onShow();
+            }
+        });
+
+        stage.setOnHidden(e -> {
+            if (controller instanceof ViewLifecycle lifecycle) {
+                lifecycle.onHide();
+            }
         });
 
         if (wait) stage.showAndWait();
@@ -224,6 +257,10 @@ public class WindowService {
         return controller;
     }
 
+    /**
+     * Centers {@code stage} relative to {@code owner}.
+     * Has no effect if {@code owner} is {@code null}.
+     */
     public void centerOnScreen(Stage owner, Stage stage) {
         if (owner != null) {
             stage.setX(owner.getX() + (owner.getWidth()  - stage.getWidth())  / 2.0);
@@ -231,7 +268,10 @@ public class WindowService {
         }
     }
 
-    // ------------------ STAGE INJECTION ------------------
+    /**
+     * Injects the given {@code stage} into the controller via reflection ({@code setStage(Stage)}).
+     * Silently skips if the controller does not have this method.
+     */
     public <T> void injectStageIfSupported(T controller, Stage stage) {
         if (controller == null) return;
         try {
@@ -262,6 +302,12 @@ public class WindowService {
         return loaded;
     }
 
+    /**
+     * Applies a fade-in animation to the given target (either a {@link Stage} or a {@link javafx.scene.Node}).
+     *
+     * @param target       the target to animate
+     * @param milliseconds animation duration in milliseconds
+     */
     public void fadeIn(Object target, Integer milliseconds) {
         Node nodeToAnimate = null;
 

@@ -4,6 +4,7 @@ import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.api.UserClient;
 import com.mayak.ietms.ui.core.SessionManager;
 import com.mayak.ietms.user.dto.*;
+import com.mayak.ietms.user.dto.enums.UserStatusDto;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -14,6 +15,10 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
+/**
+ * REST implementation of {@link UserClient}.
+ * Communicates with the backend {@code /api/users} endpoint.
+ */
 @Service
 public class UserRestClient extends AbstractRestClient implements UserClient {
 
@@ -115,6 +120,19 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
         });
     }
 
+    @Override
+    public void changeStatus(Long id, UserStatusDto status) {
+        exchangeSafely(() -> {
+            RequestEntity<ChangeUserStatusDto> request =
+                    RequestEntity.patch(API + "/{id}/status", id)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(new ChangeUserStatusDto(status));
+
+            restTemplate.exchange(request, Void.class);
+            return null;
+        });
+    }
+
     private List<UserResponseDto> exchangeList(String url, Object... args) {
         return exchangeSafely(() -> {
 
@@ -126,25 +144,6 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
                             new ParameterizedTypeReference<>() {
                             },
                             args
-                    );
-
-            return response.getBody() != null
-                    ? response.getBody()
-                    : List.of();
-        });
-    }
-
-    @Override
-    public List<UserLookupDto> findClientSpecialistsLookupByDepartment(Long depId) {
-        return exchangeSafely(() -> {
-
-            ResponseEntity<List<UserLookupDto>> response =
-                    restTemplate.exchange(
-                            API + "/client-specialists/lookup/by-department/{id}",
-                            HttpMethod.GET,
-                            null,
-                            new ParameterizedTypeReference<>() {},
-                            depId
                     );
 
             return response.getBody() != null

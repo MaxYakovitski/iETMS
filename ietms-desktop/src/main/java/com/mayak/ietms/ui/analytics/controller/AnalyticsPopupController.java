@@ -7,7 +7,6 @@ import com.mayak.ietms.ui.navigation.ModalOptions;
 import com.mayak.ietms.ui.navigation.NavigationType;
 import com.mayak.ietms.infrastructure.window.PopupMenuUtils;
 import javafx.fxml.FXML;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.stage.Popup;
@@ -18,30 +17,26 @@ import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
+/**
+ * Controller for the analytics popup menu.
+ * Provides navigation to statistics views (departments, employees, companies)
+ * and the statistics report modal.
+ */
 @Controller
 @Scope("prototype")
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class AnalyticsPopupController extends BasePopupController {
 
-    @FXML public HBox statisticsRow, reportRow;
-    @FXML public ImageView arrowIcon;
+    @FXML public HBox statisticsRow;
 
     private Popup submenuPopup;
 
     @Override
     public void onShow() {
-        boolean canViewAnalytics = permissions != null && permissions.canViewAnalytics();
-
-        statisticsRow.setVisible(canViewAnalytics);
-        statisticsRow.setManaged(canViewAnalytics);
-
-        arrowIcon.setVisible(canViewAnalytics);
-        arrowIcon.setManaged(canViewAnalytics);
-
         statisticsRow.addEventHandler(MouseEvent.MOUSE_MOVED, e -> {
             if (submenuPopup == null || !submenuPopup.isShowing()) {
-                openSubmenu();
+                openStatisticsSubmenu();
             }
         });
     }
@@ -56,7 +51,7 @@ public class AnalyticsPopupController extends BasePopupController {
                 new ModalOptions("Statistics reports", "/icons/bar-chart.png", navigation.resolveOwner()));
     }
 
-    private void openSubmenu() {
+    private void openStatisticsSubmenu() {
         if (submenuPopup != null && submenuPopup.isShowing()) return;
 
         submenuPopup = PopupMenuUtils.openPopupMenu(

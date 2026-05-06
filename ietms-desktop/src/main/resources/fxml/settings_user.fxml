@@ -82,9 +82,15 @@
                 <TableColumn fx:id="userTypeColumn" text="Type" prefWidth="75" styleClass="middle-column"/>
                 <TableColumn fx:id="userRoleColumn" text="Role" prefWidth="150" styleClass="middle-column"/>
                 <TableColumn fx:id="userPriorityColumn" text="Priority" prefWidth="75" styleClass="middle-column"/>
-                <TableColumn fx:id="userDeptColumn" text="Department" prefWidth="220" styleClass="last-column"/>
+                <TableColumn fx:id="userDeptColumn" text="Department" prefWidth="220" styleClass="middle-column"/>
+                <TableColumn fx:id="userStatusColumn" text="License" prefWidth="75" styleClass="last-column"/>
             </columns>
         </TableView>
+
+        <HBox alignment="CENTER">
+        <Button prefWidth="100" fx:id="toggleLicenseButton" visible="false" mnemonicParsing="false" focusTraversable="false"
+                onAction="#handleToggleStatus"/>
+        </HBox>
     </VBox>
 
 </StackPane>

@@ -15,8 +15,7 @@
     <HBox fx:id="structureRow"
           prefHeight="25"
           alignment="CENTER_LEFT"
-          styleClass="popup-button"
-          onMouseEntered="#handleStructure">
+          styleClass="popup-button">
 
         <padding>
             <Insets left="10" right="10"/>
@@ -32,8 +31,7 @@
     <HBox fx:id="dictionariesRow"
           prefHeight="25"
           alignment="CENTER_LEFT"
-          styleClass="popup-button"
-          onMouseEntered="#handleDictionaries">
+          styleClass="popup-button">
 
         <padding>
             <Insets left="10" right="10"/>
@@ -45,4 +43,15 @@
             <Image url="@/icons/arrow_right.png"/>
         </ImageView>
             </HBox>
+
+    <HBox prefHeight="25"
+          alignment="CENTER_LEFT"
+          styleClass="popup-button"
+          onMouseClicked="#handleLicense">
+
+        <padding>
+            <Insets left="10" right="10"/>
+        </padding>
+        <Label text="License"/>
+    </HBox>
 </VBox>

@@ -16,15 +16,25 @@ public class LicenseCommandController {
 
     private final LicenseCommandService licenseCommandService;
 
+    /**
+     * Activates a new license key.
+     * If another license is currently active, it will be deactivated first.
+     *
+     * @param dto DTO containing the license key to activate
+     */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('MANAGE_LICENSE')")
     public void activate(@RequestBody LicenseActivateDto dto) {
         licenseCommandService.activate(dto.licenseKey());
     }
 
+    /**
+     * Deactivates the currently active license.
+     * Has no effect if no license is active.
+     */
     @DeleteMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public void deactivate(@PathVariable("id") Long id) {
-        licenseCommandService.deactivate(id);
+    @PreAuthorize("hasAuthority('MANAGE_LICENSE')")
+    public void deactivate() {
+        licenseCommandService.deactivate();
     }
 }

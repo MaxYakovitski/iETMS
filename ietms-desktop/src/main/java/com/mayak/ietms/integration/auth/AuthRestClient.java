@@ -3,11 +3,19 @@ package com.mayak.ietms.integration.auth;
 import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.auth.dto.LoginRequestDto;
 import com.mayak.ietms.integration.auth.dto.LoginResponseDto;
+import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.integration.rest.AbstractRestClient;
 import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * REST implementation of {@link AuthClient}.
+ * Handles login requests against the backend {@code /api/auth/login} endpoint.
+ * A 401 response is treated as an {@link ApiException} rather than a session expiry,
+ * since the user has not yet established a session.
+ */
 @Service
 public class AuthRestClient extends AbstractRestClient implements AuthClient {
 
@@ -19,10 +27,16 @@ public class AuthRestClient extends AbstractRestClient implements AuthClient {
 
     @Override
     public LoginResponseDto login(String email, String password) {
-        return exchangeSafely(() -> restTemplate.postForObject(
-                API,
-                new LoginRequestDto(email, password),
-                LoginResponseDto.class
-        ));
+        return exchangeSafely(() -> {
+            try {
+                return restTemplate.postForObject(
+                        API,
+                        new LoginRequestDto(email, password),
+                        LoginResponseDto.class
+                );
+            } catch (HttpClientErrorException.Unauthorized e) {
+                throw new ApiException(e.getStatusCode(), e.getResponseBodyAsString());
+            }
+        });
     }
 }

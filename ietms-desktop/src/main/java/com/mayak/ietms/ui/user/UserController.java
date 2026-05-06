@@ -1,6 +1,7 @@
 package com.mayak.ietms.ui.user;
 
 import com.mayak.ietms.integration.api.UserStatisticsClient;
+import com.mayak.ietms.ui.core.ViewLifecycle;
 import com.mayak.ietms.user.dto.UserResponseDto;
 import com.mayak.ietms.infrastructure.common.TextUtils;
 import javafx.fxml.FXML;
@@ -9,31 +10,34 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.time.LocalDate;
 
+/**
+ * Controller for the user profile screen.
+ * Displays personal info and current month activity statistics for the logged-in user.
+ */
 @Controller
 @Scope("prototype")
 @RequiredArgsConstructor
 @Slf4j
-public class UserController {
+public class UserController implements ViewLifecycle {
 
     @FXML public Label userLabel, userTypeLabel, userRoleLabel, departmentLabel,
             monthLabel, placedLabel, joinedLabel, bidedLabel, acceptedLabel, dispatchedLabel;
     @FXML public HBox roleContainer, departmentContainer;
 
-    @Getter private Stage stage;
-    @Getter private UserResponseDto user;
+    @Getter @Setter private Stage stage;
+    @Getter @Setter private UserResponseDto user;
 
     private final UserStatisticsClient statisticsClient;
 
-    public void init(Stage stage, UserResponseDto user) {
-        this.stage = stage;
-        this.user = user;
-
+    @Override
+    public void onShow() {
         fillView();
         loadStatistics();
     }

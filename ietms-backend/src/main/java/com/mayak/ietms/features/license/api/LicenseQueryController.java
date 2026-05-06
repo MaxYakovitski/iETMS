@@ -1,10 +1,7 @@
 package com.mayak.ietms.features.license.api;
 
 import com.mayak.ietms.features.license.application.LicenseQueryService;
-import com.mayak.ietms.features.license.domain.model.LicenseInfo;
-import com.mayak.ietms.features.license.infra.persistence.LicenseRepository;
 import com.mayak.ietms.license.dto.LicenseResponseDto;
-import com.mayak.ietms.shared.exception.business.LicenseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,22 +17,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class LicenseQueryController {
 
     private final LicenseQueryService licenseQueryService;
-    private final LicenseRepository licenseRepository;
 
+    /**
+     * Returns the currently active license details.
+     *
+     * @return active license info
+     * @throws com.mayak.ietms.shared.exception.business.LicenseException if no active license is found
+     */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('MANAGE_LICENSE')")
     public LicenseResponseDto getCurrent() {
-        return licenseRepository.findByActiveTrue()
-                .map(license -> {
-                    LicenseInfo info = licenseQueryService.getActiveLicenseInfo();
-                    return new LicenseResponseDto(
-                            license.getId(),
-                            info.company(),
-                            info.maxUsers(),
-                            info.expiresAt()
-                    );
-                })
-                .orElseThrow(() -> new LicenseException("No active license found"));
+        return licenseQueryService.getCurrent();
     }
 
 }

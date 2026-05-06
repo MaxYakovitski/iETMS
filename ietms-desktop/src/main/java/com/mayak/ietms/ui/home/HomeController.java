@@ -41,6 +41,10 @@ import org.springframework.stereotype.Controller;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Main application controller. Manages the primary content area, navigation,
+ * toolbar actions, and popup menus after successful login.
+ */
 @Controller
 @Scope("prototype")
 @RequiredArgsConstructor
@@ -230,7 +234,7 @@ public class HomeController {
         windowService.openModalWindow(
                 View.USER.getPath(),
                 UserController.class,
-                controller -> controller.init(windowService.getPrimaryStage(), loggedInUser),
+                controller -> controller.setUser(loggedInUser),
                 "User",
                 USER_ICON
         );
@@ -241,7 +245,7 @@ public class HomeController {
         windowService.openModalWindow(
                 View.ABOUT.getPath(),
                 AboutController.class,
-                controller -> controller.init(windowService.getPrimaryStage()),
+                c -> {},
                 "About",
                 ABOUT_ICON
         );
@@ -277,6 +281,7 @@ public class HomeController {
         setFilterButtonActive(active);
     }
 
+    /** Shows or hides the filter and search toolbar controls. */
     public void showRequestButtons(boolean show) {
         filterButton.setVisible(show);
         filterButton.setManaged(show);

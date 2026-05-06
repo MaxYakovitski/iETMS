@@ -600,6 +600,18 @@
     -fx-text-fill: #ffffff;
 }
 
+.deactivate-outline {
+    -fx-background-color: #e74c3c;
+    -fx-background-radius: 5;
+    -fx-text-fill: #ffffff;
+}
+
+.activate-outline {
+    -fx-background-color: #81c784;
+    -fx-background-radius: 5;
+    -fx-text-fill: #ffffff;
+}
+
 .calendar-week {
     -fx-alignment: center;
     -fx-font-size: 20;

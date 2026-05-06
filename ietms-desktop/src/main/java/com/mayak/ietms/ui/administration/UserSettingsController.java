@@ -9,6 +9,7 @@ import com.mayak.ietms.user.dto.UserResponseDto;
 import com.mayak.ietms.user.dto.UserUpdateDto;
 import com.mayak.ietms.user.dto.enums.PriorityDto;
 import com.mayak.ietms.user.dto.enums.RoleDto;
+import com.mayak.ietms.user.dto.enums.UserStatusDto;
 import com.mayak.ietms.user.dto.enums.UserTypeDto;
 import com.mayak.ietms.integration.api.DepartmentClient;
 import com.mayak.ietms.integration.api.UserClient;
@@ -29,6 +30,10 @@ import org.springframework.stereotype.Controller;
 import java.util.Arrays;
 import java.util.Map;
 
+/**
+ * Administration screen controller for managing users.
+ * Supports creating, editing, deleting users, and toggling their active status.
+ */
 @Controller
 @Scope("prototype")
 @RequiredArgsConstructor
@@ -47,11 +52,11 @@ public class UserSettingsController extends AbstractSettingsController<UserRespo
     @FXML public ComboBox <RoleDto> userRoleCombo;
     @FXML public ComboBox <PriorityDto> userPriorityCombo;
     @FXML public ComboBox <DepartmentDto> userDepartmentCombo;
-    @FXML Button addButton, removeButton, editButton;
+    @FXML Button addButton, removeButton, editButton, toggleLicenseButton;
 
     @FXML private TableView<UserResponseDto> usersTable;
     @FXML public TableColumn <UserResponseDto, String> userNameColumn, userSurnameColumn, userEmailColumn,
-            userTypeColumn, userRoleColumn, userPriorityColumn, userDeptColumn;
+            userTypeColumn, userRoleColumn, userPriorityColumn, userDeptColumn, userStatusColumn;
 
     @FXML
     public void initialize() {
@@ -90,6 +95,18 @@ public class UserSettingsController extends AbstractSettingsController<UserRespo
                         ? c.getValue().profile().departmentName()
                         : "")
         );
+
+        userStatusColumn.setCellValueFactory(c ->
+                new SimpleStringProperty(c.getValue().status().name()));
+
+        usersTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null) return;
+            toggleLicenseButton.setVisible(true);
+            boolean isActive = newVal.status() == UserStatusDto.ACTIVE;
+            toggleLicenseButton.setText(isActive ? "deactivate" : "activate");
+            toggleLicenseButton.getStyleClass().removeAll("deactivate-outline", "activate-outline");
+            toggleLicenseButton.getStyleClass().add(isActive ? "deactivate-outline" : "activate-outline");
+        });
     }
 
     private void setupCombos() {
@@ -235,6 +252,31 @@ public class UserSettingsController extends AbstractSettingsController<UserRespo
             userClient.delete(user.id());
         } catch (ApiException ex) {
             AlertUtils.show(ApiErrorUtils.resolve(ex, "This user cannot be deleted because they are used in existing requests."));
+        }
+    }
+
+    /**
+     * Toggles the status of the selected user between {@code ACTIVE} and {@code INACTIVE}.
+     * Reselects the updated user in the table after the change.
+     */
+    @FXML
+    public void handleToggleStatus() {
+        UserResponseDto selected = usersTable.getSelectionModel().getSelectedItem();
+        if (selected == null) return;
+
+        UserStatusDto newStatus = selected.status() == UserStatusDto.ACTIVE
+                ? UserStatusDto.INACTIVE
+                : UserStatusDto.ACTIVE;
+
+        try {
+            userClient.changeStatus(selected.id(), newStatus);
+            loadTable();
+            usersTable.getItems().stream()
+                    .filter(u -> u.id().equals(selected.id()))
+                    .findFirst()
+                    .ifPresent(u -> usersTable.getSelectionModel().select(u));
+        } catch (ApiException ex) {
+            AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to change user status."));
         }
     }
 

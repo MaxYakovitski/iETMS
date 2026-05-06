@@ -2,6 +2,9 @@ package com.mayak.ietms.support.enums;
 
 import lombok.Getter;
 
+/**
+ * Enumerates all application views and their corresponding FXML resource paths.
+ */
 @Getter
 public enum View {
     LOGIN("/fxml/login.fxml"),
@@ -28,6 +31,7 @@ public enum View {
     SETTINGS_DEPARTMENTS("/fxml/settings_department.fxml"),
     SETTINGS_USERS("/fxml/settings_user.fxml"),
     SETTINGS_LOCATION("/fxml/settings_location.fxml"),
+    SETTINGS_LICENSE("/fxml/settings_license.fxml"),
 
     USER("/fxml/user.fxml"),
 
@@ -47,6 +51,7 @@ public enum View {
 
     UPDATE("/fxml/update.fxml");
 
+    /** The FXML resource path for this view. */
     private final String path;
 
     View(String path) {

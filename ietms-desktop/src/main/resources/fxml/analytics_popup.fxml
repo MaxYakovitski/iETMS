@@ -24,17 +24,14 @@
         <Label text="Statistics"/>
         <Region HBox.hgrow="ALWAYS"/>
 
-        <ImageView fx:id="arrowIcon"
-                   fitWidth="10" fitHeight="10"
-                   preserveRatio="true"
-                   visible="false"
-                   managed="false">
+        <ImageView fitWidth="10" fitHeight="10"
+                   preserveRatio="true">
             <Image url="@../icons/arrow_right.png"/>
         </ImageView>
     </HBox>
 
     <!-- Planner -->
-    <HBox fx:id="reportRow"  prefHeight="25"
+    <HBox prefHeight="25"
           alignment="CENTER_LEFT"
           styleClass="popup-button"
           onMouseClicked="#handleReport">

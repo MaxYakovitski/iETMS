@@ -1,27 +1,33 @@
 package com.mayak.ietms.ui.about;
 
 import com.mayak.ietms.infrastructure.version.AppVersionProvider;
+import com.mayak.ietms.ui.core.ViewLifecycle;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+/**
+ * Controller for the "About" screen.
+ * Displays the current application version on show.
+ */
 @Controller
 @Scope("prototype")
 @RequiredArgsConstructor
-public class AboutController {
+public class AboutController implements ViewLifecycle {
 
     @FXML private Label versionLabel;
     private final AppVersionProvider versionProvider;
 
-    @Getter
+    @Getter @Setter
     private Stage stage;
 
-    public void init(Stage stage) {
-        this.stage = stage;
+    @Override
+    public void onShow() {
         versionLabel.setText("version: " + versionProvider.getAppVersion());
     }
 }

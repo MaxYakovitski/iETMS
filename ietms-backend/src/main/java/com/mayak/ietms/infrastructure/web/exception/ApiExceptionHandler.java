@@ -17,9 +17,13 @@ import org.springframework.web.context.request.async.AsyncRequestNotUsableExcept
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Slf4j
+/**
+ * Global exception handler for all REST controllers.
+ * Maps domain and application exceptions to appropriate HTTP responses.
+ */
 @RestControllerAdvice
 @RequiredArgsConstructor
+@Slf4j
 public class ApiExceptionHandler {
 
     private final SlackAlertService slackAlertService;
@@ -74,6 +78,18 @@ public class ApiExceptionHandler {
         return new ApiError("unauthorized", ex.getMessage());
     }
 
+    @ExceptionHandler(LicenseException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handleLicense(LicenseException ex) {
+        return new ApiError("license_not_found", ex.getMessage());
+    }
+
+    @ExceptionHandler(LicenseLimitExceededException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleLicenseLimitExceeded(LicenseLimitExceededException ex) {
+        return new ApiError("license_limit_exceeded", ex.getMessage());
+    }
+
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponseDto handleValidation(ValidationException ex) {
@@ -99,5 +115,4 @@ public class ApiExceptionHandler {
         slackAlertService.sendHttpError(ex, request);
         return new ApiError("internal_error", "Internal server error");
     }
-
 }

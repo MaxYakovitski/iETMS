@@ -3,6 +3,7 @@ package com.mayak.ietms.ui.administration;
 import com.mayak.ietms.infrastructure.window.HoverSubmenuTracker;
 import com.mayak.ietms.ui.core.BasePopupController;
 import com.mayak.ietms.support.enums.View;
+import com.mayak.ietms.ui.navigation.ModalOptions;
 import com.mayak.ietms.ui.navigation.NavigationType;
 import com.mayak.ietms.infrastructure.window.PopupMenuUtils;
 import javafx.fxml.FXML;
@@ -15,6 +16,11 @@ import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
+/**
+ * Controller for the administration popup menu.
+ * Provides navigation to structure settings (departments, employees),
+ * dictionary settings (locations), and the license management screen.
+ */
 @Controller
 @Scope("prototype")
 @RequiredArgsConstructor
@@ -22,29 +28,25 @@ public class AdministrationPopupController extends BasePopupController {
 
     @FXML public HBox structureRow, dictionariesRow;
 
-    private Popup structurePopup;
-    private Popup dictionariesPopup;
+    private Popup structurePopup, dictionariesPopup;
 
     @Override
     public void onShow() {
-
         structureRow.addEventHandler(MouseEvent.MOUSE_MOVED, e -> {
             if (structurePopup == null || !structurePopup.isShowing()) {
-                handleStructure();
+                openStructureSubmenu();
             }
         });
 
         dictionariesRow.addEventHandler(MouseEvent.MOUSE_MOVED, e -> {
             if (dictionariesPopup == null || !dictionariesPopup.isShowing()) {
-                handleDictionaries();
+                openDictionariesSubmenu();
             }
         });
     }
 
-    @FXML
-    public void handleStructure() {
+    private void openStructureSubmenu() {
         if (structurePopup != null && structurePopup.isShowing()) {
-            structurePopup.hide();
             return;
         }
 
@@ -55,14 +57,12 @@ public class AdministrationPopupController extends BasePopupController {
                                 "Departments",
                                 () -> navigate(View.SETTINGS_DEPARTMENTS),
                                 popup,
-                                structurePopup
-                        ),
+                                structurePopup),
                         PopupMenuUtils.menuRow(
                                 "Employees",
                                 () -> navigate(View.SETTINGS_USERS),
                                 popup,
-                                structurePopup
-                        )
+                                structurePopup)
                 )
         );
 
@@ -70,10 +70,8 @@ public class AdministrationPopupController extends BasePopupController {
         HoverSubmenuTracker.track(structureRow, structurePopup);
     }
 
-    @FXML
-    public void handleDictionaries() {
+    private void openDictionariesSubmenu() {
         if (dictionariesPopup != null && dictionariesPopup.isShowing()) {
-            dictionariesPopup.hide();
             return;
         }
 
@@ -84,13 +82,22 @@ public class AdministrationPopupController extends BasePopupController {
                                 "Locations",
                                 () -> navigate(View.SETTINGS_LOCATION),
                                 popup,
-                                dictionariesPopup
-                        )
+                                dictionariesPopup)
                 )
         );
 
         dictionariesPopup.setOnHidden(e -> dictionariesPopup = null);
         HoverSubmenuTracker.track(dictionariesRow, dictionariesPopup);
+    }
+
+    @FXML
+    public void handleLicense() {
+        popup.hide();
+        navigation.navigate(
+                View.SETTINGS_LICENSE,
+                NavigationType.MODAL,
+                null,
+                new ModalOptions("License", "/icons/license.png", navigation.resolveOwner()));
     }
 
     private void navigate(View view) {

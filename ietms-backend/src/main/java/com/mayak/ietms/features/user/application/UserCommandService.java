@@ -4,7 +4,7 @@ import com.mayak.ietms.features.license.application.LicenseQueryService;
 import com.mayak.ietms.features.user.domain.model.Profile;
 import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.features.user.domain.model.UserStatus;
-import com.mayak.ietms.shared.exception.business.LicenseException;
+import com.mayak.ietms.shared.exception.business.LicenseLimitExceededException;
 import com.mayak.ietms.user.dto.UserCreateDto;
 import com.mayak.ietms.user.dto.UserResponseDto;
 import com.mayak.ietms.user.dto.UserUpdateDto;
@@ -32,6 +32,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Handles user lifecycle operations: creation, update, password change, status change, and deletion.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -51,7 +54,12 @@ public class UserCommandService {
     private final LicenseQueryService licenseQueryService;
 
 
-    // --- CREATE ---
+    /**
+     * Creates a new user and assigns their profile based on user type.
+     *
+     * @throws LicenseLimitExceededException if the active user limit has been reached
+     * @throws ValidationException if the provided data fails validation
+     */
     @Transactional
     public UserResponseDto create(UserCreateDto dto) {
         validateCreate(dto);
@@ -59,7 +67,7 @@ public class UserCommandService {
         int activeUsers = userRepository.countByStatusAndUserTypeNot(UserStatus.ACTIVE, UserType.ADMIN);
         int maxUsers = licenseQueryService.getMaxUsers();
         if (activeUsers >= maxUsers) {
-            throw new LicenseException("User limit reached for current license: " + maxUsers);
+            throw new LicenseLimitExceededException("User limit reached for current license: " + maxUsers);
         }
 
         User user = userCreateMapper.toEntity(dto);
@@ -78,6 +86,10 @@ public class UserCommandService {
         return userResponseMapper.toDto(saved);
     }
 
+    /**
+     * Creates a user internally without validation or profile assignment.
+     * Intended for system-level initialization (e.g. seeding an admin account).
+     */
     @Transactional
     public User createInternal(String name, String surname, String email, String rawPassword, UserType userType) {
         User user = new User();
@@ -90,14 +102,18 @@ public class UserCommandService {
         return userRepository.save(user);
     }
 
-    // --- UPDATE ---
+    /**
+     * Updates an existing user's data and profile.
+     *
+     * @throws UserNotFoundException if no user with the given id exists
+     * @throws ValidationException if the provided data fails validation
+     */
     @Transactional
     public UserResponseDto update(Long id, UserUpdateDto dto) {
         validateUpdate(id, dto);
 
         User user = getOrThrow(id);
         userUpdateMapper.update(user, dto);
-
 
         applyProfile(
                 user,
@@ -108,11 +124,16 @@ public class UserCommandService {
         );
 
         User saved = userRepository.save(user);
-
         log.info("User updated: id={}", saved.getId());
         return userResponseMapper.toDto(saved);
     }
 
+    /**
+     * Changes the password for the given user.
+     * Does nothing if {@code newPassword} is blank or null.
+     *
+     * @throws UserNotFoundException if no user with the given id exists
+     */
     @Transactional
     public void changePassword(Long userId, String newPassword) {
         if (newPassword == null || newPassword.isBlank()) {
@@ -127,16 +148,33 @@ public class UserCommandService {
     /**
      * Changes the lifecycle status of a user.
      * Increments token version to immediately invalidate active JWT tokens.
+     *
+     * @throws LicenseLimitExceededException if activating a user would exceed the license user limit
      */
     @Transactional
     public void changeStatus(Long id, UserStatusDto statusDto) {
         User user = getOrThrow(id);
+
+        if (statusDto == UserStatusDto.ACTIVE) {
+            int activeUsers = userRepository.countByStatusAndUserTypeNot(UserStatus.ACTIVE, UserType.ADMIN);
+            int maxUsers = licenseQueryService.getMaxUsers();
+            if (activeUsers >= maxUsers) {
+                throw new LicenseLimitExceededException("User limit reached for current license: " + maxUsers);
+            }
+        }
+
         user.setStatus(UserStatus.valueOf(statusDto.name()));
         user.incrementTokenVersion();
         log.info("User status changed: id={}, status={}", id, statusDto);
     }
 
-    // --- DELETE ---
+    /**
+     * Deletes a user by id.
+     * Deletion is blocked if the user is referenced by any request.
+     *
+     * @throws UserNotFoundException if no user with the given id exists
+     * @throws UserInUseException if the user is referenced by existing requests
+     */
     @Transactional
     public void delete(Long id) {
         User user = getOrThrow(id);

@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Handles license lifecycle operations: activation and deactivation.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,11 +37,12 @@ public class LicenseCommandService {
                     licenseRepository.save(existing);
                 });
 
-        License license = License.builder()
-                .licenseKey(licenseKey)
-                .active(true)
-                .build();
+        License license = licenseRepository.findByLicenseKey(licenseKey)
+                .orElseGet(() -> License.builder()
+                        .licenseKey(licenseKey)
+                        .build());
 
+        license.setActive(true);
         licenseRepository.save(license);
         log.info("License activated: company={}, maxUsers={}, expiresAt={}",
                 info.company(), info.maxUsers(), info.expiresAt());
@@ -48,18 +52,19 @@ public class LicenseCommandService {
      * Deactivates the currently active license.
      */
     @Transactional
-    public void deactivate(Long id) {
-        License license = licenseRepository.findById(id)
-                .orElseThrow(() -> new LicenseException("License not found: " + id));
-        license.setActive(false);
-        log.info("License deactivated: id={}", id);
+    public void deactivate() {
+        licenseRepository.findByActiveTrue()
+                .ifPresent(license -> {
+                    license.setActive(false);
+                    licenseRepository.save(license);
+                });
     }
 
     private LicenseInfo verifyOrThrow(String licenseKey) {
         try {
             return licenseVerifier.verify(licenseKey);
         } catch (JwtException e) {
-            throw new LicenseException("Invalid license key: " + e.getMessage());
+            throw new LicenseException("Invalid license key!");
         }
     }
 
