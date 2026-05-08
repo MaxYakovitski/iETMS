@@ -1,6 +1,6 @@
 package com.mayak.ietms.infrastructure.security.auth;
 
-import com.mayak.ietms.features.license.infra.persistence.LicenseRepository;
+import com.mayak.ietms.features.license.application.LicenseQueryService;
 import com.mayak.ietms.features.user.domain.enums.UserType;
 import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.shared.exception.business.AuthenticationException;
@@ -23,7 +23,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final UserPermissionService userPermissionService;
-    private final LicenseRepository licenseRepository;
+    private final LicenseQueryService licenseQueryService;
 
     /**
      * Authenticates a user by email and password and returns a signed JWT token.
@@ -45,8 +45,9 @@ public class AuthService {
         }
 
         if (user.getUserType() != UserType.ADMIN) {
-            boolean hasLicense = licenseRepository.findByActiveTrue().isPresent();
-            if (!hasLicense) {
+            try {
+                licenseQueryService.getActiveLicenseInfo();
+            } catch (Exception e) {
                 throw new AuthenticationException("No active license. Please contact your administrator.");
             }
         }
