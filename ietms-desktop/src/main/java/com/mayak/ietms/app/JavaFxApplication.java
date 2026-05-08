@@ -52,6 +52,20 @@ public class JavaFxApplication extends Application {
         showLogin();
     }
 
+    @Override
+    public void stop() {
+        if (mainStage != null) {
+            mainStage.close();
+            mainStage = null;
+        }
+
+        if (springContext != null) {
+            springContext.close();
+            springContext = null;
+        }
+        Platform.exit();
+    }
+
     private Stage createBaseStage(Scene scene) {
         Objects.requireNonNull(scene, "Scene must not be null");
 
@@ -59,7 +73,6 @@ public class JavaFxApplication extends Application {
         stage.setTitle(TITLE);
         stage.setScene(scene);
         stage.getIcons().add(APP_ICON);
-
         return stage;
     }
 
@@ -111,7 +124,8 @@ public class JavaFxApplication extends Application {
         this.springContext = ctx;
 
         WindowService windowService = ctx.getBean(WindowService.class);
-        windowService.setLoginCallback(() -> {
+        SessionManager sessionManager = ctx.getBean(SessionManager.class);
+        sessionManager.setLoginCallback(() -> {
             if (mainStage != null) {
                 mainStage.close();
                 mainStage = null;
@@ -145,7 +159,7 @@ public class JavaFxApplication extends Application {
             while (t.getCause() != null) t = t.getCause();
 
             if (t instanceof SessionExpiredException) {
-                ctx.getBean(SessionManager.class).handleSessionExpired();
+                sessionManager.handleSessionExpired();
                 return;
             }
 
@@ -174,19 +188,5 @@ public class JavaFxApplication extends Application {
             log.error("[login] Unexpected error", ex);
             AlertUtils.showError("Login failed. Please try again.");
         }
-    }
-
-    @Override
-    public void stop() {
-        if (mainStage != null) {
-            mainStage.close();
-            mainStage = null;
-        }
-
-        if (springContext != null) {
-            springContext.close();
-            springContext = null;
-        }
-        Platform.exit();
     }
 }

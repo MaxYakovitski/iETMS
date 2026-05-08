@@ -2,7 +2,6 @@ package com.mayak.ietms.infrastructure.connection.ui;
 
 import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.infrastructure.connection.BackendConnectionState;
-import com.mayak.ietms.infrastructure.window.WindowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class BackendConnectionUiBinder {
 
     private final BackendConnectionMonitor monitor;
-    private final WindowService windowService;
+    private final ConnectionOverlayService overlayService;
 
     public void bind() {
         monitor.stateProperty().addListener((obs, old, state) -> handle(state));
@@ -20,9 +19,9 @@ public class BackendConnectionUiBinder {
 
     private void handle(BackendConnectionState state) {
         switch (state) {
-            case UNKNOWN -> windowService.showLoading();
-            case CONNECTED -> windowService.hideBlockingOverlay();
-            case DISCONNECTED -> windowService.showBackendUnavailable();
+            case UNKNOWN -> overlayService.showLoading();
+            case CONNECTED -> overlayService.hide();
+            case DISCONNECTED -> overlayService.showServerUnavailable();
         }
     }
 

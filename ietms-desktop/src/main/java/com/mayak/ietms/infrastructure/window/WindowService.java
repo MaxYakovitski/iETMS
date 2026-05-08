@@ -1,6 +1,5 @@
 package com.mayak.ietms.infrastructure.window;
 
-import com.mayak.ietms.ui.connection.ConnectionOverlayController;
 import com.mayak.ietms.ui.core.ViewLifecycle;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -10,23 +9,18 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import javafx.util.Duration;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,8 +28,7 @@ import java.util.function.Consumer;
 
 /**
  * Central service for managing JavaFX windows and stages.
- * Handles opening modal and detached windows, stage lifecycle, fade animations,
- * connection overlays, and forced logout.
+ * Handles opening modal and detached windows, stage lifecycle, and fade animations.
  */
 @Component
 @RequiredArgsConstructor
@@ -45,17 +38,12 @@ public class WindowService {
     private final ApplicationContext applicationContext;
     private final Map<WindowKey, Stage> detachedRegistry = new ConcurrentHashMap<>();
 
-    private Parent connectionOverlay;
-    private ConnectionOverlayController connectionOverlayController;
-
     @Getter private Stage primaryStage;
 
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
         primaryStage.setOnCloseRequest(e -> closeAllDetachedWindows());
     }
-
-    @Setter private Runnable loginCallback;
 
     /**
      * Opens a modal window owned by the primary stage.
@@ -90,7 +78,6 @@ public class WindowService {
                                     Stage owner) {
         try {
             Loaded<T> loaded = loadView(fxmlPath, controllerClass);
-
             configureAndShowModalStage(
                     loaded, initializer, title, iconPath,
                     owner != null ? owner : primaryStage,
@@ -114,7 +101,6 @@ public class WindowService {
                                   String iconPath) {
         try {
             Loaded<T> loaded = loadView(fxmlPath, controllerClass);
-
             return configureAndShowModalStage(
                     loaded, initializer, title, iconPath,
                     primaryStage,
@@ -206,7 +192,6 @@ public class WindowService {
         }
     }
 
-    // ------------------ CORE REFACTORED METHOD ------------------
     private <T> T configureAndShowModalStage(
             Loaded<T> loaded, Consumer<T> initializer,
             String title, String iconPath,
@@ -284,9 +269,6 @@ public class WindowService {
         }
     }
 
-    // ------------------ LOAD WITH NODE ------------------
-    public record Loaded<T>(Parent node, T controller) {}
-
     public <T> Loaded<T> loadControllerWithNode(String fxmlPath, Class<T> controllerClass) {
         try {
             return loadView(fxmlPath, controllerClass);
@@ -335,8 +317,6 @@ public class WindowService {
         }
     }
 
-    // ------------------ INTERNAL LOAD HELPERS ------------------
-    @NotNull
     private <T> Loaded<T> getLoaded(String fxmlPath) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
@@ -363,54 +343,6 @@ public class WindowService {
         return new Loaded<>(root, controller);
     }
 
-    public void showLoading() {
-        Platform.runLater(() -> {
-            initConnectionOverlay();
-            connectionOverlayController.showLoading();
-            connectionOverlay.setVisible(true);
-        });
-    }
-
-    public void showBackendUnavailable() {
-        Platform.runLater(() -> {
-            closeAllDetachedWindows();
-            bringPrimaryStageToFront();
-            Platform.runLater(() -> {
-                initConnectionOverlay();
-                connectionOverlayController.showDisconnected();
-                connectionOverlay.setVisible(true);
-            });
-        });
-    }
-
-    public void hideBlockingOverlay() {
-        Platform.runLater(() -> {
-            if (connectionOverlay != null) {
-                connectionOverlay.setVisible(false);
-            }
-        });
-    }
-
-    private void initConnectionOverlay() {
-        if (connectionOverlay != null) return;
-
-        Loaded<ConnectionOverlayController> loaded =
-                loadControllerWithNode("/fxml/connection_overlay.fxml");
-
-        connectionOverlay = loaded.node();
-        connectionOverlayController = loaded.controller();
-
-        Scene scene = primaryStage.getScene();
-        Parent root = scene.getRoot();
-
-        if (root instanceof StackPane stack) {
-            stack.getChildren().add(connectionOverlay);
-        } else {
-            StackPane wrapper = new StackPane(root, connectionOverlay);
-            scene.setRoot(wrapper);
-        }
-    }
-
     public void closeAllDetachedWindows() {
         Platform.runLater(() -> {
             detachedRegistry.values().forEach(stage -> {
@@ -432,32 +364,15 @@ public class WindowService {
         });
     }
 
-    public void forceLogout() {
-        Platform.runLater(() -> {
-
-            var windows = new ArrayList<>(Window.getWindows());
-
-            for (Window w : windows) {
-                if (w instanceof Stage s) {
-                    try {
-                        s.close();
-                    } catch (Exception ignored) {}
-                }
-            }
-            if (loginCallback != null) {
-                loginCallback.run();
-            }
-        });
-    }
-
     private void applyDefaultIcon(String iconPath, Stage stage, Stage primaryStage) {
         if (iconPath != null) {
-            Image icon = new Image(
-                    Objects.requireNonNull(getClass().getResource(iconPath)).toString()
-            );
+            Image icon = new Image(Objects.requireNonNull(getClass().getResource(iconPath)).toString());
             stage.getIcons().setAll(icon);
         } else if (primaryStage != null && !primaryStage.getIcons().isEmpty()) {
             stage.getIcons().setAll(primaryStage.getIcons());
         }
+    }
+
+    public record Loaded<T>(Parent node, T controller) {
     }
 }
