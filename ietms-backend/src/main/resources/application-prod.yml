@@ -34,7 +34,7 @@ management:
 
 app:
   ws:
-    allowed-origins: ${WS_ALLOWED_ORIGINS:http://165.22.92.183}
+    allowed-origins: ${WS_ALLOWED_ORIGINS:*}
   jwt:
     secret: ${JWT_SECRET}
   admin:
