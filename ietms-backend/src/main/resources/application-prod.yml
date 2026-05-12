@@ -1,3 +1,6 @@
+server:
+  address: 127.0.0.1
+
 spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
@@ -31,7 +34,7 @@ management:
 
 app:
   ws:
-    allowed-origins: ${WS_ALLOWED_ORIGINS:http://165.22.92.183:*}
+    allowed-origins: ${WS_ALLOWED_ORIGINS:http://165.22.92.183}
   jwt:
     secret: ${JWT_SECRET}
   admin:
