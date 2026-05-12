@@ -3,6 +3,8 @@ package com.mayak.ietms.ui.workspace.request.transport;
 import com.mayak.ietms.integration.api.RequestClient;
 import com.mayak.ietms.request.dto.enums.RequestTypeDto;
 import com.mayak.ietms.integration.websocket.RequestStompClient;
+import com.mayak.ietms.ui.core.RequiresPermission;
+import com.mayak.ietms.ui.core.ViewPermission;
 import com.mayak.ietms.ui.workspace.request.base.AbstractRequestController;
 import com.mayak.ietms.support.state.RequestFilterState;
 import com.mayak.ietms.infrastructure.window.WindowService;
@@ -15,13 +17,28 @@ import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxWeaver;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.util.Objects;
 
+/**
+ * Controller for the transport requests workspace.
+ *
+ * <p>Opens in a detached (non-modal) window, one instance per
+ * {@link com.mayak.ietms.request.dto.enums.RequestTypeDto}.
+ * The {@code requestType} must be injected before the view is shown —
+ * see {@link com.mayak.ietms.ui.navigation.NavigationService}.
+ *
+ * <p>Declared {@code prototype}-scoped because multiple instances
+ * (one per type) can be open simultaneously.
+ */
 @Controller
+@FxmlView("requests_transport.fxml")
 @Scope("prototype")
+@RequiresPermission(ViewPermission.TRANSPORT_REQUESTS)
 @Slf4j
 public class TransportRequestController extends AbstractRequestController {
 
@@ -30,9 +47,14 @@ public class TransportRequestController extends AbstractRequestController {
     private static final String FILTER_ICON_ACTIVE  = "/icons/filter-active.png";
 
     // ==================== FXML ====================
-    @FXML private Button filterButton;
-    @FXML private ImageView filterImageView;
-    @FXML private TextField searchField;
+    @FXML
+    private Button filterButton;
+
+    @FXML
+    private ImageView filterImageView;
+
+    @FXML
+    private TextField searchField;
 
     // ==================== Fields ====================
     private final PauseTransition searchDebounce = new PauseTransition(Duration.millis(300));
@@ -41,9 +63,10 @@ public class TransportRequestController extends AbstractRequestController {
     public TransportRequestController(
             RequestClient requestClient,
             WindowService windowService,
+            FxWeaver fxWeaver,
             RequestFilterState filterStateService,
             RequestStompClient wsClient) {
-        super(requestClient, windowService, filterStateService,  wsClient);
+        super(requestClient, windowService, fxWeaver, filterStateService,  wsClient);
     }
 
     // ==================== FXML Lifecycle ====================

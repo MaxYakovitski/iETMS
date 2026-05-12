@@ -80,6 +80,10 @@ public abstract class AbstractSettingsController <V, U, C> implements SecuredVie
     /** @return {@code true} if the current user has permission to add, edit, or remove items */
     protected abstract boolean canEdit();
 
+    /**
+     * Initialises {@link ValidationUIHelper} from {@link #getFieldMap()}.
+     * Must be called from subclass {@code initialize()}.
+     */
     protected void initValidation() {
         this.validationUI = new ValidationUIHelper(getFieldMap());
         this.validationUI.bindResetOnChange();
@@ -151,6 +155,10 @@ public abstract class AbstractSettingsController <V, U, C> implements SecuredVie
         loadTable();
     }
 
+    /**
+     * Reloads the table from the backend.
+     * Called after every successful add, edit, or remove operation.
+     */
     protected void loadTable() {
         var tableItems = getTable().getItems();
         tableItems.clear();

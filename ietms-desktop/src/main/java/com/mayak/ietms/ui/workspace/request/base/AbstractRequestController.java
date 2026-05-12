@@ -37,60 +37,87 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxWeaver;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.*;
 
+/**
+ * Base controller for request list views (client and transport).
+ *
+ * <p>Provides paginated loading, infinite scroll, details caching,
+ * filter/search coordination, real-time WebSocket updates with debounced
+ * sorted reload, and global hotkey registration.
+ *
+ * <p>Subclasses must be annotated with {@link net.rgielen.fxweaver.core.FxmlView}
+ * and declare {@link com.mayak.ietms.ui.core.RequiresPermission} where applicable.
+ * The {@link #requestType} field must be set before {@link #onShow()} is called.
+ */
 @RequiredArgsConstructor
 @Slf4j
 public abstract class AbstractRequestController implements ViewLifecycle, SecuredView, RequestsParent {
 
     // ==================== Constants ====================
-    protected static final int PAGE_SIZE = 100;
+    private static final int PAGE_SIZE = 100;
     private static final int PREFETCH_RADIUS = 50;
 
     // ==================== FXML ====================
-    @FXML protected ListView<RequestListItemDto> requestsListView;
-    @FXML protected StackPane loadingOverlay;
-    @FXML protected ProgressIndicator loadingIndicator;
-    @FXML protected Label emptyMessageLabel;
+    @FXML
+    private ListView<RequestListItemDto> requestsListView;
+
+    @FXML
+    private StackPane loadingOverlay;
+
+    @FXML
+    private ProgressIndicator loadingIndicator;
+
+    @FXML
+    private Label emptyMessageLabel;
 
     // ==================== Dependencies ====================
     protected final RequestClient requestClient;
     protected final WindowService windowService;
+    private final FxWeaver fxWeaver;
     protected final RequestFilterState filterState;
-    protected final RequestStompClient wsClient;
+    private final RequestStompClient wsClient;
 
     // ==================== State ====================
-    @Getter @Setter HomeController homeController;
-    @Getter private UserResponseDto loggedInUser;
-    @Getter @Setter protected RequestTypeDto requestType;
-    @Getter @Setter protected Stage stage;
+    @Getter @Setter
+    private HomeController homeController;
 
-    protected final ObservableList<RequestListItemDto> requestItems = FXCollections.observableArrayList();
+    @Getter
+    private UserResponseDto loggedInUser;
+
+    @Getter @Setter
+    protected RequestTypeDto requestType;
+
+    @Getter @Setter
+    protected Stage stage;
+
+    private final ObservableList<RequestListItemDto> requestItems = FXCollections.observableArrayList();
     private final ConcurrentMap<Long, RequestItemController> visible = new ConcurrentHashMap<>();
-    protected final ConcurrentMap<Long, CompletableFuture<RequestDetailsDto>> detailsCache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, CompletableFuture<RequestDetailsDto>> detailsCache = new ConcurrentHashMap<>();
 
-    protected RequestFilterDto activeFilter;
-    protected String activeSearchQuery;
+    private RequestFilterDto activeFilter;
+    private String activeSearchQuery;
 
     // ==================== Pagination ====================
-    protected int currentPage = 0;
-    protected boolean loading = false;
-    protected boolean allLoaded = false;
+    private int currentPage = 0;
+    private boolean loading = false;
+    private boolean allLoaded = false;
 
     // ==================== Concurrency ====================
-    protected volatile boolean active = true;
-    protected volatile boolean pauseUpdates = false;
+    private volatile boolean active = true;
+    private volatile boolean pauseUpdates = false;
 
     private boolean overlayVisible = false;
 
     /** Deferred to onShow() — scene is not yet attached during initialize(). */
     private boolean hotkeysRegistered = false;
 
-    protected ScheduledExecutorService uiUpdater;
+    private ScheduledExecutorService uiUpdater;
     private ScheduledExecutorService wsDebouncer;
     private ScheduledFuture<?> pendingReload;
     private Runnable wsUnsubscribe;
@@ -154,11 +181,16 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         log.info("{} -> onHide() called", getClass().getSimpleName());
     }
 
+    /**
+     * Wires the list view: sets the cell factory, attaches the infinite-scroll
+     * listener (deferred until the skin is applied), and registers the Ctrl+D hotkey
+     * on the list itself for controllers that support {@link #allowDuplicateHotkey()}.
+     */
     @Override
     public void setupListView() {
         requestsListView.setItems(requestItems);
         requestsListView.setCellFactory(lv -> {
-            RequestCell cell = new RequestCell(windowService, loggedInUser, this);
+            RequestCell cell = new RequestCell(fxWeaver, loggedInUser, this);
 
             cell.indexProperty().addListener((obs, oldIdx, newIdx) -> {
                 int idx = newIdx.intValue();
@@ -198,7 +230,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         });
     }
 
-    protected ScrollBar getVerticalScrollBar(ListView<?> listView) {
+    private ScrollBar getVerticalScrollBar(ListView<?> listView) {
         for (Node node : listView.lookupAll(".scroll-bar")) {
             if (node instanceof ScrollBar bar && bar.getOrientation() == Orientation.VERTICAL) {
                 return bar;
@@ -208,7 +240,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     }
 
     // ==================== Pagination ====================
-    protected void loadDefaultPage() {
+    private void loadDefaultPage() {
         resetPagination();
         showLoading(true);
         loadNextPage();
@@ -255,7 +287,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
             loading = false;
             showLoading(false);
         })).exceptionally(ex -> {
-            log.error("ValidationError loading pageToLoad {}", pageToLoad, ex);
+            log.error("Failed to load page {}", pageToLoad, ex);
             Platform.runLater(() -> showLoading(false));
             loading = false;
             return null;
@@ -320,6 +352,12 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     }
 
     // ==================== Cache ====================
+
+    /**
+     * Returns cached details for the given request, fetching from the backend
+     * if not already cached. Concurrent callers for the same {@code id} share
+     * the same {@link java.util.concurrent.CompletableFuture}.
+     */
     public CompletableFuture<RequestDetailsDto> getDetailsAsync(Long id) {
         return detailsCache.computeIfAbsent(id,
                 key -> CompletableFuture.supplyAsync(() -> requestClient.getDetails(key))
@@ -333,10 +371,12 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
         refreshOne(requestId);
     }
 
+    /** Registers a visible cell controller so it can receive inline refresh calls. */
     public void registerVisible(Long id, RequestItemController c) {
         if (id != null && c != null) visible.put(id, c);
     }
 
+    /** Removes the cell controller from the visible registry. */
     public void unregisterVisible(Long id) {
         if (id == null) return;
         visible.remove(id);
@@ -370,7 +410,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
      * Eagerly fetches details for items within PREFETCH_RADIUS of the visible
      * center so that opening a row feels instantaneous.
      */
-    protected void prefetchAroundIndex(int center) {
+    private void prefetchAroundIndex(int center) {
         int size = requestItems.size();
         if (size == 0) return;
 
@@ -384,7 +424,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     }
 
     // ==================== Form ====================
-    protected void loadDetailsAndFillForm(Long requestId) {
+    private void loadDetailsAndFillForm(Long requestId) {
         CompletableFuture
                 .supplyAsync(() -> requestClient.getDetails(requestId))
                 .thenAccept(details ->
@@ -400,7 +440,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     }
 
     // ==================== UI ====================
-    protected Stage getOwnerStage() {
+    private Stage getOwnerStage() {
         Stage s = getStage();
         if (s != null && s.isShowing()) return s;
         return windowService.getPrimaryStage();
@@ -452,7 +492,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     }
 
         // ==================== WebSocket ====================
-    protected void initRealtimeUpdates() {
+    private void initRealtimeUpdates() {
         wsUnsubscribe = wsClient.connect(event -> handleEventReceived(List.of(event)), this::handleUserEvent);
     }
 
@@ -480,6 +520,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
                 .forEach(this::invalidateRequest);
     }
 
+    // debounce: cancel the previous pending reload and reschedule 120 ms later
     private void scheduleSortedReload() {
         if (wsDebouncer == null || wsDebouncer.isShutdown()) return;
         if (pendingReload != null && !pendingReload.isDone()) {
@@ -524,7 +565,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     }
 
     // ==================== Hotkeys ====================
-    protected void registerHotkeys(Scene scene) {
+    private void registerHotkeys(Scene scene) {
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
 
             boolean isMac = System.getProperty("os.name").toLowerCase().contains("mac");

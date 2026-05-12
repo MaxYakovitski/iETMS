@@ -8,28 +8,44 @@ import com.mayak.ietms.infrastructure.error.AlertUtils;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
 import com.mayak.ietms.infrastructure.common.ResetUtils;
 import com.mayak.ietms.infrastructure.common.TextUtils;
+import com.mayak.ietms.ui.core.RequiresPermission;
+import com.mayak.ietms.ui.core.ViewPermission;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.util.Map;
 
+/**
+ * Administration screen for managing organisational departments.
+ * Departments are referenced by users and cannot be deleted while in use.
+ */
 @Controller
+@FxmlView("settings_department.fxml")
 @Scope("prototype")
+@RequiresPermission(ViewPermission.ADMINISTRATION)
 @RequiredArgsConstructor
 @Slf4j
 public class DepartmentSettingsController extends AbstractSettingsController<DepartmentDto, DepartmentDto, DepartmentCreateDto> {
 
     private final DepartmentClient departmentClient;
 
-    @FXML private TextField deptNameField, deptCodeField;
-    @FXML private TableView<DepartmentDto> departmentsTable;
-    @FXML private TableColumn<DepartmentDto, String> deptCodeColumn, deptNameColumn;
-    @FXML private Button addButton, removeButton, editButton;
+    @FXML
+    private TextField deptNameField, deptCodeField;
+
+    @FXML
+    private TableView<DepartmentDto> departmentsTable;
+
+    @FXML
+    private TableColumn<DepartmentDto, String> deptCodeColumn, deptNameColumn;
+
+    @FXML
+    private Button addButton, removeButton, editButton;
 
     @Override
     protected Long extractId(DepartmentDto view) {
@@ -55,8 +71,10 @@ public class DepartmentSettingsController extends AbstractSettingsController<Dep
     public void initialize() {
         TextUtils.allowOnlyLatin(deptNameField, deptCodeField);
         departmentsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
-        deptCodeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().code()));
-        deptNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().name()));
+        deptCodeColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().code()));
+        deptNameColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().name()));
 
         initValidation();
     }
@@ -92,7 +110,8 @@ public class DepartmentSettingsController extends AbstractSettingsController<Dep
     @Override
     protected void remove(DepartmentDto department) {
         boolean ok =
-                AlertUtils.showConfirmation(null, "Are you sure that you want to delete this department? " +
+                AlertUtils.showConfirmation(null,
+                        "Are you sure that you want to delete this department? " +
                         "This action cannot be undone.");
 
         if (!ok) return;
@@ -100,7 +119,8 @@ public class DepartmentSettingsController extends AbstractSettingsController<Dep
         try {
             departmentClient.delete(department.id());
         } catch (ApiException ex) {
-            AlertUtils.show(ApiErrorUtils.resolve(ex, "This department cannot be deleted because it is used by other records."));
+            AlertUtils.show(ApiErrorUtils.resolve(ex,
+                    "This department cannot be deleted because it is used by other records."));
         }
     }
 

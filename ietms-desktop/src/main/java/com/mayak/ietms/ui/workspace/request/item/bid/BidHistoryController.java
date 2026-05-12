@@ -5,7 +5,6 @@ import com.mayak.ietms.request.dto.bid.BidViewDto;
 import com.mayak.ietms.request.dto.enums.RequestStatusDto;
 import com.mayak.ietms.request.dto.view.RequestDetailsDto;
 import com.mayak.ietms.user.dto.UserResponseDto;
-import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.core.BidItemHost;
 import com.mayak.ietms.ui.core.SecuredView;
 import com.mayak.ietms.ui.core.ViewLifecycle;
@@ -20,12 +19,15 @@ import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxWeaver;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.util.*;
 
 @Controller
+@FxmlView("bid_history.fxml")
 @Scope("prototype")
 @RequiredArgsConstructor
 @Slf4j
@@ -34,17 +36,30 @@ public class BidHistoryController implements ViewLifecycle, SecuredView, BidItem
     private static final int BID_ITEM_HEIGHT = 50;
     private static final int MAX_VISIBLE_BIDS_WITHOUT_SCROLL = 10;
 
-    @FXML public ScrollPane scrollPane;
-    @FXML public VBox bidsContainerPlain, bidsContainerScroll;
-    @FXML public Button archivedButton, closeButton;
-    @FXML public Label emptyMessageLabel;
+    @FXML
+    public ScrollPane scrollPane;
+
+    @FXML
+    public VBox bidsContainerPlain, bidsContainerScroll;
+
+    @FXML
+    public Button archivedButton, closeButton;
+
+    @FXML
+    public Label emptyMessageLabel;
 
     private final WindowService windowService;
+    private final FxWeaver fxWeaver;
     private final RequestClient requestClient;
 
-    @Setter private Stage stage;
-    @Setter private Long requestId;
-    @Setter private Runnable onChanged;
+    @Setter
+    private Stage stage;
+
+    @Setter
+    private Long requestId;
+
+    @Setter
+    private Runnable onChanged;
 
     private boolean showArchived = false;
     private UserResponseDto loggedInUser;
@@ -67,7 +82,6 @@ public class BidHistoryController implements ViewLifecycle, SecuredView, BidItem
         }
 
         RequestDetailsDto request = requestClient.getDetails(requestId);
-
         List<BidViewDto> bids = request.bids().stream()
                 .filter(bid -> showArchived || !bid.deleted())
                 .sorted(Comparator.comparing(BidViewDto::time).reversed())
@@ -85,7 +99,6 @@ public class BidHistoryController implements ViewLifecycle, SecuredView, BidItem
 
 
     private void buildView(List<BidViewDto> bids, RequestStatusDto status) {
-
         boolean useScroll = bids.size() > MAX_VISIBLE_BIDS_WITHOUT_SCROLL;
 
         VBox target = useScroll ? bidsContainerScroll : bidsContainerPlain;
@@ -118,25 +131,18 @@ public class BidHistoryController implements ViewLifecycle, SecuredView, BidItem
 
     private Parent createBidNode(BidViewDto bid, RequestStatusDto status) {
         try {
-            WindowService.Loaded<BidItemController> loaded =
-                    windowService.loadControllerWithNode(
-                            View.BID_ITEM.getPath(),
-                            BidItemController.class
-                    );
-
-            BidItemController controller = loaded.controller();
+            var loaded = fxWeaver.load(BidItemController.class);
+            BidItemController controller = loaded.getController();
             controller.setBid(bid);
             controller.setRequestStatus(status);
             controller.setLoggedInUser(loggedInUser);
             controller.setHost(this);
             controller.onShow();
 
-            Parent node = loaded.node();
+            Parent node = (Parent) loaded.getView().orElseThrow();
             node.getStyleClass().add("bid-item");
 
             return node;
-
-
         } catch (Exception e) {
             log.error("Failed to load BidItem for bid {}", bid.id(), e);
             return null;

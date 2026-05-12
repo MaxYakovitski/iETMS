@@ -14,15 +14,31 @@ import org.springframework.stereotype.Controller;
 
 import java.util.function.Consumer;
 
+/**
+ * Controller for the login screen.
+ *
+ * <p>Does not depend on the Spring context being fully initialised —
+ * intentionally constructed manually in {@link com.mayak.ietms.app.JavaFxApplication}
+ * before authentication completes. Authentication itself is delegated via
+ * the {@code onLogin} callback to keep this controller free of network logic.
+ */
 @Controller
 @Scope("prototype")
 @RequiredArgsConstructor
 @Slf4j
 public class LoginController {
 
-    @FXML private TextField loginField;
-    @FXML private PasswordField passwordField;
-    @FXML private ProgressIndicator progress;
+    /** Classpath location of the login FXML, used by {@link com.mayak.ietms.app.JavaFxApplication}. */
+    public static final String FXML = "/com/mayak/ietms/ui/auth/login.fxml";
+
+    @FXML
+    private TextField loginField;
+
+    @FXML
+    private PasswordField passwordField;
+
+    @FXML
+    private ProgressIndicator progress;
 
     @Setter
     private Consumer<LoginRequest> onLogin;
@@ -34,6 +50,10 @@ public class LoginController {
         passwordField.setOnAction(e -> login());
     }
 
+    /**
+     * Enables or disables the loading state: disables input fields and
+     * shows/hides the progress indicator.
+     */
     public void setLoading(boolean loading) {
         loginField.setDisable(loading);
         passwordField.setDisable(loading);

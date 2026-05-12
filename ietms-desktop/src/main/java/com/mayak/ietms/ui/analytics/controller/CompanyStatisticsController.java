@@ -10,6 +10,8 @@ import com.mayak.ietms.statistics.CompanyStatsDto;
 import com.mayak.ietms.ui.analytics.model.CompanyReport;
 import com.mayak.ietms.ui.analytics.model.CompanyReportItem;
 import com.mayak.ietms.ui.analytics.view.CompanyReportRenderer;
+import com.mayak.ietms.ui.core.RequiresPermission;
+import com.mayak.ietms.ui.core.ViewPermission;
 import com.mayak.ietms.ui.home.HomeController;
 import com.mayak.ietms.infrastructure.time.DatePickerUtils;
 import com.mayak.ietms.infrastructure.fx.MultiSelectComboBoxUtils;
@@ -27,6 +29,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.controlsfx.control.CheckComboBox;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -34,18 +37,38 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Analytics screen showing per-company request statistics for a department.
+ *
+ * <p>Companies available for selection are loaded dynamically based on
+ * the chosen department and date range — the combo box is disabled
+ * until both are provided.
+ */
 @Controller
+@FxmlView("statistics_companies.fxml")
 @Scope("prototype")
+@RequiresPermission(ViewPermission.ANALYTICS)
 @RequiredArgsConstructor
 @Slf4j
 public class CompanyStatisticsController extends BaseStatisticsController {
 
-    @FXML public Label departmentFullNameLabel, emptyMessageLabel;
-    @FXML public DatePicker startDatePicker, endDatePicker;
-    @FXML public CheckComboBox<CompanyDto> companiesCheckComboBox;
-    @FXML public VBox reportContainer;
-    @FXML public HBox placeholderContainer;
-    @FXML public ComboBox<DepartmentDto> departmentComboBox;
+    @FXML
+    public Label departmentFullNameLabel, emptyMessageLabel;
+
+    @FXML
+    public DatePicker startDatePicker, endDatePicker;
+
+    @FXML
+    public CheckComboBox<CompanyDto> companiesCheckComboBox;
+
+    @FXML
+    public VBox reportContainer;
+
+    @FXML
+    public HBox placeholderContainer;
+
+    @FXML
+    public ComboBox<DepartmentDto> departmentComboBox;
 
     @Getter @Setter
     private HomeController homeController;
@@ -56,13 +79,13 @@ public class CompanyStatisticsController extends BaseStatisticsController {
 
     private static final String COMPANY_SELECTED = "customer";
 
-    @FXML public void initialize() {
+    @FXML
+    public void initialize() {
         DatePickerUtils.setupDatePickers(startDatePicker, endDatePicker);
     }
 
     @Override
     public void onShow() {
-
         List<DepartmentDto> departments = permissions.isAdmin()
                 ? departmentClient.findAll()
                 : List.of();
@@ -90,7 +113,8 @@ public class CompanyStatisticsController extends BaseStatisticsController {
         resetFields();
     }
 
-    @FXML public void handleFormReport() {
+    @FXML
+    public void handleFormReport() {
         Map<String, Control> fieldMap = Map.of(
                 "startDate", startDatePicker,
                 "endDate", endDatePicker,
@@ -99,7 +123,6 @@ public class CompanyStatisticsController extends BaseStatisticsController {
         );
 
         var result = validateReportForm();
-
         if (!result.isValid()) {
             new ValidationUIHelper(fieldMap).showClientErrors(result.getErrors());
             return;
@@ -122,13 +145,11 @@ public class CompanyStatisticsController extends BaseStatisticsController {
         );
 
         AnalyticsReportDto report = analyticsClient.getAnalytics(filter);
-
         showCompaniesReport(report != null ? report.companies() : List.of());
     }
 
     private void loadCompaniesForStatistics(Long departmentId) {
         if (startDatePicker.getValue() == null || endDatePicker.getValue() == null) return;
-
         CompanyDto ALL = new CompanyDto(-1L, "all");
 
         List<CompanyDto> companies =
@@ -149,7 +170,6 @@ public class CompanyStatisticsController extends BaseStatisticsController {
     }
 
     private void tryLoadCompanies() {
-
         Long departmentId =
                 getUserDepartmentId() != null
                         ? getUserDepartmentId()
@@ -168,12 +188,10 @@ public class CompanyStatisticsController extends BaseStatisticsController {
     private ValidationResult validateReportForm() {
         DateRangeUiValidator dateRangeUiValidator = new DateRangeUiValidator();
         var result = dateRangeUiValidator.isValid(new DateRange(startDatePicker, endDatePicker));
-
         if (getUserDepartmentId() == null
                 && departmentComboBox.getSelectionModel().isEmpty()) {
             result.add(new ValidationError("departments", "Department is required"));
         }
-
         if (companiesCheckComboBox.getCheckModel().getCheckedItems().isEmpty()) {
             result.add(new ValidationError("companies", "Please select at least one customerName"));
         }

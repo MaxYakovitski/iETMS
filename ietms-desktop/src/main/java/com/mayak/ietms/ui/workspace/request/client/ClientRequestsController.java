@@ -15,6 +15,8 @@ import com.mayak.ietms.integration.api.RequestClient;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.integration.exception.ApiValidationException;
 import com.mayak.ietms.integration.websocket.RequestStompClient;
+import com.mayak.ietms.ui.core.RequiresPermission;
+import com.mayak.ietms.ui.core.ViewPermission;
 import com.mayak.ietms.ui.workspace.request.base.AbstractRequestController;
 import com.mayak.ietms.ui.workspace.request.form.ClientRequestFormState;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
@@ -30,6 +32,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxWeaver;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.stereotype.Controller;
 
 import java.util.*;
@@ -37,18 +41,44 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * Controller for the client requests workspace.
+ *
+ * <p>Combines a paginated request list with an inline creation form.
+ * Form state is managed by {@link ClientRequestFormState} and validated
+ * through {@link com.mayak.ietms.domain.request.client.ClientRequestPolicy}.
+ * Lane selection is delegated to {@link ClientCompanyLaneCoordinator}.
+ *
+ * <p>Subscribes to company WebSocket events to keep autocomplete suggestions
+ * up to date while the view is visible.
+ */
 @Controller
+@FxmlView("requests_client.fxml")
+@RequiresPermission(ViewPermission.CLIENT_REQUESTS)
 @Slf4j
 public class ClientRequestsController extends AbstractRequestController {
 
     // ==================== FXML ====================
-    @FXML private TextArea fromTextArea, toTextArea, commentsTextArea;
-    @FXML private TextField idField, companyField, temperatureTextField, weightTextField, loadingMeterTextField;
-    @FXML private DatePicker startDate, endDate;
-    @FXML private RadioButton spotRadioButton, contractRadioButton, ftlRadioButton, ltlRadioButton;
-    @FXML private ComboBox<TransportTypeDto> transportComboBox;
-    @FXML private CheckBox dangerousCheckBox;
-    @FXML public Button laneButton;
+    @FXML
+    private TextArea fromTextArea, toTextArea, commentsTextArea;
+
+    @FXML
+    private TextField idField, companyField, temperatureTextField, weightTextField, loadingMeterTextField;
+
+    @FXML
+    private DatePicker startDate, endDate;
+
+    @FXML
+    private RadioButton spotRadioButton, contractRadioButton, ftlRadioButton, ltlRadioButton;
+
+    @FXML
+    private ComboBox<TransportTypeDto> transportComboBox;
+
+    @FXML
+    private CheckBox dangerousCheckBox;
+
+    @FXML
+    public Button laneButton;
 
     // ==================== Dependencies ====================
     private final CompanyClient companyClient;
@@ -68,7 +98,8 @@ public class ClientRequestsController extends AbstractRequestController {
     private Runnable companyWsUnsubscribe;
 
     /** The original request being replaced — deleted after the new one is submitted successfully. */
-    @Setter private Long renewedRequest;
+    @Setter
+    private Long renewedRequest;
 
     /** Suppresses listener callbacks during programmatic state writes. */
     private boolean isRendering = false;
@@ -80,13 +111,14 @@ public class ClientRequestsController extends AbstractRequestController {
     public ClientRequestsController(
             RequestClient requestClient,
             WindowService windowService,
+            FxWeaver fxWeaver,
             RequestFilterState filterState,
             RequestStompClient wsClient,
             CompanyClient companyClient,
             LaneClient laneClient,
             CompanyStompClient companyStompClient)
     {
-        super(requestClient, windowService, filterState,  wsClient);
+        super(requestClient, windowService, fxWeaver, filterState,  wsClient);
         this.companyClient = companyClient;
         this.laneClient = laneClient;
         this.companyStompClient = companyStompClient;
@@ -405,7 +437,6 @@ public class ClientRequestsController extends AbstractRequestController {
         requestState.reset();
         render();
     }
-
 
     // ==================== FXML Handlers ====================
     @FXML private void submitRequestForm() {

@@ -3,12 +3,10 @@ package com.mayak.ietms.ui.home;
 import com.mayak.ietms.infrastructure.window.PopupMenuUtils;
 import com.mayak.ietms.integration.api.UserClient;
 import com.mayak.ietms.ui.about.AboutController;
+import com.mayak.ietms.ui.core.*;
+import com.mayak.ietms.ui.dashboard.DashboardController;
 import com.mayak.ietms.user.dto.UserResponseDto;
 import com.mayak.ietms.ui.analytics.controller.AnalyticsPopupController;
-import com.mayak.ietms.ui.core.BasePopupController;
-import com.mayak.ietms.ui.core.SecuredView;
-import com.mayak.ietms.ui.core.UserPermissions;
-import com.mayak.ietms.ui.core.ViewLifecycle;
 import com.mayak.ietms.ui.crm.CrmPopupController;
 import com.mayak.ietms.ui.navigation.NavigationService;
 import com.mayak.ietms.ui.user.UserController;
@@ -17,7 +15,6 @@ import com.mayak.ietms.ui.workspace.request.base.RequestsParent;
 import com.mayak.ietms.ui.workspace.WorkspacePopupController;
 import com.mayak.ietms.ui.administration.AdministrationPopupController;
 import com.mayak.ietms.infrastructure.window.WindowService;
-import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
 import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
@@ -35,6 +32,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxWeaver;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -44,8 +43,12 @@ import java.util.Optional;
 /**
  * Main application controller. Manages the primary content area, navigation,
  * toolbar actions, and popup menus after successful login.
+ *
+ * <p>Declared {@code prototype}-scoped because a fresh instance is created
+ * on each login (the Spring context is re-created on logout).
  */
 @Controller
+@FxmlView("home.fxml")
 @Scope("prototype")
 @RequiredArgsConstructor
 @Slf4j
@@ -58,19 +61,32 @@ public class HomeController {
     private static final String ABOUT_ICON = "/icons/info.png";
 
     // ==================== FXML ====================
-    @FXML @Getter private AnchorPane contentArea;
-    @FXML private Button filterButton;
-    @FXML private TextField searchField;
-    @FXML private ImageView filterImageView;
-    @FXML private Button administrationButton;
+    @FXML
+    @Getter
+    private AnchorPane contentArea;
+
+    @FXML
+    private Button filterButton;
+
+    @FXML
+    private TextField searchField;
+
+    @FXML
+    private ImageView filterImageView;
+
+    @FXML
+    private Button analyticsButton, administrationButton;
 
     // ==================== Dependencies ====================
     private final UserClient userClient;
     private final WindowService windowService;
-    @Getter private NavigationService navigation;
+    private final FxWeaver fxWeaver;
+    @Getter
+    private NavigationService navigation;
 
     // ==================== State ====================
-    @Setter private RequestsParent requestsParent;
+    @Setter
+    private RequestsParent requestsParent;
     private ViewLifecycle currentViewController;
     private UserResponseDto loggedInUser;
     private UserPermissions permissions;
@@ -90,9 +106,9 @@ public class HomeController {
         try {
             this.loggedInUser = userClient.getMe();
             this.permissions = new UserPermissions(loggedInUser);
-            this.navigation = new NavigationService(windowService, this, loggedInUser);
+            this.navigation = new NavigationService(windowService, fxWeaver,this, loggedInUser);
             applyUserPermissions();
-            loadView(View.DASHBOARD);
+            navigateTo(DashboardController.class);
         } catch (Exception e) {
             log.error("Failed to load current user", e);
         }
@@ -105,21 +121,25 @@ public class HomeController {
 
     /**
      * Loads a view into the content area, managing the full lifecycle:
-     * hides the current view, wires up SecuredView/ViewLifecycle/RequestsParent,
+     * hides the current view, wires up SecuredView / ViewLifecycle / RequestsParent,
      * and toggles the toolbar request buttons.
+     *
+     * <p>If the user lacks permission for {@code controllerClass}
+     * (as declared by {@link RequiresPermission}), silently redirects to the dashboard.
      */
-    public void loadView(View view) {
-        if (loggedInUser != null && !canOpenView(view)) {
-            log.warn("User {} attempted to open {} without permission", loggedInUser.email(), view);
-            view = View.DASHBOARD;
+    public void navigateTo(Class<?> controllerClass) {
+        if (loggedInUser != null && !canOpenView(controllerClass)) {
+            log.warn("User {} attempted to open {} without permission", loggedInUser.email(), controllerClass.getSimpleName());
+            controllerClass = DashboardController.class;
         }
 
         if (currentViewController != null) {
             currentViewController.onHide();
         }
-        WindowService.Loaded<?> loaded = windowService.loadControllerWithNode(view.getPath());
-        Node node = loaded.node();
-        Object controller = loaded.controller();
+
+        var loaded = fxWeaver.load(controllerClass);
+        Node node = loaded.getView().orElseThrow();
+        Object controller = loaded.getController();
 
         contentArea.getChildren().setAll(node);
 
@@ -145,94 +165,53 @@ public class HomeController {
             rp.setHomeController(this);
         }
 
-        showRequestButtons(view == View.REQUESTS_CLIENT || view == View.REQUESTS_TRANSPORT);
+        showRequestButtons(controller instanceof RequestsParent);
     }
 
-    private boolean canOpenView(View view) {
-        return switch (view) {
-
-            case REQUESTS_CLIENT ->
-                    permissions.canViewClientRequests();
-
-            case REQUESTS_TRANSPORT ->
-                    permissions.canViewTransportRequests();
-
-            case CRM_POPUP ->
-                    permissions.canViewCrm();
-
-            case ANALYTICS_POPUP ->
-                    permissions.canViewAnalytics();
-
-            case ADMINISTRATION_POPUP ->
-                    permissions.canViewAdministration();
-
-            default -> true;
-        };
+    // no annotation → unrestricted; annotation present → check permissions
+    private boolean canOpenView(Class<?> controllerClass) {
+        var annotation = controllerClass.getAnnotation(RequiresPermission.class);
+        return annotation == null || permissions.hasPermission(annotation.value());
     }
 
     // ==================== FXML Handlers ====================
 
     @FXML
     public void handleHome() {
-        showRequestButtons(false);
-        loadView(View.DASHBOARD);
+        navigateTo(DashboardController.class);
     }
 
     @FXML
     public void handleWorkspace(ActionEvent actionEvent) {
-        workspacePopup = createPopupIfAbsent(workspacePopup, View.WORKSPACE_POPUP, WorkspacePopupController.class);
+        workspacePopup = createPopupIfAbsent(workspacePopup, WorkspacePopupController.class);
         PopupMenuUtils.togglePopup(workspacePopup, (Node) actionEvent.getSource());
     }
 
     @FXML
     public void handleCRM(ActionEvent actionEvent) {
-        if (!permissions.canViewCrm()) {
+        if (!permissions.hasPermission(ViewPermission.CRM)) {
             AlertUtils.showWarning("Access denied!");
             return;
         }
-
-        crmPopup = createPopupIfAbsent(
-                crmPopup,
-                View.CRM_POPUP,
-                CrmPopupController.class
-        );
+        crmPopup = createPopupIfAbsent(crmPopup, CrmPopupController.class);
         PopupMenuUtils.togglePopup(crmPopup, (Node) actionEvent.getSource());
     }
 
     @FXML
     public void handleAnalytics(ActionEvent actionEvent) {
-        if (!permissions.canViewAnalytics()) {
-            AlertUtils.showWarning("Access denied!");
-            return;
-        }
-
-        analyticsPopup = createPopupIfAbsent(
-                analyticsPopup,
-                View.ANALYTICS_POPUP,
-                AnalyticsPopupController.class
-        );
+        analyticsPopup = createPopupIfAbsent(analyticsPopup, AnalyticsPopupController.class);
         PopupMenuUtils.togglePopup(analyticsPopup, (Node) actionEvent.getSource());
     }
 
     @FXML
     public void handleAdministration(ActionEvent actionEvent) {
-        if (!permissions.canViewAdministration()) {
-            AlertUtils.showWarning("Access denied!");
-            return;
-        }
-
-        administrationPopup = createPopupIfAbsent(
-                administrationPopup,
-                View.ADMINISTRATION_POPUP,
-                AdministrationPopupController.class
-        );
+        administrationPopup = createPopupIfAbsent(administrationPopup, AdministrationPopupController.class);
         PopupMenuUtils.togglePopup(administrationPopup, (Node) actionEvent.getSource());
     }
 
     @FXML
     public void handleUser() {
         windowService.openModalWindow(
-                View.USER.getPath(),
                 UserController.class,
                 controller -> controller.setUser(loggedInUser),
                 "User",
@@ -243,7 +222,6 @@ public class HomeController {
     @FXML
     public void handleAbout() {
         windowService.openModalWindow(
-                View.ABOUT.getPath(),
                 AboutController.class,
                 c -> {},
                 "About",
@@ -260,16 +238,14 @@ public class HomeController {
 
     /** Opens the filter modal anchored to the given owner stage (or primary if null). */
     public void handleFilter(Stage owner) {
-        windowService.openModalWindow(
-                View.FILTER.getPath(),
-                RequestFilterController.class,
+        windowService.openModalWindow(RequestFilterController.class,
                 controller ->  {
-                    controller.setLoggedInUser(loggedInUser);
-                    if (requestsParent != null) {
-                        controller.setRequestsParent(requestsParent);
-                    }
-                    controller.onShow();
-                },
+            controller.setLoggedInUser(loggedInUser);
+            if (requestsParent != null) {
+                controller.setRequestsParent(requestsParent);
+            }
+            controller.onShow();
+            },
                 "Filter",
                 FILTER_ICON_DEFAULT,
                 owner
@@ -295,13 +271,14 @@ public class HomeController {
         Optional.ofNullable(requestsParent).ifPresent(rp -> rp.applySearch(query));
     }
 
-    private <T> Popup createPopupIfAbsent(Popup popup, View view, Class<T> controllerClass) {
+    // popups are created once and reused; controller is wired via BasePopupController.init
+    private <T> Popup createPopupIfAbsent(Popup popup, Class<T> controllerClass) {
         if (popup != null) return popup;
         popup = new Popup();
 
-        var loaded = windowService.loadControllerWithNode(view.getPath(), controllerClass);
-        Object controller = loaded.controller();
-        Node node = loaded.node();
+        var loaded = fxWeaver.load(controllerClass);
+        T controller = loaded.getController();
+        Node node = loaded.getView().orElseThrow();
         node.setUserData(controller);
 
         if (controller instanceof BasePopupController base) {
@@ -310,13 +287,14 @@ public class HomeController {
 
         popup.getContent().add(node);
         popup.setAutoHide(true);
-
         return popup;
     }
 
     private void setFilterButtonActive(boolean active) {
         if (active) {
-            filterImageView.setImage(new Image(Objects.requireNonNull(getClass().getResource(FILTER_ICON_ACTIVE)).toExternalForm()));
+            filterImageView.setImage(new Image(
+                    Objects.requireNonNull(getClass().getResource(FILTER_ICON_ACTIVE))
+                            .toExternalForm()));
         } else {
             filterImageView.setImage(new Image(
                     Objects.requireNonNull(getClass().getResource(FILTER_ICON_DEFAULT))
@@ -328,5 +306,9 @@ public class HomeController {
         boolean admin = permissions != null && permissions.isAdmin();
         administrationButton.setVisible(admin);
         administrationButton.setManaged(admin);
+
+        boolean canAnalytics = permissions != null && permissions.canViewAnalytics();
+        analyticsButton.setVisible(canAnalytics);
+        analyticsButton.setManaged(canAnalytics);
     }
 }

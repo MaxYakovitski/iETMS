@@ -17,7 +17,6 @@ import com.mayak.ietms.ui.core.ViewLifecycle;
 import com.mayak.ietms.ui.workspace.request.base.RequestsParent;
 import com.mayak.ietms.ui.workspace.request.item.bid.AddBidController;
 import com.mayak.ietms.ui.workspace.request.item.bid.BidHistoryController;
-import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
 import com.mayak.ietms.infrastructure.common.TextUtils;
 import com.mayak.ietms.infrastructure.fx.VisibilityUtils;
@@ -37,6 +36,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -50,27 +50,37 @@ import java.util.Optional;
  * Manages two-phase rendering: static view (immutable data) and dynamic view (status, actions, prices).
  */
 @Controller
+@FxmlView("request_item.fxml")
 @Scope("prototype")
 @Slf4j
 @RequiredArgsConstructor
 public class RequestItemController implements ViewLifecycle, SecuredView {
 
-    @FXML public Label customerReference, customer, rIDLabel, rId, tIdLabel, tId, dataStart, dataEnd,
-            requestTypeLabel, shipmentType, transportType, dangerousCheck, temperature, weight,
-            loadingMeters, status, customerPriceLabel, authorFullName, requestDateTime;
-    @Getter
-    @FXML public HBox requestPane;
-    @FXML public Button commentsButton, joinButton, bidButton, priceButton, confirmedAndOfferedButton, acceptButton,
-            goToExchangeButton, refuseButton, renewButton, expireButton, moreButton;
-    @FXML public VBox fromISOContainer, toISOContainer, fromPointContainer, toPointContainer;
-    @FXML public ImageView joinImageView;
-
     private static final String JOIN_ICON = "/icons/user_join.png";
-    private static final String UNJOIN_ICON = "/icons/user-leave.png";
+    private static final String LEAVE_ICON = "/icons/user-leave.png";
     private static final String COMMENTS_ICON = "/icons/comments.png";
     private static final String MORE_ICON = "/icons/more_item.png";
     private static final String BID_ICON = "/icons/auction.png";
     private static final String BID_HISTORY_ICON = "/icons/bid-history.png";
+
+    @FXML
+    public Label customerReference, customer, rIDLabel, rId, tIdLabel, tId, dataStart, dataEnd,
+            requestTypeLabel, shipmentType, transportType, dangerousCheck, temperature, weight,
+            loadingMeters, status, customerPriceLabel, authorFullName, requestDateTime;
+
+    @Getter
+    @FXML
+    public HBox requestPane;
+
+    @FXML
+    public Button commentsButton, joinButton, bidButton, priceButton, confirmedAndOfferedButton, acceptButton,
+            goToExchangeButton, refuseButton, renewButton, expireButton, moreButton;
+
+    @FXML
+    public VBox fromISOContainer, toISOContainer, fromPointContainer, toPointContainer;
+
+    @FXML
+    public ImageView joinImageView;
 
     @Setter
     private Stage stage;
@@ -235,14 +245,11 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     @FXML
     public void handleBid() {
         if (requestId == null || dto == null || !dto.canBid()) return;
-        String fxmlPath = View.ADD_BID.getPath();
-        windowService.openModalWindow(
-                fxmlPath,
-                AddBidController.class,
+        windowService.openModalWindow(AddBidController.class,
                 controller -> {
-                    controller.init(requestId);
-                    controller.setOnSubmit( bid -> parent.invalidateRequest(requestId));
-                },
+            controller.init(requestId);
+            controller.setOnSubmit( bid -> parent.invalidateRequest(requestId));
+            },
                 "Bid",
                 BID_ICON,
                 this.stage
@@ -259,7 +266,6 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     public void handleAccept() {
         if (dto.requestType() == RequestTypeDto.SPOT) {
             windowService.openModalWindow(
-                    View.FINAL_PRICE.getPath(),
                     FinalPriceController.class,
                     c -> c.setOnSubmit(price -> actions.acceptWithPrice(requestId, price)),
                     "Final price",
@@ -275,9 +281,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     public void handleRefuse() {
         if (requestId == null || dto == null) return;
 
-        String fxmlPath = View.REFUSE_REASON.getPath();
         windowService.openModalWindow(
-                fxmlPath,
                 RefuseReasonController.class,
                 controller -> {
 
@@ -304,9 +308,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     public void handleComments() {
         if (requestId == null || dto == null || dto.comments() == null) return;
 
-        String fxmlPath = View.REQUEST_COMMENT.getPath();
         windowService.openModalWindow(
-                fxmlPath,
                 CommentController.class,
                 controller -> controller.setCommentsText(dto.comments()),
                 "Commentaries",
@@ -335,17 +337,13 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     public void handleMore() {
         if (requestId == null || dto == null) return;
 
-        String fxmlPath = View.REQUEST_MORE.getPath();
-
-        windowService.openModalWindow(
-                fxmlPath,
-                RequestMoreController.class,
+        windowService.openModalWindow(RequestMoreController.class,
                 controller -> {
-                    controller.setCanDelete(RequestItemUiPolicy.canDelete(dto, loggedInUser));
-                    controller.setRequest(dto);
-                    controller.setOnTidUpdated(() -> parent.invalidateRequest(requestId));
-                    controller.setOnDeleted(() -> parent.invalidateRequest(requestId));
-                },
+            controller.setCanDelete(RequestItemUiPolicy.canDelete(dto, loggedInUser));
+            controller.setRequest(dto);
+            controller.setOnTidUpdated(() -> parent.invalidateRequest(requestId));
+            controller.setOnDeleted(() -> parent.invalidateRequest(requestId));
+            },
                 "More",
                 MORE_ICON,
                 this.stage
@@ -402,15 +400,13 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
     private void showBidHistory() {
         if (requestId == null) return;
 
-        windowService.openModalWindow(
-                View.BID_HISTORY.getPath(),
-                BidHistoryController.class,
+        windowService.openModalWindow(BidHistoryController.class,
                 controller -> {
-                    controller.setRequestId(requestId);
-                    controller.setLoggedInUser(loggedInUser);
-                    controller.setOnChanged(() -> parent.invalidateRequest(requestId));
-                    controller.onShow();
-                },
+            controller.setRequestId(requestId);
+            controller.setLoggedInUser(loggedInUser);
+            controller.setOnChanged(() -> parent.invalidateRequest(requestId));
+            controller.onShow();
+            },
                 "Bid history",
                 BID_HISTORY_ICON,
                 this.stage
@@ -470,7 +466,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
         joinImageView.setImage(
                 new Image(Objects.requireNonNull(
                         getClass().getResourceAsStream(
-                                joined ? UNJOIN_ICON : JOIN_ICON)))
+                                joined ? LEAVE_ICON : JOIN_ICON)))
         );
 
         if (joined) {

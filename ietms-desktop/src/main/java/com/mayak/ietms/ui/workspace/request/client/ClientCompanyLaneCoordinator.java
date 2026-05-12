@@ -12,7 +12,6 @@ import com.mayak.ietms.integration.api.CompanyClient;
 import com.mayak.ietms.integration.api.LaneClient;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.lane.dto.LaneViewDto;
-import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.component.LaneSelectorController;
 import com.mayak.ietms.ui.workspace.request.form.ClientRequestFormState;
 import javafx.application.Platform;
@@ -28,6 +27,8 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class ClientCompanyLaneCoordinator {
 
+    private static final String CONTACT_LANE = "/icons/contract-lanes.png";
+
     private final CompanyClient companyClient;
     private final LaneClient laneClient;
     private final WindowService windowService;
@@ -41,8 +42,6 @@ public class ClientCompanyLaneCoordinator {
     private final Supplier<Boolean> allowLaneLookup;
     private final Supplier<String> companyNameSupplier;
 
-    private static final String CONTACT_LANE = "/icons/contract-lanes.png";
-
     public void onCompanyConfirmed() {
         if (!allowLaneLookup.get()) return;
         if (!requestState.isContract()) return;
@@ -51,22 +50,18 @@ public class ClientCompanyLaneCoordinator {
         if (value == null) {
             validationUI.showClientErrors(List.of(new ValidationError("customerName", "Customer must be selected for contract request")));
             return;
-        };
+        }
         CompletableFuture.runAsync(() -> {
             try {
                 Optional<CompanyDto> company = companyClient.findByName(value);
-                Platform.runLater(() -> {
-                            company.ifPresentOrElse(
-                                    this::loadLanesAsync,
-                                    () -> AlertUtils.showError("Company not found."));
-                        }
+                Platform.runLater(() -> company.ifPresentOrElse(
+                        this::loadLanesAsync,
+                        () -> AlertUtils.showError("Company not found."))
                 );
 
             } catch (ApiException ex) {
                 log.warn("Company lookup failed", ex);
-                Platform.runLater(() -> {
-                    AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to find company."));
-                });
+                Platform.runLater(() -> AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to find company.")));
             }
         });
     }
@@ -92,13 +87,11 @@ public class ClientCompanyLaneCoordinator {
     }
 
     private void showLaneSelector(List<LaneViewDto> lanes) {
-        LaneSelectorController ctrl = windowService.openModalAndWait(
-                View.LANES.getPath(),
-                LaneSelectorController.class,
+        LaneSelectorController ctrl = windowService.openModalAndWait(LaneSelectorController.class,
                 controller -> {
-                    controller.setLanes(lanes);
-                    controller.onShown();
-                },
+            controller.setLanes(lanes);
+            controller.onShown();
+            },
                 "Actual contract lanes",
                 CONTACT_LANE
         );

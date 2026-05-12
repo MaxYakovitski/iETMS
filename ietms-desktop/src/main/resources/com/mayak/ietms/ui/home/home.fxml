@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.ietms.ui.home.HomeController"
+      stylesheets="@/css/styles.css"
+      styleClass="app-root">
+
+        <ToolBar minHeight="40" maxHeight="40.0"
+                 style="-fx-background-color: #c8c8c8; -fx-background-radius: 5; -fx-background-insets: 5; -fx-padding: 6;">
+
+            <Button text="Home" mnemonicParsing="false" prefHeight="30.0"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent;" onAction="#handleHome"/>
+
+            <Button text="Workspace" mnemonicParsing="false" prefHeight="30.0"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent;" onAction="#handleWorkspace"/>
+
+            <Button text="CRM" mnemonicParsing="false" prefHeight="30.0"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent;" onAction="#handleCRM"/>
+
+            <Button fx:id="analyticsButton" text="Analytics" mnemonicParsing="false" prefHeight="30.0"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent;"
+                    visible="false" managed="false"
+                    onAction="#handleAnalytics"/>
+
+            <Button fx:id="administrationButton" text="Administration" mnemonicParsing="false" prefHeight="30.0"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent;"
+                    visible="false" managed="false"
+                    onAction="#handleAdministration"/>
+
+            <Button text="User" mnemonicParsing="false" prefHeight="30.0"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent;" onAction="#handleUser"/>
+
+            <Button text="About" mnemonicParsing="false" prefHeight="30.0"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent;" onAction="#handleAbout"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="filterButton" opacity="0.65" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false"
+                    prefHeight="20.0" prefWidth="20.0"
+                        visible="false" managed="false"
+                        style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;" onAction="#handleFilter">
+                    <graphic>
+                        <ImageView fx:id="filterImageView" fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                            <Image url="@/icons/filter-default.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            <TextField fx:id="searchField" promptText="search" prefHeight="28" prefWidth="250.0"
+                       visible="false" managed="false"
+                       style="-fx-background-color: #ffffff; -fx-background-radius: 0 4 4 0; -fx-border-width: 0">
+            </TextField>
+
+        </ToolBar>
+
+    <AnchorPane fx:id="contentArea"
+                VBox.vgrow="ALWAYS"
+                styleClass="app-root"/>
+</VBox>

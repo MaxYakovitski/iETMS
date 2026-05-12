@@ -7,6 +7,8 @@ import com.mayak.ietms.company.dto.CompanyCreateDto;
 import com.mayak.ietms.company.dto.CompanyDto;
 import com.mayak.ietms.integration.websocket.CompanyStompClient;
 import com.mayak.ietms.ui.administration.AbstractSettingsController;
+import com.mayak.ietms.ui.core.RequiresPermission;
+import com.mayak.ietms.ui.core.ViewPermission;
 import com.mayak.ietms.ui.home.HomeController;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
@@ -19,21 +21,38 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.util.Map;
 
+/**
+ * CRM screen for managing client companies.
+ *
+ * <p>Extends {@link AbstractSettingsController} with real-time WebSocket updates:
+ * company create/update/delete events from other users are applied directly
+ * to the table without a full reload.
+ */
 @Controller
-@Scope
+@FxmlView("crm_company.fxml")
+@Scope("prototype")
+@RequiresPermission(ViewPermission.CRM)
 @RequiredArgsConstructor
 @Slf4j
 public class CompanyController extends AbstractSettingsController<CompanyDto, CompanyDto, CompanyCreateDto> {
 
-    @FXML public TextField companyNameField;
-    @FXML public Button addButton, removeButton, editButton;
-    @FXML public TableView<CompanyDto> companiesTable;
-    @FXML public TableColumn<CompanyDto, String> companyNameColumn;
+    @FXML
+    public TextField companyNameField;
+
+    @FXML
+    public Button addButton, removeButton, editButton;
+
+    @FXML
+    public TableView<CompanyDto> companiesTable;
+
+    @FXML
+    public TableColumn<CompanyDto, String> companyNameColumn;
 
     private final CompanyClient companyClient;
     private final CompanyStompClient companyStompClient;
@@ -106,10 +125,8 @@ public class CompanyController extends AbstractSettingsController<CompanyDto, Co
             AlertUtils.showError("Please select a customer to delete.");
             return;
         }
-
         boolean ok = AlertUtils.showConfirmation(null, "Are you sure you want to delete this customer?");
         if (!ok) return;
-
         try {
             companyClient.delete(item.id());
         } catch (ApiException ex) {

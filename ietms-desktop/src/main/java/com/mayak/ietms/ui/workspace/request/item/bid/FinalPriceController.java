@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import lombok.Setter;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -11,11 +12,13 @@ import java.math.BigDecimal;
 import java.util.function.Consumer;
 
 @Controller
+@FxmlView("request_item_final_price.fxml")
 @Scope("prototype")
 @Setter
 public class FinalPriceController {
 
-    @FXML private TextField priceField;
+    @FXML
+    private TextField priceField;
 
     private Consumer<BigDecimal> onSubmit;
     private Stage stage;

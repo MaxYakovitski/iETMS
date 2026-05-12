@@ -2,7 +2,6 @@ package com.mayak.ietms.ui.administration;
 
 import com.mayak.ietms.infrastructure.window.HoverSubmenuTracker;
 import com.mayak.ietms.ui.core.BasePopupController;
-import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.navigation.ModalOptions;
 import com.mayak.ietms.ui.navigation.NavigationType;
 import com.mayak.ietms.infrastructure.window.PopupMenuUtils;
@@ -11,6 +10,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.stage.Popup;
 import lombok.RequiredArgsConstructor;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -22,16 +22,19 @@ import java.util.List;
  * dictionary settings (locations), and the license management screen.
  */
 @Controller
+@FxmlView("administration_popup.fxml")
 @Scope("prototype")
 @RequiredArgsConstructor
 public class AdministrationPopupController extends BasePopupController {
 
-    @FXML public HBox structureRow, dictionariesRow;
+    @FXML
+    public HBox structureRow, dictionariesRow;
 
     private Popup structurePopup, dictionariesPopup;
 
     @Override
     public void onShow() {
+        super.onShow();
         structureRow.addEventHandler(MouseEvent.MOUSE_MOVED, e -> {
             if (structurePopup == null || !structurePopup.isShowing()) {
                 openStructureSubmenu();
@@ -55,17 +58,16 @@ public class AdministrationPopupController extends BasePopupController {
                 List.of(
                         PopupMenuUtils.menuRow(
                                 "Departments",
-                                () -> navigate(View.SETTINGS_DEPARTMENTS),
+                                () -> navigation.navigate(DepartmentSettingsController.class, NavigationType.GLOBAL),
                                 popup,
                                 structurePopup),
                         PopupMenuUtils.menuRow(
                                 "Employees",
-                                () -> navigate(View.SETTINGS_USERS),
+                                () -> navigation.navigate(UserSettingsController.class, NavigationType.GLOBAL),
                                 popup,
                                 structurePopup)
                 )
         );
-
         structurePopup.setOnHidden(e -> structurePopup = null);
         HoverSubmenuTracker.track(structureRow, structurePopup);
     }
@@ -80,7 +82,7 @@ public class AdministrationPopupController extends BasePopupController {
                 List.of(
                         PopupMenuUtils.menuRow(
                                 "Locations",
-                                () -> navigate(View.SETTINGS_LOCATION),
+                                () -> navigation.navigate(LocationSettingsController.class, NavigationType.GLOBAL),
                                 popup,
                                 dictionariesPopup)
                 )
@@ -94,13 +96,9 @@ public class AdministrationPopupController extends BasePopupController {
     public void handleLicense() {
         popup.hide();
         navigation.navigate(
-                View.SETTINGS_LICENSE,
+                LicenseSettingsController.class,
                 NavigationType.MODAL,
                 null,
                 new ModalOptions("License", "/icons/license.png", navigation.resolveOwner()));
-    }
-
-    private void navigate(View view) {
-        navigation.navigate(view, NavigationType.GLOBAL);
     }
 }

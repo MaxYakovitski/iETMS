@@ -4,8 +4,9 @@ import com.mayak.ietms.infrastructure.window.HoverSubmenuTracker;
 import com.mayak.ietms.request.dto.enums.RequestTypeDto;
 import com.mayak.ietms.ui.core.BasePopupController;
 import com.mayak.ietms.ui.navigation.NavigationType;
+import com.mayak.ietms.ui.workspace.planner.controller.PlannerController;
+import com.mayak.ietms.ui.workspace.request.client.ClientRequestsController;
 import com.mayak.ietms.ui.workspace.request.transport.TransportRequestController;
-import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.infrastructure.window.PopupMenuUtils;
 import javafx.fxml.FXML;
 import javafx.scene.image.ImageView;
@@ -15,19 +16,24 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
 @Controller
+@FxmlView("workspace_popup.fxml")
 @Scope("prototype")
 @Slf4j
 @RequiredArgsConstructor
 public class WorkspacePopupController extends BasePopupController {
 
-    @FXML public HBox requestsRow, plannerRow;
-    @FXML public ImageView arrowIcon;
+    @FXML
+    public HBox requestsRow, plannerRow;
+
+    @FXML
+    public ImageView arrowIcon;
 
     private Popup submenuPopup;
 
@@ -36,6 +42,7 @@ public class WorkspacePopupController extends BasePopupController {
 
     @Override
     public void onShow() {
+        super.onShow();
         boolean canClient = permissions.canViewClientRequests();
         boolean canTransport = permissions.canViewTransportRequests();
         boolean isAdmin = permissions.isAdmin();
@@ -57,46 +64,15 @@ public class WorkspacePopupController extends BasePopupController {
         } else if (canClient) {
             requestsRow.setOnMouseClicked(e -> {
                 popup.hide();
-                navigation.navigate(View.REQUESTS_CLIENT, NavigationType.GLOBAL);
+                navigation.navigate(ClientRequestsController.class, NavigationType.GLOBAL);
                 homeController.showRequestButtons(true);
             });
         }
 
     }
 
-    @FXML
-    public void handlePlanner() {
-        popup.hide();
-        navigation.navigate(View.PLANNER, NavigationType.GLOBAL);
-        homeController.showRequestButtons(false);
-    }
-
-    @FXML
-    public void handleRequests() {
-        if (permissions.canViewClientRequests()) {
-            popup.hide();
-            navigation.navigate(View.REQUESTS_CLIENT, NavigationType.GLOBAL);
-            homeController.showRequestButtons(true);
-            return;
-        }
-
-        if (permissions.canViewTransportRequests()) {
-
-            if (submenuPopup != null && submenuPopup.isShowing()) {
-                submenuPopup.hide();
-                return;
-            }
-
-            openSubmenu();
-            return;
-        }
-
-        log.warn("User {} has no permission to view requests", loggedInUser.email());
-    }
-
     private void openSubmenu() {
         if (submenuPopup != null && submenuPopup.isShowing()) return;
-
         submenuPopup = PopupMenuUtils.openPopupMenu(
                 requestsRow,
                 List.of(
@@ -119,8 +95,14 @@ public class WorkspacePopupController extends BasePopupController {
         HoverSubmenuTracker.track(requestsRow, submenuPopup);
     }
 
-    private void navigateTransport(RequestTypeDto type) {
+    @FXML
+    public void handlePlanner() {
         popup.hide();
-        navigation.navigate(View.REQUESTS_TRANSPORT, NavigationType.DETACHED, type, null);
+        navigation.navigate(PlannerController.class, NavigationType.GLOBAL);
+        homeController.showRequestButtons(false);
+    }
+
+    private void navigateTransport(RequestTypeDto type) {
+        navigation.navigate(TransportRequestController.class, NavigationType.DETACHED, type, null);
     }
 }

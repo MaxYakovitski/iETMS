@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.PasswordField?>
+
+<StackPane xmlns="http://javafx.com/javafx/21.0.7"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.mayak.ietms.ui.administration.UserSettingsController"
+           stylesheets="@/css/styles.css"
+           styleClass="app-root">
+
+    <VBox spacing="10" maxWidth="1250">
+        <padding>
+            <Insets top="120" bottom="120"/>
+        </padding>
+
+        <!-- FORM -->
+        <HBox alignment="CENTER" spacing="5">
+            <TextField fx:id="userNameField" promptText="name" styleClass="price-field"/>
+            <TextField fx:id="userSurnameField" promptText="surname" styleClass="price-field"/>
+            <TextField fx:id="userEmailField" promptText="email" styleClass="price-field"/>
+            <PasswordField fx:id="userPasswordField" promptText="password" styleClass="price-field"/>
+        </HBox>
+
+            <HBox alignment="CENTER" spacing="5">
+                <ComboBox fx:id="userTypeCombo" promptText="type" prefWidth="125"/>
+                <ComboBox fx:id="userRoleCombo" promptText="role" prefWidth="200" disable="true"/>
+                <ComboBox fx:id="userPriorityCombo" promptText="priority" prefWidth="100" disable="true"/>
+                <ComboBox fx:id="userDepartmentCombo" promptText="department" prefWidth="150"/>
+                <HBox alignment="CENTER">
+                    <Button fx:id="addButton" contentDisplay="GRAPHIC_ONLY" opacity="0.65" mnemonicParsing="false"
+                            prefHeight="20.0" prefWidth="20.0"
+                            style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;"
+                            onAction="#handleAddOrSave">
+                        <graphic>
+                            <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                                <Image url="@/icons/add.png"/>
+                            </ImageView>
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="removeButton" contentDisplay="GRAPHIC_ONLY" opacity="0.65" mnemonicParsing="false"
+                            prefHeight="20.0" prefWidth="20.0"
+                            style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;"
+                            onAction="#handleRemove">
+                        <graphic>
+                            <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                                <Image url="@/icons/remove.png"/>
+                            </ImageView>
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="editButton" contentDisplay="GRAPHIC_ONLY" opacity="0.65" mnemonicParsing="false"
+                            prefHeight="20.0" prefWidth="20.0"
+                            style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;"
+                            onAction="#handleEdit">
+                        <graphic>
+                            <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                                <Image url="@/icons/edit.png"/>
+                            </ImageView>
+                        </graphic>
+                    </Button>
+                </HBox>
+            </HBox>
+
+        <!-- TABLE -->
+        <TableView fx:id="usersTable" styleClass="scroll-minimal" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="userNameColumn" text="Name" prefWidth="120" styleClass="first-column"/>
+                <TableColumn fx:id="userSurnameColumn" text="Surname" prefWidth="140" styleClass="middle-column"/>
+                <TableColumn fx:id="userEmailColumn" text="Email" prefWidth="220" styleClass="middle-column"/>
+                <TableColumn fx:id="userTypeColumn" text="Type" prefWidth="75" styleClass="middle-column"/>
+                <TableColumn fx:id="userRoleColumn" text="Role" prefWidth="150" styleClass="middle-column"/>
+                <TableColumn fx:id="userPriorityColumn" text="Priority" prefWidth="75" styleClass="middle-column"/>
+                <TableColumn fx:id="userDeptColumn" text="Department" prefWidth="220" styleClass="middle-column"/>
+                <TableColumn fx:id="userStatusColumn" text="License" prefWidth="75" styleClass="last-column"/>
+            </columns>
+        </TableView>
+
+        <HBox alignment="CENTER">
+        <Button prefWidth="100" fx:id="toggleLicenseButton" visible="false" mnemonicParsing="false" focusTraversable="false"
+                onAction="#handleToggleStatus"/>
+        </HBox>
+    </VBox>
+
+</StackPane>

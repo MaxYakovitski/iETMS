@@ -5,6 +5,14 @@ import com.mayak.ietms.ui.core.SecuredView;
 import com.mayak.ietms.ui.core.ViewLifecycle;
 import com.mayak.ietms.ui.core.UserPermissions;
 
+/**
+ * Base class for statistics screens.
+ *
+ * <p>Provides access to the logged-in user's department and
+ * resolves the effective department for filtering:
+ * non-admin users are scoped to their own department;
+ * admins can select any department via the UI.
+ */
 public abstract class BaseStatisticsController implements SecuredView, ViewLifecycle {
 
     protected UserResponseDto loggedInUser;
@@ -23,9 +31,9 @@ public abstract class BaseStatisticsController implements SecuredView, ViewLifec
     }
 
     /**
-     * Effective department for statistics.
-     * Non-admin: user department
-     * Admin: selected department from UI
+     * Returns the department id to use when loading statistics.
+     * For non-admin users returns their own department; for admins
+     * delegates to {@link #getSelectedDepartmentId()}.
      */
     protected Long getEffectiveDepartmentId() {
         Long userDept = getUserDepartmentId();

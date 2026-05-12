@@ -1,25 +1,21 @@
 package com.mayak.ietms.ui.workspace.planner.base;
 
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
-import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.core.ViewLifecycle;
 import com.mayak.ietms.ui.workspace.planner.enums.ActiveTab;
 import com.mayak.ietms.ui.workspace.planner.item.ShipmentItemController;
-import com.mayak.ietms.infrastructure.window.WindowService;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.StackPane;
+import net.rgielen.fxweaver.core.FxWeaver;
 
 public class ShipmentCell extends ListCell<ShipmentListItemDto> implements ViewLifecycle {
 
     private final ShipmentItemController controller;
     private final StackPane container;
 
-    public ShipmentCell(WindowService windowService) {
-        String fxmlPath = View.SHIPMENT_ITEM.getPath();
-        WindowService.Loaded<ShipmentItemController> loaded =
-                windowService.loadControllerWithNode(fxmlPath, ShipmentItemController.class);
-
-        controller = loaded.controller();
+    public ShipmentCell(FxWeaver fxWeaver) {
+        var loaded = fxWeaver.load(ShipmentItemController.class);
+        controller = loaded.getController();
         controller.onShowOnce();
         container = new StackPane();
         container.getChildren().add(controller.requestPane);

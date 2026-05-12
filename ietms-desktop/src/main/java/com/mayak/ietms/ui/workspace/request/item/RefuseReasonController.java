@@ -6,6 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.stage.Stage;
 import lombok.Setter;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -14,12 +15,16 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Controller
+@FxmlView("request_item_refuse_reason.fxml")
 @Scope("prototype")
 @Setter
 public class RefuseReasonController<T> {
 
-    @FXML public ComboBox<T> reasonChoiceBox;
-    @FXML public Button submitButton, cancelButton;
+    @FXML
+    public ComboBox<T> reasonChoiceBox;
+
+    @FXML
+    public Button submitButton, cancelButton;
 
     private Stage stage;
     private Consumer<T> onSubmit;

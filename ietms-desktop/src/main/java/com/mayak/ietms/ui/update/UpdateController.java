@@ -14,8 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UpdateController {
 
-    @FXML private Label messageLabel;
-    @FXML private ProgressBar progressBar;
+    public static final String FXML = "/com/mayak/ietms/ui/update/update.fxml";
+
+    @FXML
+    private Label messageLabel;
+
+    @FXML
+    private ProgressBar progressBar;
 
     @Setter
     private UpdateService updateService;
@@ -60,9 +65,7 @@ public class UpdateController {
 
             @Override
             public void onError(Throwable error) {
-                showForcedUpdateError(
-                        "This update is required to continue.\nPlease restart the application."
-                );
+                showForcedUpdateError("This update is required to continue.\nPlease restart the application.");
             }
         });
 

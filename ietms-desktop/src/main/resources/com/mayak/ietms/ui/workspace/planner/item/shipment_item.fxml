@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21.0.7"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.mayak.ietms.ui.workspace.planner.item.ShipmentItemController"
+            stylesheets="@/css/styles.css">
+
+    <HBox fx:id="requestPane" styleClass="request-pane" minHeight="60" spacing="5" alignment="CENTER"
+          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+
+        <Label fx:id="statusLabel" prefWidth="70" textAlignment="CENTER"/>
+
+        <VBox fx:id="fromISOContainer" prefWidth="20" minHeight="60" spacing="5" alignment="CENTER"/>
+        <VBox prefWidth="10" minHeight="60" alignment="CENTER">
+            <Line startX="-100" endX="-90"/>
+        </VBox>
+        <VBox fx:id="toISOContainer" prefWidth="20" minHeight="60" spacing="5" alignment="CENTER"/>
+        
+        <VBox prefWidth="90" minHeight="60" spacing="5" fillWidth="false" alignment="CENTER">
+            <Label fx:id="customerReference"/>
+            <Label fx:id="customer"/>
+        </VBox>
+
+        <VBox prefWidth="160" minHeight="60" spacing="5" alignment="CENTER">
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <ImageView fitHeight="13" fitWidth="11" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@/icons/location.png"/>
+                    <HBox.margin><Insets top="2"/></HBox.margin>
+                </ImageView>
+                <VBox fx:id="fromPointContainer" minHeight="0"/>
+            </HBox>
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <ImageView fitHeight="13" fitWidth="13" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@/icons/calendar.png"/>
+                </ImageView>
+                <Label fx:id="dataStart">
+                    <font><Font size="13"/></font>
+                </Label>
+            </HBox>
+        </VBox>
+
+        <VBox minHeight="60" alignment="CENTER">
+            <ImageView fitHeight="30" fitWidth="30" opacity="0.85" pickOnBounds="true" preserveRatio="true">
+                <Image url="@/icons/transport.png"/>
+            </ImageView>
+        </VBox>
+
+        <VBox prefWidth="160" minHeight="60" spacing="5" alignment="CENTER">
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <ImageView fitHeight="13" fitWidth="11" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@/icons/location.png"/>
+                    <HBox.margin><Insets top="2"/></HBox.margin>
+                </ImageView>
+                <VBox fx:id="toPointContainer"
+                      minHeight="0"/>
+            </HBox>
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <ImageView fitHeight="13" fitWidth="13" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@/icons/calendar.png"/>
+                </ImageView>
+                <Label fx:id="dataEnd">
+                    <font><Font size="13"/></font>
+                </Label>
+            </HBox>
+        </VBox>
+
+        <VBox prefWidth="100" minHeight="60" spacing="5" alignment="CENTER">
+            <Label fx:id="shipmentType" textAlignment="CENTER"/>
+            <Label fx:id="transportType" textAlignment="CENTER"/>
+        </VBox>
+
+        <VBox prefWidth="75" minHeight="60" spacing="5" alignment="CENTER">
+            <Label fx:id="dangerousCheck" textAlignment="CENTER" textFill="#e74c3c">
+                <font><Font size="13"/></font>
+            </Label>
+            <Label fx:id="temperature" textAlignment="CENTER">
+                <font><Font size="13"/></font>
+            </Label>
+        </VBox>
+
+        <VBox prefWidth="75" minHeight="60" spacing="5" alignment="CENTER_LEFT">
+            <Label fx:id="weight"/>
+            <Label fx:id="loadingMeters"/>
+        </VBox>
+
+        <VBox minHeight="60" alignment="CENTER">
+            <Button fx:id="commentsButton"
+                    contentDisplay="GRAPHIC_ONLY"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent;"
+                    onAction="#handleComments">
+                <graphic>
+                    <ImageView fitHeight="30" fitWidth="30" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@/icons/comments.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+        </VBox>
+
+
+        <VBox minHeight="60" alignment="CENTER" minWidth="115" prefWidth="115" maxWidth="115">
+            <HBox alignment="CENTER_LEFT">
+                <Label fx:id="rIDLabel" text="r.ID:" minWidth="25"/>
+                <Label fx:id="rId"/>
+            </HBox>
+            <HBox alignment="CENTER_LEFT">
+                <Label fx:id="tIdLabel" text="t.ID:" minWidth="25"/>
+                <Label fx:id="tId"/>
+            </HBox>
+        </VBox>
+
+        <VBox prefWidth="100" minHeight="60" spacing="5" alignment="CENTER">
+            <Label fx:id="requestTypeLabel" textAlignment="CENTER"/>
+            <Label fx:id="customerPriceLabel" style="-fx-font-weight: bold" textAlignment="CENTER"/>
+        </VBox>
+
+        <VBox prefWidth="100" minHeight="60" spacing="5" alignment="CENTER">
+            <Label fx:id="authorName"/>
+            <Label fx:id="authorSurname"/>
+        </VBox>
+
+        <VBox prefWidth="150" minHeight="60" spacing="5" alignment="CENTER_RIGHT">
+            <Label fx:id="carrierLabel" textAlignment="CENTER"/>
+            <Label fx:id="carrierPriceLabel" style="-fx-font-weight: bold" textAlignment="CENTER"/>
+        </VBox>
+
+    </HBox>
+</AnchorPane>

@@ -10,10 +10,8 @@ import com.mayak.ietms.lane.dto.LaneViewDto;
 import com.mayak.ietms.lane.dto.LaneTypeDto;
 import com.mayak.ietms.request.dto.enums.ShipmentTypeDto;
 import com.mayak.ietms.request.dto.enums.TransportTypeDto;
-import com.mayak.ietms.ui.core.UserPermissions;
+import com.mayak.ietms.ui.core.*;
 import com.mayak.ietms.user.dto.UserResponseDto;
-import com.mayak.ietms.ui.core.SecuredView;
-import com.mayak.ietms.ui.core.ViewLifecycle;
 import com.mayak.ietms.domain.contract.ContractsFormPolicy;
 import com.mayak.ietms.ui.crm.form.ContractFormState;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
@@ -35,6 +33,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -44,32 +43,57 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Controller
+@FxmlView("crm_contracts.fxml")
 @Scope("prototype")
+@RequiresPermission(ViewPermission.CRM)
 @RequiredArgsConstructor
 @Slf4j
 public class ContractsController implements SecuredView,ViewLifecycle {
 
-    @FXML public TableView<CompanyDto> companiesTable;
-    @FXML public TableColumn<CompanyDto, String>companiesColumn;
+    @FXML
+    public TableView<CompanyDto> companiesTable;
 
-    @FXML public TableView<LaneViewDto> lanesTable;
-    @FXML public TableColumn<LaneViewDto, String> laneIdColumn, fromColumn, toColumn, shipmentTypeColumn, transportTypeColumn,
+    @FXML
+    public TableColumn<CompanyDto, String>companiesColumn;
+
+    @FXML
+    public TableView<LaneViewDto> lanesTable;
+
+    @FXML
+    public TableColumn<LaneViewDto, String> laneIdColumn, fromColumn, toColumn, shipmentTypeColumn, transportTypeColumn,
             tempColumn, laneTypeColumn;
-    @FXML public TableColumn<LaneViewDto, Double> weightColumn;
-    @FXML public TableColumn<LaneViewDto, BigDecimal> priceColumn, fuelSurchargeColumn, totalPriceColumn;
-    @FXML public TableColumn <LaneViewDto, LocalDate>validFromColumn, validToColumn;
+    @FXML
+    public TableColumn<LaneViewDto, Double> weightColumn;
 
-    @FXML public TextField laneIdTextField, fromTextField, toTextField, tempTextField, weightTextField, priceTextField, fuelSurchargeTextField;
-    @FXML public ComboBox<ShipmentTypeDto> shipmentComboBox;
-    @FXML public ComboBox<TransportTypeDto> transportComboBox;
-    @FXML public ComboBox<LaneTypeDto> laneTypeComboBox;
-    @FXML public DatePicker validFrom, validTo;
-    @FXML public Button addButton, removeButton, editButton;
+    @FXML
+    public TableColumn<LaneViewDto, BigDecimal> priceColumn, fuelSurchargeColumn, totalPriceColumn;
+
+    @FXML
+    public TableColumn <LaneViewDto, LocalDate>validFromColumn, validToColumn;
+
+    @FXML
+    public TextField laneIdTextField, fromTextField, toTextField, tempTextField, weightTextField, priceTextField, fuelSurchargeTextField;
+
+    @FXML
+    public ComboBox<ShipmentTypeDto> shipmentComboBox;
+
+    @FXML
+    public ComboBox<TransportTypeDto> transportComboBox;
+
+    @FXML
+    public ComboBox<LaneTypeDto> laneTypeComboBox;
+
+    @FXML
+    public DatePicker validFrom, validTo;
+
+    @FXML
+    public Button addButton, removeButton, editButton;
 
     private final ContractsFormPolicy formPolicy = new ContractsFormPolicy();
 
     @Getter @Setter
     private HomeController homeController;
+
     @Getter
     private UserResponseDto loggedInUser;
 
@@ -95,18 +119,10 @@ public class ContractsController implements SecuredView,ViewLifecycle {
         DatePickerUtils.setupDatePickers(validFrom, validTo);
 
         laneForm = new LaneForm(
-                laneIdTextField,
-                fromTextField,
-                toTextField,
-                tempTextField,
-                weightTextField,
-                priceTextField,
-                fuelSurchargeTextField,
-                shipmentComboBox,
-                transportComboBox,
-                laneTypeComboBox,
-                validFrom,
-                validTo
+                laneIdTextField, fromTextField, toTextField,
+                tempTextField, weightTextField, priceTextField,
+                fuelSurchargeTextField, shipmentComboBox,
+                transportComboBox, laneTypeComboBox, validFrom, validTo
         );
 
         initCompanyTable();
@@ -149,7 +165,6 @@ public class ContractsController implements SecuredView,ViewLifecycle {
     }
 
     private void initLaneTable() {
-
         lanesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         laneIdColumn.setCellValueFactory(c ->
@@ -251,7 +266,6 @@ public class ContractsController implements SecuredView,ViewLifecycle {
             @Override
             protected void updateItem(BigDecimal value, boolean empty) {
                 super.updateItem(value, empty);
-
                 if (empty || value == null) {
                     setText("");
                     return;
@@ -278,7 +292,6 @@ public class ContractsController implements SecuredView,ViewLifecycle {
         Map<String, Control> fieldMap = laneForm.fieldMap();
 
         var result = laneContractValidator.isValid(dto);
-
         if (!result.isValid()) {
             log.debug("Lane validation failed: {}", result.getErrors());
             new ValidationUIHelper(laneForm.fieldMap()).showClientErrors(result.getErrors());
@@ -310,8 +323,6 @@ public class ContractsController implements SecuredView,ViewLifecycle {
                 lanesTable.getItems().add(lane);
                 laneForm.reset();
             }
-
-
         } catch (ApiValidationException ex) {
             new ValidationUIHelper(fieldMap).showBackendErrors(ex);
         }
@@ -324,8 +335,7 @@ public class ContractsController implements SecuredView,ViewLifecycle {
             return;
         }
 
-        boolean ok =
-                AlertUtils.showConfirmation(null, "Are you sure that you want to delete this lane? " +
+        boolean ok = AlertUtils.showConfirmation(null, "Are you sure that you want to delete this lane? " +
                         "This action cannot be undone.");
 
         if (!ok) return;
@@ -405,11 +415,6 @@ public class ContractsController implements SecuredView,ViewLifecycle {
         ResetUtils.resetOnChange(laneTypeComboBox, laneTypeComboBox.valueProperty());
     }
 
-    private void switchToCreateMode() {
-        formState.switchToCreate();
-        laneForm.reset();
-    }
-
     private void switchToEditMode(LaneViewDto lane) {
         formPolicy.onEditRequested(formState, lane);
         fillFormFromLane(lane);
@@ -417,7 +422,6 @@ public class ContractsController implements SecuredView,ViewLifecycle {
 
     private void applyPermissions() {
         boolean canEdit = permissions != null && permissions.canViewCrm();
-
         addButton.setDisable(!canEdit);
         editButton.setDisable(!canEdit);
         removeButton.setDisable(!canEdit);

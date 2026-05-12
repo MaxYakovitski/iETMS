@@ -16,12 +16,14 @@ import javafx.scene.layout.HBox;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.time.ZoneId;
 
 @Controller
+@FxmlView("bid_item.fxml")
 @Scope("prototype")
 @RequiredArgsConstructor
 @Slf4j
@@ -29,9 +31,15 @@ public class BidItemController implements ViewLifecycle, SecuredView {
 
     @FXML
     private HBox root;
-    @FXML private Label amountLabel, authorLabel, timeLabel;
-    @FXML private TextArea comments;
-    @FXML private Button deleteButton;
+
+    @FXML
+    private Label amountLabel, authorLabel, timeLabel;
+
+    @FXML
+    private TextArea comments;
+
+    @FXML
+    private Button deleteButton;
 
     private final BidClient bidClient;
 
@@ -43,6 +51,7 @@ public class BidItemController implements ViewLifecycle, SecuredView {
     private RequestStatusDto requestStatus;
 
     private UserResponseDto loggedInUser;
+
     @Override
     public void setLoggedInUser(UserResponseDto user) {
         this.loggedInUser = user;

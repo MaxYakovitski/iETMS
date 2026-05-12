@@ -11,6 +11,7 @@ import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -18,13 +19,17 @@ import java.math.BigDecimal;
 import java.util.function.Consumer;
 
 @Controller
+@FxmlView("request_item_add_bid.fxml")
 @Scope("prototype")
 @RequiredArgsConstructor
 @Slf4j
 public class AddBidController {
 
-    @FXML private TextField bidInput;
-    @FXML private TextArea commentsInput;
+    @FXML
+    private TextField bidInput;
+
+    @FXML
+    private TextArea commentsInput;
 
     private final BidClient bidClient;
 

@@ -8,28 +8,44 @@ import com.mayak.ietms.infrastructure.error.AlertUtils;
 import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
 import com.mayak.ietms.infrastructure.common.ResetUtils;
 import com.mayak.ietms.infrastructure.common.TextUtils;
+import com.mayak.ietms.ui.core.RequiresPermission;
+import com.mayak.ietms.ui.core.ViewPermission;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.util.Map;
 
+/**
+ * Administration screen for managing location dictionary entries (country, ZIP, place name).
+ * Locations are referenced by requests and cannot be deleted while in use.
+ */
 @Controller
-@Scope
+@FxmlView("settings_location.fxml")
+@Scope("prototype")
+@RequiresPermission(ViewPermission.ADMINISTRATION)
 @RequiredArgsConstructor
 @Slf4j
 public class LocationSettingsController extends AbstractSettingsController<LocationDto, LocationDto, LocationCreateDto> {
 
     private final LocationClient locationClient;
 
-    @FXML private TextField countryCodeField, zipCodeField, placeNameField;
-    @FXML private TableView<LocationDto> locationsTable;
-    @FXML private TableColumn<LocationDto, String> locIsoCodeColumn, locZipCodeColumn, locNameColumn;
-    @FXML private Button addButton, editButton, removeButton;
+    @FXML
+    private TextField countryCodeField, zipCodeField, placeNameField;
+
+    @FXML
+    private TableView<LocationDto> locationsTable;
+
+    @FXML
+    private TableColumn<LocationDto, String> locIsoCodeColumn, locZipCodeColumn, locNameColumn;
+
+    @FXML
+    private Button addButton, editButton, removeButton;
 
     @Override
     protected Long extractId(LocationDto view) {
@@ -55,9 +71,12 @@ public class LocationSettingsController extends AbstractSettingsController<Locat
     public void initialize() {
         TextUtils.allowOnlyLatin(countryCodeField, zipCodeField, placeNameField);
         locationsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
-        locIsoCodeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().countryCode()));
-        locZipCodeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().zipCode()));
-        locNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().placeName()));
+        locIsoCodeColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().countryCode()));
+        locZipCodeColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().zipCode()));
+        locNameColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().placeName()));
 
         initValidation();
     }
@@ -107,7 +126,8 @@ public class LocationSettingsController extends AbstractSettingsController<Locat
     @Override
     protected void remove(LocationDto location) {
         boolean ok =
-                AlertUtils.showConfirmation(null, "Are you sure that you want to delete this location? " +
+                AlertUtils.showConfirmation(null,
+                        "Are you sure that you want to delete this location? " +
                         "This action cannot be undone.");
 
         if (!ok) return;
@@ -115,7 +135,8 @@ public class LocationSettingsController extends AbstractSettingsController<Locat
         try {
             locationClient.delete(location.id());
         } catch (ApiException ex) {
-            AlertUtils.show(ApiErrorUtils.resolve(ex, "This location cannot be deleted because it is used in existing requests."));
+            AlertUtils.show(ApiErrorUtils.resolve(ex,
+                    "This location cannot be deleted because it is used in existing requests."));
         }
     }
 

@@ -5,11 +5,10 @@ import com.mayak.ietms.request.dto.view.RequestListItemDto;
 import com.mayak.ietms.user.dto.UserResponseDto;
 import com.mayak.ietms.ui.core.ViewLifecycle;
 import com.mayak.ietms.ui.workspace.request.item.RequestItemController;
-import com.mayak.ietms.support.enums.View;
-import com.mayak.ietms.infrastructure.window.WindowService;
 import javafx.application.Platform;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.StackPane;
+import net.rgielen.fxweaver.core.FxWeaver;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -22,19 +21,14 @@ public class RequestCell extends ListCell<RequestListItemDto> implements ViewLif
 
     private Long currentId;
 
-    public RequestCell(WindowService windowService, UserResponseDto user, AbstractRequestController parent) {
+    public RequestCell(FxWeaver fxWeaver, UserResponseDto user, AbstractRequestController parent) {
         this.parent = parent;
-        String fxmlPath = View.REQUEST_ITEM.getPath();
 
-        WindowService.Loaded<RequestItemController> loaded =
-                windowService.loadControllerWithNode(fxmlPath, RequestItemController.class);
-
-        controller = loaded.controller();
+        var loaded = fxWeaver.load(RequestItemController.class);
+        controller = loaded.getController();
         controller.setContext(user, parent);
 
-        if (parent.getStage() != null) {
-            controller.setStage(parent.getStage());
-        }
+        if (parent.getStage() != null) controller.setStage(parent.getStage());
 
         container = new StackPane();
         container.getChildren().add(controller.getRequestPane());

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.geometry.Insets?>
+<?import java.lang.String?>
+<?import com.mayak.ietms.ui.workspace.planner.view.PlannerDateView?>
+<?import com.mayak.ietms.ui.workspace.planner.view.PlannerCalendarView?>
+<?import com.mayak.ietms.ui.workspace.planner.view.TimelineToggleButton?>
+
+<VBox xmlns="http://javafx.com/javafx/21.0.7"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mayak.ietms.ui.workspace.planner.controller.PlannerController"
+      spacing="10"
+      stylesheets="@/css/styles.css"
+      styleClass="app-root">
+
+    <padding>
+        <Insets top="5" bottom="10" left="10" right="10"/>
+    </padding>
+
+    <!-- Tab buttons — always at top -->
+    <HBox fx:id="buttonsContainer" spacing="10" alignment="CENTER" StackPane.alignment="TOP_CENTER">
+        <Button fx:id="myShipments" text="My shipments" prefWidth="100" styleClass="tab" onAction="#onMyShipmentsHandle"/>
+        <Button fx:id="myTransports" text="My transports" prefWidth="100" styleClass="tab" onAction="#onMyTransportsHandle"/>
+    </HBox>
+
+    <!-- ═══ My Shipments view ═══ -->
+    <HBox fx:id="shipmentsView" VBox.vgrow="ALWAYS" spacing="10">
+        <!-- Left: calendar + shipment details -->
+        <VBox alignment="TOP_CENTER" prefWidth="400" minWidth="400" maxWidth="400" spacing="10">
+            <PlannerCalendarView fx:id="calendarView"/>
+
+            <VBox fx:id="shipmentDetailsContainer" alignment="CENTER" spacing="10"
+                  visible="false" managed="false"
+                  style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
+                <padding>
+                    <Insets top="10" bottom="10" right="10" left="10"/>
+                </padding>
+                <VBox>
+                    <HBox alignment="CENTER" spacing="5">
+                        <Label text="Shipment:" />
+                        <Label fx:id="shipmentNumber"/>
+                    </HBox>
+                    <HBox alignment="CENTER" spacing="5">
+                        <Label text="dispatched to:"/>
+                        <Label fx:id="dispatcher"/>
+                    </HBox>
+                </VBox>
+                <Button fx:id="cancelButton" text="cancel" prefWidth="100"  onAction="#handleCancel" styleClass="reset-outline"/>
+                <VBox fx:id="shipmentTimelineContainer"/>
+            </VBox>
+        </VBox>
+
+        <!-- Separator -->
+        <Region minWidth="1" prefWidth="1" maxWidth="1"
+                style="-fx-background-color: #c8c8c8;"/>
+
+        <!-- Right: shipments list -->
+        <VBox fx:id="shipmentsContentContainer" spacing="10" HBox.hgrow="ALWAYS">
+            <StackPane VBox.vgrow="ALWAYS">
+                <ListView fx:id="shipmentsListView">
+                    <styleClass>
+                        <String fx:value="app-list-view"/>
+                        <String fx:value="scroll-minimal"/>
+                    </styleClass>
+                </ListView>
+
+                <Label fx:id="shipmentsEmptyMessageLabel"
+                       text="Oops! No shipments found..."
+                       visible="false" managed="false"
+                       style="-fx-opacity: 0.5;"/>
+
+                <StackPane fx:id="shipmentsLoadingOverlay" visible="false">
+                    <VBox alignment="CENTER" spacing="10">
+                        <ProgressIndicator/>
+                        <Label text="loading..."/>
+                    </VBox>
+                </StackPane>
+            </StackPane>
+        </VBox>
+    </HBox>
+
+    <!-- ═══ My Transports view ═══ -->
+    <HBox fx:id="transportsView" VBox.vgrow="ALWAYS" spacing="10" visible="false" managed="false">
+        <!-- Left: date + transport details -->
+        <VBox alignment="TOP_CENTER" prefWidth="400" minWidth="400" maxWidth="400" spacing="10">
+            <PlannerDateView fx:id="dateView"/>
+
+            <VBox fx:id="transportDetailsContainer" alignment="CENTER" spacing="10"
+                  visible="false" managed="false"
+                  style="-fx-background-color: #f9f9f9; -fx-background-radius: 5">
+                <padding>
+                    <Insets top="10" bottom="10" right="10" left="10"/>
+                </padding>
+                <HBox alignment="CENTER" spacing="5">
+                    <Label text="Shipment:" />
+                    <Label fx:id="shipmentNumberTransport"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <TimelineToggleButton fx:id="showTimeStampsButton" onAction="#handleShowHistory"/>
+                </HBox>
+                <VBox fx:id="transportTimelineContainer" visible="false" managed="false"/>
+                <TextField fx:id="carrierField" promptText="add carrier..." prefWidth="Infinity" styleClass="price-field"/>
+                <HBox alignment="CENTER" spacing="5">
+                    <TextField fx:id="licensePlateField" prefWidth="150" promptText="add license plate..." styleClass="price-field"/>
+                    <TextField fx:id="transportOrder" HBox.hgrow="ALWAYS" promptText="add transport order..." styleClass="price-field"/>
+                </HBox>
+                <HBox alignment="CENTER" spacing="5">
+                    <ComboBox fx:id="shipmentStatusComboBox" promptText="change status" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="28" styleClass="white-combo"/>
+                    <DatePicker fx:id="dateAndTime" prefWidth="125" disable="true"/>
+                    <Spinner fx:id="timeSpinner" prefWidth="100" disable="true"/>
+                </HBox>
+                <TextArea fx:id="commentsTextArea" wrapText="true" promptText="add comments...">
+                    <styleClass>
+                        <String fx:value="price-field"/>
+                        <String fx:value="scroll-minimal"/>
+                    </styleClass>
+                </TextArea>
+                <HBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="submitButton" text="submit" prefWidth="100"  styleClass="submit-outline" onAction="#submitShipmentUpdate"/>
+                </HBox>
+            </VBox>
+        </VBox>
+
+        <!-- Separator -->
+        <Region minWidth="1" prefWidth="1" maxWidth="1"
+            style="-fx-background-color: #c8c8c8;"/>
+
+        <!-- Right: transports list -->
+        <VBox fx:id="transportsContentContainer" spacing="10" HBox.hgrow="ALWAYS">
+            <StackPane VBox.vgrow="ALWAYS">
+                <ListView fx:id="transportsListView"  VBox.vgrow="ALWAYS">
+                    <styleClass>
+                        <String fx:value="app-list-view"/>
+                        <String fx:value="scroll-minimal"/>
+                    </styleClass>
+                </ListView>
+
+                <Label fx:id="transportsEmptyLabel"
+                       text="Oops! No transports found..."
+                       visible="false" managed="false"
+                       style="-fx-opacity: 0.5;"/>
+                <StackPane fx:id="transportsLoadingOverlay" visible="false">
+                    <VBox alignment="CENTER" spacing="10">
+                        <ProgressIndicator/>
+                        <Label text="loading..."/>
+                    </VBox>
+                </StackPane>
+            </StackPane>
+            </VBox>
+    </HBox>
+
+</VBox>

@@ -37,6 +37,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.controlsfx.control.CheckComboBox;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -47,32 +48,57 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Controller
+@FxmlView("requests_filter.fxml")
 @Scope("prototype")
 @RequiredArgsConstructor
 public class RequestFilterController implements SecuredView, ViewLifecycle {
 
-    @FXML public CheckComboBox<RequestStatusDto> statusComboBox;
-    @FXML public Label requestLabel;
-    @FXML private ToggleGroup requestTypeGroup, shipmentTypeGroup;
-    @FXML public RadioButton spotRadioButton, contractRadioButton, ftlRadioButton, ltlRadioButton;
+    @FXML
+    public CheckComboBox<RequestStatusDto> statusComboBox;
 
-    @FXML public TextField fromIsoField, fromZipField, fromPlaceField, toIsoField, toZipField, toPlaceField, companyField,
+    @FXML
+    public Label requestLabel;
+
+    @FXML
+    private ToggleGroup requestTypeGroup, shipmentTypeGroup;
+
+    @FXML
+    public RadioButton spotRadioButton, contractRadioButton, ftlRadioButton, ltlRadioButton;
+
+    @FXML
+    public TextField fromIsoField, fromZipField, fromPlaceField, toIsoField, toZipField, toPlaceField, companyField,
             weightFrom, weightTo, ldmFromField, ldmToField;
 
-    @FXML public DatePicker startDatePicker, endDatePicker;
+    @FXML
+    public DatePicker startDatePicker, endDatePicker;
 
-    @FXML public CheckComboBox <TransportTypeDto> transportComboBox;
-    @FXML public ComboBox<DangerousFilterOption> adrComboBox;
-    @FXML public ComboBox <DatesFilterOption> typeOfDateComboBox;
-    @FXML public HBox requestTypeRow;
-    @FXML private GridPane grid;
+    @FXML
+    public CheckComboBox <TransportTypeDto> transportComboBox;
 
-    @FXML public CheckComboBox <UserResponseDto> authorsMultiSelectComboBox;
-    @FXML public CheckComboBox <UserResponseDto> competitorsMultiSelectComboBox;
-    @FXML public CheckComboBox <UserResponseDto> dispatcherMultiSelectComboBox;
+    @FXML
+    public ComboBox<DangerousFilterOption> adrComboBox;
+
+    @FXML
+    public ComboBox <DatesFilterOption> typeOfDateComboBox;
+
+    @FXML
+    public HBox requestTypeRow;
+
+    @FXML
+    private GridPane grid;
+
+    @FXML
+    public CheckComboBox <UserResponseDto> authorsMultiSelectComboBox;
+
+    @FXML
+    public CheckComboBox <UserResponseDto> competitorsMultiSelectComboBox;
+
+    @FXML
+    public CheckComboBox <UserResponseDto> dispatcherMultiSelectComboBox;
 
     @Setter
     private Stage stage;
+
     @Getter
     private UserResponseDto loggedInUser;
     private UserPermissions permissions;

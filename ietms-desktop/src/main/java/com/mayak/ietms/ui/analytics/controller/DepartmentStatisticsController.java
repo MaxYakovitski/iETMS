@@ -7,6 +7,8 @@ import com.mayak.ietms.statistics.MonthlyCountDto;
 import com.mayak.ietms.statistics.RefuseReasonCountDto;
 import com.mayak.ietms.ui.analytics.service.DepartmentAnalyticsFacade;
 import com.mayak.ietms.ui.analytics.view.DepartmentChartsRenderer;
+import com.mayak.ietms.ui.core.RequiresPermission;
+import com.mayak.ietms.ui.core.ViewPermission;
 import com.mayak.ietms.ui.home.HomeController;
 import com.mayak.ietms.infrastructure.time.DatePickerUtils;
 import com.mayak.ietms.infrastructure.common.ResetUtils;
@@ -28,6 +30,7 @@ import javafx.scene.layout.VBox;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -37,20 +40,45 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Analytics screen showing department-level request statistics.
+ *
+ * <p>Renders progress rings (spot vs contract, bided, conversion),
+ * refused-reason bar charts, and a monthly compression line chart.
+ * Department scope: non-admin users see their own department;
+ * admins can select any via the combo box.
+ */
 @Controller
+@FxmlView("statistics_department.fxml")
 @Scope("prototype")
+@RequiresPermission(ViewPermission.ANALYTICS)
 @RequiredArgsConstructor
 public class DepartmentStatisticsController extends BaseStatisticsController {
 
-    @FXML public Label departmentFullNameLabel;
-    @FXML public DatePicker startDatePicker, endDatePicker;
-    @FXML public VBox reportContainer;
-    @FXML public HBox placeholderContainer;
-    @FXML public BarChart<Number, String> barChartSpotRefusedReason, barChartContractRefusedReason;
-    @FXML public StackPane allContainer, spotBidedContainer, spotConversionContainer, contractConversionContainer,
+    @FXML
+    public Label departmentFullNameLabel;
+
+    @FXML
+    public DatePicker startDatePicker, endDatePicker;
+
+    @FXML
+    public VBox reportContainer;
+
+    @FXML
+    public HBox placeholderContainer;
+
+    @FXML
+    public BarChart<Number, String> barChartSpotRefusedReason, barChartContractRefusedReason;
+
+    @FXML
+    public StackPane allContainer, spotBidedContainer, spotConversionContainer, contractConversionContainer,
             spotEmptyStack, contractEmptyStack;
-    @FXML public LineChart <String, Number>lineChartCompression;
-    @FXML public ComboBox<DepartmentDto> departmentComboBox;
+
+    @FXML
+    public LineChart <String, Number>lineChartCompression;
+
+    @FXML
+    public ComboBox<DepartmentDto> departmentComboBox;
 
     @Getter @Setter
     private HomeController homeController;
@@ -67,7 +95,6 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
 
     @Override
     public void onShow() {
-
         List<DepartmentDto> departments = permissions.isAdmin()
                 ? departmentClient.findAll()
                 : List.of();
@@ -92,7 +119,6 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
         DateRangeUiValidator dateRangeUiValidator = new DateRangeUiValidator();
         var result = dateRangeUiValidator.isValid(new DateRange(startDatePicker, endDatePicker));
 
-
         if (getUserDepartmentId() == null
                 && departmentComboBox.getSelectionModel().isEmpty()) {
             result.add(new ValidationError("departments", "Department is required"));
@@ -108,9 +134,7 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
                 endDatePicker.getValue(),
                 getEffectiveDepartmentId()
         );
-
         render(stats);
-
         placeholderContainer.setVisible(false);
         placeholderContainer.setManaged(false);
         reportContainer.setVisible(true);
@@ -119,25 +143,21 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
 
     // ---------- RENDER ----------
     private void render(DepartmentStatsDto stats) {
-
         charts.renderProgressRing(
                 stats.spotTotal(), stats.contractTotal(),
                 "Spot", "Contract",
                 DepartmentChartsRenderer.COLOR_COMMON,
                 allContainer);
-
         charts.renderProgressRing(
                 stats.spotBided(), stats.spotNotBided(),
                 "Bided", "Not bided",
                 DepartmentChartsRenderer.COLOR_COMMON,
                 spotBidedContainer);
-
         charts.renderProgressRing(
                 stats.spotAccepted(), stats.spotRefused(),
                 "Accepted", "Refused",
                 DepartmentChartsRenderer.COLOR_EFFICIENCY,
                 spotConversionContainer);
-
         charts.renderProgressRing(
                 stats.contractAccepted(), stats.contractRefused(),
                 "Accepted", "Refused",
@@ -160,7 +180,6 @@ public class DepartmentStatisticsController extends BaseStatisticsController {
 
     private Map<String, Integer> toBarData(List<RefuseReasonCountDto> list) {
         if (list == null || list.isEmpty()) return Map.of();
-
         return list.stream().collect(Collectors.toMap(
                 RefuseReasonCountDto::reasonCode,
                 RefuseReasonCountDto::count,

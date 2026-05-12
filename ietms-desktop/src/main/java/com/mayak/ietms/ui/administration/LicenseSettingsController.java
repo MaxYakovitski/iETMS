@@ -15,6 +15,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -25,24 +26,34 @@ import java.util.Optional;
  * Allows viewing the current license, activating a new one, and deactivating the existing one.
  */
 @Controller
+@FxmlView("settings_license.fxml")
 @Scope("prototype")
 @RequiredArgsConstructor
 public class LicenseSettingsController implements ViewLifecycle {
 
     private final LicenseClient licenseClient;
 
-    @FXML public VBox licenseInfoBox, licenseEmptyBox;
-    @FXML public Label companyLabel, maxUsersLabel, expiresAtLabel;
-    @FXML public Button deactivateButton;
-    @FXML public TextArea licenseKeyArea;
+    @FXML
+    public VBox licenseInfoBox, licenseEmptyBox;
 
-    @Setter private Stage stage;
+    @FXML
+    public Label companyLabel, maxUsersLabel, expiresAtLabel;
+
+    @FXML
+    public Button deactivateButton;
+
+    @FXML
+    public TextArea licenseKeyArea;
+
+    @Setter
+    private Stage stage;
 
     @Override
     public void onShow() {
         loadLicense();
     }
 
+    /** Reloads license info from the backend and refreshes the UI state. */
     private void loadLicense() {
         try {
             Optional<LicenseResponseDto> license = licenseClient.getCurrent();
@@ -81,7 +92,6 @@ public class LicenseSettingsController implements ViewLifecycle {
             AlertUtils.showError("Please paste a license key.");
             return;
         }
-
         try {
             licenseClient.activate(new LicenseActivateDto(key.trim()));
             licenseKeyArea.clear();
@@ -93,9 +103,9 @@ public class LicenseSettingsController implements ViewLifecycle {
 
     @FXML
     public void handleDeactivate() {
-        boolean ok = AlertUtils.showConfirmation(null, "Are you sure you want to deactivate the current license?", stage);
+        boolean ok = AlertUtils.showConfirmation(null,
+                "Are you sure you want to deactivate the current license?", stage);
         if (!ok) return;
-
         try {
             licenseClient.deactivate();
             loadLicense();

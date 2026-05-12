@@ -19,8 +19,14 @@ public class SessionManager {
 
     private volatile boolean logoutInProgress = false;
 
-    @Setter private Runnable loginCallback;
+    @Setter
+    private Runnable loginCallback;
 
+    /**
+     * Triggers a forced logout due to session expiry (e.g. concurrent login on another device).
+     * Idempotent — subsequent calls while logout is in progress are ignored.
+     * Always executed on the JavaFX application thread.
+     */
     public void handleSessionExpired() {
         if (logoutInProgress) return;
         logoutInProgress = true;
@@ -31,6 +37,7 @@ public class SessionManager {
         });
     }
 
+    // closes all open stages before invoking the login callback to avoid stale window references
     private void forceLogout() {
         var windows = new ArrayList<>(Window.getWindows());
         for (Window w : windows) {

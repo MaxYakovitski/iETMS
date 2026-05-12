@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -22,17 +23,24 @@ import java.time.LocalDate;
  * Displays personal info and current month activity statistics for the logged-in user.
  */
 @Controller
+@FxmlView("user.fxml")
 @Scope("prototype")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController implements ViewLifecycle {
 
-    @FXML public Label userLabel, userTypeLabel, userRoleLabel, departmentLabel,
-            monthLabel, placedLabel, joinedLabel, bidedLabel, acceptedLabel, dispatchedLabel;
-    @FXML public HBox roleContainer, departmentContainer;
+    @FXML
+    public Label userLabel, userTypeLabel, userRoleLabel, departmentLabel, monthLabel,
+            placedLabel, joinedLabel, bidedLabel, acceptedLabel, dispatchedLabel;
 
-    @Getter @Setter private Stage stage;
-    @Getter @Setter private UserResponseDto user;
+    @FXML
+    public HBox roleContainer, departmentContainer;
+
+    @Getter @Setter
+    private Stage stage;
+
+    @Getter @Setter
+    private UserResponseDto user;
 
     private final UserStatisticsClient statisticsClient;
 

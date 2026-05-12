@@ -18,6 +18,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -26,15 +27,34 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Modal controller for downloading Excel reports.
+ *
+ * <p>Validates date range and report type, then streams the file
+ * asynchronously via {@link com.mayak.ietms.integration.api.ReportClient},
+ * showing a progress bar during download.
+ * The save location is chosen by the user via a {@link javafx.stage.FileChooser}.
+ */
 @Controller
+@FxmlView("statistics_report.fxml")
 @Scope("prototype")
 @RequiredArgsConstructor
 public class ReportController {
-    @FXML public ComboBox<ReportType> reportChoiceBox;
-    @FXML public DatePicker startDatePicker, endDatePicker;
-    @FXML public Button downloadButton;
-    @FXML public VBox formContainer;
-    @FXML public ProgressBar progressBar;
+
+    @FXML
+    public ComboBox<ReportType> reportChoiceBox;
+
+    @FXML
+    public DatePicker startDatePicker, endDatePicker;
+
+    @FXML
+    public Button downloadButton;
+
+    @FXML
+    public VBox formContainer;
+
+    @FXML
+    public ProgressBar progressBar;
 
     private final ReportClient reportClient;
     private ValidationUIHelper validationUI;

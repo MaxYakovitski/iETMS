@@ -1,6 +1,8 @@
 package com.mayak.ietms;
 
 import com.mayak.ietms.config.PropertyConfig;
+import net.rgielen.fxweaver.core.FxWeaver;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +16,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @Import(PropertyConfig.class)
 @EnableScheduling
 public class DesktopApplication {
+
+    @Bean
+    public FxWeaver fxWeaver(ConfigurableApplicationContext applicationContext) {
+        return new FxWeaver(applicationContext::getBean, applicationContext::close);
+    }
 
     @Bean
     public TaskScheduler taskScheduler() {

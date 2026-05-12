@@ -15,20 +15,27 @@ import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.util.stream.Collectors;
 
 @Controller
+@FxmlView("request_item_more.fxml")
 @Scope("prototype")
 @RequiredArgsConstructor
 @Slf4j
 public class RequestMoreController {
 
-    @FXML public Label participantsLabel, participantsGroup, dispatchedToLabel, dispatcherFullName, tIdLabel;
-    @FXML public VBox authorContainer, deleteContainer;
-    @FXML public TextField tId;
+    @FXML
+    public Label participantsLabel, participantsGroup, dispatchedToLabel, dispatcherFullName, tIdLabel;
+
+    @FXML
+    public VBox authorContainer, deleteContainer;
+
+    @FXML
+    public TextField tId;
 
     private final RequestClient requestClient;
 

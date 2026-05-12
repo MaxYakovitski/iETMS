@@ -2,7 +2,6 @@ package com.mayak.ietms.ui.workspace.planner.item;
 
 import com.mayak.ietms.infrastructure.ui.*;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
-import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.core.ViewLifecycle;
 import com.mayak.ietms.ui.workspace.planner.enums.ActiveTab;
 import com.mayak.ietms.ui.workspace.planner.item.event.ShipmentStatusResolver;
@@ -23,6 +22,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -31,17 +31,25 @@ import org.springframework.stereotype.Controller;
  * Handles rendering, visibility, status display, and comments for one {@link ShipmentListItemDto}.
  */
 @Controller
+@FxmlView("shipment_item.fxml")
 @Scope("prototype")
 @Slf4j
 @RequiredArgsConstructor
 public class ShipmentItemController implements ViewLifecycle {
 
-    @FXML public HBox requestPane;
-    @FXML public VBox fromISOContainer, toISOContainer, fromPointContainer, toPointContainer;
-    @FXML public Label customerReference, customer, dataStart, dataEnd, shipmentType, transportType, dangerousCheck,
+    @FXML
+    public HBox requestPane;
+
+    @FXML
+    public VBox fromISOContainer, toISOContainer, fromPointContainer, toPointContainer;
+
+    @FXML
+    public Label customerReference, customer, dataStart, dataEnd, shipmentType, transportType, dangerousCheck,
             temperature, weight, loadingMeters, rIDLabel, rId, tIdLabel, tId, requestTypeLabel, customerPriceLabel,
             carrierLabel, carrierPriceLabel, authorName, authorSurname, statusLabel;
-    @FXML public Button commentsButton;
+
+    @FXML
+    public Button commentsButton;
 
     private static final String COMMENTS_ICON = "/icons/comments.png";
 
@@ -87,10 +95,7 @@ public class ShipmentItemController implements ViewLifecycle {
     public void updateItem(ShipmentListItemDto dto) {
         this.dto = dto;
         this.shipmentId = dto != null ? dto.id() : null;
-
-        if (dto == null) {
-            return;
-        }
+        if (dto == null) return;
 
         ShipmentItemViewData view = presenter.present(dto);
         applyTexts(view);
@@ -164,7 +169,6 @@ public class ShipmentItemController implements ViewLifecycle {
 
         statusLabel.setText(view.label());
         statusLabel.setTextFill(view.color());
-
         statusLabel.setVisible(true);
         statusLabel.setManaged(true);
     }
@@ -186,9 +190,7 @@ public class ShipmentItemController implements ViewLifecycle {
         String comments = TextUtils.safeTrim(dto.requestComments());
         if (comments.isEmpty()) return;
 
-        windowService.openModalWindow(
-                View.REQUEST_COMMENT.getPath(),
-                CommentController.class,
+        windowService.openModalWindow(CommentController.class,
                 controller -> controller.setCommentsText(comments),
                 "Commentaries",
                 COMMENTS_ICON,

@@ -15,6 +15,7 @@ import javafx.scene.control.TableView;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -22,20 +23,39 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Component
+@FxmlView("lanes_selector.fxml")
 @Scope("prototype")
 public class LaneSelectorController {
 
-    @FXML public TableView<LaneViewDto> laneTable;
-    @FXML public TableColumn<LaneViewDto, String> idColumn, fromColumn, toColumn;
-    @FXML public TableColumn <LaneViewDto, ShipmentTypeDto> shipmentColumn;
-    @FXML public TableColumn <LaneViewDto, TransportTypeDto> transportColumn;
-    @FXML public TableColumn <LaneViewDto, BigDecimal> priceColumn;
-    @FXML public TableColumn<LaneViewDto, String> validFrom, validTo;
-    @FXML public Button select, cancel;
+    @FXML
+    public TableView<LaneViewDto> laneTable;
 
-    @Setter private List<LaneViewDto> lanes;
-    @Getter private LaneViewDto selectedLane;
-    @Setter private Stage stage;
+    @FXML
+    public TableColumn<LaneViewDto, String> idColumn, fromColumn, toColumn;
+
+    @FXML
+    public TableColumn <LaneViewDto, ShipmentTypeDto> shipmentColumn;
+
+    @FXML
+    public TableColumn <LaneViewDto, TransportTypeDto> transportColumn;
+
+    @FXML
+    public TableColumn <LaneViewDto, BigDecimal> priceColumn;
+
+    @FXML
+    public TableColumn<LaneViewDto, String> validFrom, validTo;
+
+    @FXML
+    public Button select, cancel;
+
+    @Setter
+    private List<LaneViewDto> lanes;
+
+    @Getter
+    private LaneViewDto selectedLane;
+
+    @Setter
+    private Stage stage;
 
     @FXML
     public void initialize() {

@@ -8,6 +8,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -16,11 +17,14 @@ import org.springframework.stereotype.Controller;
  * Displays the current application version on show.
  */
 @Controller
+@FxmlView("about.fxml")
 @Scope("prototype")
 @RequiredArgsConstructor
 public class AboutController implements ViewLifecycle {
 
-    @FXML private Label versionLabel;
+    @FXML
+    private Label versionLabel;
+
     private final AppVersionProvider versionProvider;
 
     @Getter @Setter

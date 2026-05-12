@@ -4,6 +4,8 @@ import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.domain.user.UserFormPolicy;
 import com.mayak.ietms.domain.user.UserFormState;
 import com.mayak.ietms.department.dto.DepartmentDto;
+import com.mayak.ietms.ui.core.RequiresPermission;
+import com.mayak.ietms.ui.core.ViewPermission;
 import com.mayak.ietms.user.dto.UserCreateDto;
 import com.mayak.ietms.user.dto.UserResponseDto;
 import com.mayak.ietms.user.dto.UserUpdateDto;
@@ -24,6 +26,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -31,11 +34,16 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
- * Administration screen controller for managing users.
- * Supports creating, editing, deleting users, and toggling their active status.
+ * Administration screen for managing application users.
+ *
+ * <p>Supports creating, editing, deleting users, and toggling their active status.
+ * Admin users are excluded from the list — they are managed separately.
+ * Role and priority fields are conditionally enabled based on {@link com.mayak.ietms.domain.user.UserFormPolicy}.
  */
 @Controller
+@FxmlView("settings_user.fxml")
 @Scope("prototype")
+@RequiresPermission(ViewPermission.ADMINISTRATION)
 @RequiredArgsConstructor
 @Slf4j
 public class UserSettingsController extends AbstractSettingsController<UserResponseDto, UserUpdateDto, UserCreateDto> {
@@ -44,18 +52,31 @@ public class UserSettingsController extends AbstractSettingsController<UserRespo
     private final DepartmentClient departmentClient;
 
     private final UserForm form = new UserForm();
-
     private final UserFormPolicy formPolicy = new UserFormPolicy();
 
-    @FXML public TextField userNameField, userSurnameField, userEmailField, userPasswordField;
-    @FXML public ComboBox <UserTypeDto> userTypeCombo;
-    @FXML public ComboBox <RoleDto> userRoleCombo;
-    @FXML public ComboBox <PriorityDto> userPriorityCombo;
-    @FXML public ComboBox <DepartmentDto> userDepartmentCombo;
-    @FXML Button addButton, removeButton, editButton, toggleLicenseButton;
+    @FXML
+    public TextField userNameField, userSurnameField, userEmailField, userPasswordField;
 
-    @FXML private TableView<UserResponseDto> usersTable;
-    @FXML public TableColumn <UserResponseDto, String> userNameColumn, userSurnameColumn, userEmailColumn,
+    @FXML
+    public ComboBox <UserTypeDto> userTypeCombo;
+
+    @FXML
+    public ComboBox <RoleDto> userRoleCombo;
+
+    @FXML
+    public ComboBox <PriorityDto> userPriorityCombo;
+
+    @FXML
+    public ComboBox <DepartmentDto> userDepartmentCombo;
+
+    @FXML
+    Button addButton, removeButton, editButton, toggleLicenseButton;
+
+    @FXML
+    private TableView<UserResponseDto> usersTable;
+
+    @FXML
+    public TableColumn <UserResponseDto, String> userNameColumn, userSurnameColumn, userEmailColumn,
             userTypeColumn, userRoleColumn, userPriorityColumn, userDeptColumn, userStatusColumn;
 
     @FXML

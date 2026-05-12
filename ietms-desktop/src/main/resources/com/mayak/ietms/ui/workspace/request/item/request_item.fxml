@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21.0.7"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.mayak.ietms.ui.workspace.request.item.RequestItemController"
+            stylesheets="@/css/styles.css">
+
+    <HBox fx:id="requestPane" styleClass="request-pane" minHeight="60" spacing="5" alignment="CENTER"
+          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+
+        <VBox fx:id="fromISOContainer" prefWidth="20" minHeight="60" spacing="5" alignment="CENTER"/>
+        <VBox prefWidth="10" minHeight="60" alignment="CENTER">
+            <Line startX="-100" endX="-90"/>
+        </VBox>
+        <VBox fx:id="toISOContainer" prefWidth="20" minHeight="60" spacing="5" alignment="CENTER"/>
+
+        <VBox prefWidth="90" minHeight="60" spacing="5" fillWidth="false" alignment="CENTER">
+            <Label fx:id="customerReference"/>
+            <Label fx:id="customer"/>
+        </VBox>
+
+        <VBox prefWidth="160" minHeight="60" spacing="5" alignment="CENTER">
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <ImageView fitHeight="13" fitWidth="11" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@/icons/location.png"/>
+                    <HBox.margin><Insets top="2"/></HBox.margin>
+                </ImageView>
+                <VBox fx:id="fromPointContainer" minHeight="0"/>
+            </HBox>
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <ImageView fitHeight="13" fitWidth="13" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@/icons/calendar.png"/>
+                </ImageView>
+                <Label fx:id="dataStart"/>
+            </HBox>
+        </VBox>
+
+        <VBox minHeight="60" alignment="CENTER">
+            <ImageView fitHeight="30" fitWidth="30" opacity="0.85" pickOnBounds="true" preserveRatio="true">
+                <Image url="@/icons/transport.png"/>
+            </ImageView>
+        </VBox>
+
+        <VBox prefWidth="160" minHeight="60" spacing="5" alignment="CENTER">
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <ImageView fitHeight="13" fitWidth="13" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@/icons/location.png"/>
+                </ImageView>
+                <VBox fx:id="toPointContainer"
+                      minHeight="0"/>
+            </HBox>
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <ImageView fitHeight="13" fitWidth="13" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@/icons/calendar.png"/>
+                </ImageView>
+                <Label fx:id="dataEnd"/>
+            </HBox>
+        </VBox>
+
+        <VBox prefWidth="75" minHeight="60" spacing="5" alignment="CENTER">
+            <Label fx:id="shipmentType" textAlignment="CENTER"/>
+            <Label fx:id="transportType" textAlignment="CENTER"/>
+        </VBox>
+
+        <VBox prefWidth="65" minHeight="60" spacing="5" alignment="CENTER">
+            <Label fx:id="dangerousCheck" textAlignment="CENTER" textFill="#e74c3c">
+                <font><Font size="13"/></font>
+            </Label>
+            <Label fx:id="temperature" textAlignment="CENTER">
+                <font><Font size="13"/></font>
+            </Label>
+        </VBox>
+
+        <VBox prefWidth="75" minHeight="60" spacing="5" alignment="CENTER_LEFT">
+            <Label fx:id="weight"/>
+            <Label fx:id="loadingMeters"/>
+        </VBox>
+
+        <VBox minHeight="60" alignment="CENTER">
+            <Button fx:id="commentsButton"
+                    contentDisplay="GRAPHIC_ONLY"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent;"
+                    onAction="#handleComments">
+                <graphic>
+                    <ImageView fitHeight="30" fitWidth="30" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@/icons/comments.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+        </VBox>
+
+        <VBox minHeight="60" spacing="5" alignment="CENTER">
+            <Button fx:id="priceButton" prefWidth="100" prefHeight="22"
+                    style="-fx-background-color: #ffffff; -fx-background-radius: 5; -fx-border-color: #c8c8c8;  -fx-border-radius: 5; -fx-padding: 0; -fx-background-insets: 0"
+                    disable="true" alignment="CENTER">
+                <font><Font size="13"/></font>
+            </Button>
+            <Button fx:id="bidButton" prefWidth="100" prefHeight="22" text="BID"
+                    disable="true" alignment="CENTER" onAction="#handleBid"/>
+        </VBox>
+
+        <VBox prefWidth="80" minHeight="60" alignment="CENTER">
+            <Label fx:id="status" textAlignment="CENTER">
+                <font><Font size="10"/></font>
+            </Label>
+        </VBox>
+
+        <VBox prefWidth="40" minHeight="60" alignment="CENTER">
+            <Pane prefWidth="20" minHeight="60">
+                <Button fx:id="joinButton"  visible="false" contentDisplay="GRAPHIC_ONLY"
+                        layoutX="2.5" layoutY="15" prefWidth="20" prefHeight="20"
+                        style="-fx-background-color: transparent; -fx-padding: 0;" onAction="#handleJoin">
+                    <graphic>
+                        <ImageView fx:id="joinImageView" opacity="0.65" fitHeight="20" fitWidth="20" pickOnBounds="true" preserveRatio="true">
+                            <Image url="@/icons/user_join.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+
+                <Button fx:id="confirmedAndOfferedButton" visible="false" contentDisplay="GRAPHIC_ONLY"
+                        layoutY="12.5" prefWidth="25" prefHeight="25"
+                        style="-fx-background-color: transparent; -fx-padding: 0;" onAction="#handleConfirm">
+                    <graphic>
+                        <ImageView fitHeight="25" fitWidth="25" opacity="0.65" pickOnBounds="true" preserveRatio="true">
+                            <Image url="@/icons/decision_making.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+
+                <Button fx:id="acceptButton" visible="false" contentDisplay="GRAPHIC_ONLY"
+                        layoutX="2.5" layoutY="5" prefWidth="20" prefHeight="20"
+                        style="-fx-background-color: transparent; -fx-padding: 0;" onAction="#handleAccept">
+                    <graphic>
+                        <ImageView fitHeight="20" fitWidth="20" opacity="0.65" pickOnBounds="true" preserveRatio="true">
+                            <Image url="@/icons/accept.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+
+                <Button fx:id="refuseButton" visible="false" contentDisplay="GRAPHIC_ONLY"
+                        layoutX="2.5" layoutY="35" prefWidth="20" prefHeight="20"
+                        style="-fx-background-color: transparent; -fx-padding: 0;" onAction="#handleRefuse">
+                    <graphic>
+                        <ImageView fitHeight="20" fitWidth="20" opacity="0.65" pickOnBounds="true" preserveRatio="true">
+                            <Image url="@/icons/refuse.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </Pane>
+        </VBox>
+
+        <VBox minHeight="60" alignment="CENTER" minWidth="115" prefWidth="115" maxWidth="115">
+            <HBox alignment="CENTER_LEFT">
+                <Label fx:id="rIDLabel" text="r.ID:" minWidth="25"/>
+                <Label fx:id="rId"/>
+            </HBox>
+            <HBox alignment="CENTER_LEFT">
+                <Label fx:id="tIdLabel" text="t.ID:" minWidth="25"/>
+                <Label fx:id="tId">
+                </Label>
+            </HBox>
+        </VBox>
+
+        <VBox minHeight="60" spacing="5" alignment="CENTER">
+            <Button fx:id="goToExchangeButton" contentDisplay="GRAPHIC_ONLY"
+                    style="-fx-background-color: transparent;" onAction="#handleToExchange">
+                <graphic>
+                    <ImageView fitHeight="25" fitWidth="25" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@/icons/trans.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+            <Button fx:id="moreButton" contentDisplay="GRAPHIC_ONLY"
+                    style="-fx-background-color: transparent; -fx-padding: 0" onAction="#handleMore">
+                <graphic>
+                    <ImageView fitHeight="18" fitWidth="18" opacity="0.6" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@/icons/more_item.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+        </VBox>
+
+        <VBox prefWidth="85" minHeight="60" spacing="5" alignment="CENTER">
+            <Label fx:id="requestTypeLabel" textAlignment="CENTER"/>
+            <Label fx:id="customerPriceLabel" style="-fx-font-weight: bold" textAlignment="CENTER"/>
+        </VBox>
+
+        <VBox prefWidth="125" minHeight="60" alignment="CENTER" spacing="5">
+            <Label fx:id="authorFullName"/>
+            <Label fx:id="requestDateTime"/>
+        </VBox>
+
+        <VBox minHeight="60" spacing="12.5" alignment="CENTER">
+            <Button fx:id="renewButton" contentDisplay="GRAPHIC_ONLY"
+                    prefWidth="18" prefHeight="18"
+                    style="-fx-background-color: transparent; -fx-padding: 0"
+                    onAction="#handleRenew">
+                <graphic>
+                    <ImageView fitHeight="18" fitWidth="18" opacity="0.65" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@/icons/undo.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+
+            <Button fx:id="expireButton" contentDisplay="GRAPHIC_ONLY"
+                    prefWidth="18" prefHeight="18"
+                    style="-fx-background-color: transparent; -fx-padding: 0"
+                    onAction="#handleExpire">
+                <graphic>
+                    <ImageView fitHeight="18" fitWidth="18" opacity="0.65" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@/icons/archive.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+        </VBox>
+
+    </HBox>
+</AnchorPane>

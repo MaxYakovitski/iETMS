@@ -11,7 +11,6 @@ import com.mayak.ietms.integration.auth.AuthClient;
 import com.mayak.ietms.integration.auth.AuthState;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.integration.exception.SessionExpiredException;
-import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.auth.LoginController;
 import com.mayak.ietms.ui.auth.LoginRequest;
 import com.mayak.ietms.ui.core.SessionManager;
@@ -30,21 +29,33 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * JavaFX entry point for the desktop application.
+ *
+ * <p>Bootstraps the Spring context asynchronously in {@link #init()}
+ * to avoid blocking the FX thread. Authentication is performed before
+ * the context is fully wired into the UI ({@link #showMainStage}).
+ *
+ * <p>On logout, the Spring context is closed and re-created from scratch
+ * to guarantee a clean application state.
+ */
 @Slf4j
 public class JavaFxApplication extends Application {
 
     private static final String TITLE = "iETMS";
     private static final Image APP_ICON = new Image(
-            Objects.requireNonNull(JavaFxApplication.class.getResource("/icons/icon.png"))
-                    .toExternalForm());
+            Objects.requireNonNull(JavaFxApplication.class.getResource("/icons/icon.png")).toExternalForm());
 
     private ConfigurableApplicationContext springContext;
+    private CompletableFuture<ConfigurableApplicationContext> contextFuture;
 
     private Stage mainStage;
 
     @Override
     public void init() {
         Locale.setDefault(Locale.UK);
+        contextFuture = CompletableFuture.supplyAsync(() ->
+                new AnnotationConfigApplicationContext(DesktopApplication.class));
     }
 
     @Override
@@ -52,6 +63,11 @@ public class JavaFxApplication extends Application {
         showLogin();
     }
 
+    /**
+     * Called by the JavaFX runtime on application shutdown.
+     * Closes the main stage and the Spring context; if the context is still
+     * loading, schedules its closure via the {@code contextFuture}.
+     */
     @Override
     public void stop() {
         if (mainStage != null) {
@@ -62,6 +78,8 @@ public class JavaFxApplication extends Application {
         if (springContext != null) {
             springContext.close();
             springContext = null;
+        } else if (contextFuture != null) {
+            contextFuture.thenAccept(ConfigurableApplicationContext::close);
         }
         Platform.exit();
     }
@@ -78,7 +96,7 @@ public class JavaFxApplication extends Application {
 
     private void showLogin() {
         LoginController controller = new LoginController();
-        Parent root = FxmlLoader.load(View.LOGIN.getPath(), controller);
+        Parent root = FxmlLoader.load(LoginController.FXML, controller);
         Scene scene = new Scene(root);
 
         Stage loginStage = createBaseStage(scene);
@@ -86,40 +104,43 @@ public class JavaFxApplication extends Application {
         loginStage.centerOnScreen();
 
         controller.setOnLogin(req ->
-                CompletableFuture
-                        .supplyAsync(() -> initSpringAndLogin(req))
-                        .thenAccept(ctx ->
-                                Platform.runLater(() -> {
-                                    loginStage.close();
-                                    showMainStage(ctx);
-                                })
-                        )
+                contextFuture
+                        .thenApplyAsync(ctx -> authenticate(ctx, req))
+                        .thenAccept(ctx -> Platform.runLater(() -> {
+                            loginStage.close();
+                            showMainStage(ctx);
+                        }))
                         .exceptionally(ex -> {
                             Platform.runLater(() -> handleLoginError(controller, ex));
                             return null;
                         })
         );
-
         loginStage.show();
-
     }
 
-    private ConfigurableApplicationContext initSpringAndLogin(LoginRequest req) {
-        ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(DesktopApplication.class);
-
+    /**
+     * Performs login against the backend and stores the received token in {@link AuthState}.
+     * Runs on a background thread (via {@link CompletableFuture}).
+     *
+     * @return the same {@code ctx} for chaining
+     * @throws com.mayak.ietms.integration.exception.ApiException on invalid credentials or server error
+     */
+    private ConfigurableApplicationContext authenticate(ConfigurableApplicationContext ctx, LoginRequest req) {
         var authClient = ctx.getBean(AuthClient.class);
         var authState  = ctx.getBean(AuthState.class);
-
-        try {
-            var response = authClient.login(req.email(), req.password());
-            authState.setToken(response.token());
-            return ctx;
-        } catch (Exception ex) {
-            ctx.close();
-            throw ex;
-        }
+        var response = authClient.login(req.email(), req.password());
+        authState.setToken(response.token());
+        return ctx;
     }
 
+    /**
+     * Wires the Spring context into the UI after successful login.
+     *
+     * <p>Registers a logout callback on {@link SessionManager} that closes
+     * the current context and re-enters the login flow. Also installs a global
+     * uncaught exception handler that routes {@link SessionExpiredException}
+     * to the session manager and reports everything else to Slack.
+     */
     private void showMainStage(ConfigurableApplicationContext ctx) {
         this.springContext = ctx;
 
@@ -135,7 +156,7 @@ public class JavaFxApplication extends Application {
                 springContext.close();
                 springContext = null;
             }
-
+            contextFuture = CompletableFuture.supplyAsync(() -> new AnnotationConfigApplicationContext(DesktopApplication.class));
             showLogin();
         });
 
@@ -171,7 +192,6 @@ public class JavaFxApplication extends Application {
                 reporter.report(new Exception(t), "Uncaught throwable in thread " + thread.getName());
             }
         });
-
     }
 
     private void handleLoginError(LoginController controller, Throwable ex) {

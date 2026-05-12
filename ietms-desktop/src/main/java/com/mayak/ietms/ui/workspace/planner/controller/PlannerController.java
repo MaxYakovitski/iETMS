@@ -23,7 +23,6 @@ import com.mayak.ietms.ui.workspace.planner.state.PlannerState;
 import com.mayak.ietms.ui.workspace.planner.view.PlannerDateView;
 import com.mayak.ietms.ui.workspace.planner.view.TimelineToggleButton;
 import com.mayak.ietms.user.dto.UserResponseDto;
-import com.mayak.ietms.support.enums.View;
 import com.mayak.ietms.ui.core.SecuredView;
 import com.mayak.ietms.ui.core.UserPermissions;
 import com.mayak.ietms.ui.core.ViewLifecycle;
@@ -48,6 +47,8 @@ import javafx.scene.layout.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxWeaver;
+import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.stereotype.Controller;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -59,28 +60,56 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Controller
+@FxmlView("planner.fxml")
 @RequiredArgsConstructor
 @Slf4j
 public class PlannerController implements SecuredView, ViewLifecycle {
 
-    @FXML public PlannerCalendarView calendarView;
-    @FXML public PlannerDateView dateView;
-    @FXML public Label shipmentNumber, shipmentNumberTransport, dispatcher, shipmentsEmptyMessageLabel, transportsEmptyLabel;
-    @FXML public Button myShipments, myTransports, cancelButton, submitButton;
-    @FXML public VBox shipmentsContentContainer, transportsContentContainer, shipmentDetailsContainer, shipmentTimelineContainer, transportDetailsContainer, transportTimelineContainer;
-    @FXML public HBox shipmentsView, transportsView, buttonsContainer;
-    @FXML public StackPane shipmentsLoadingOverlay, transportsLoadingOverlay;
+    @FXML
+    public PlannerCalendarView calendarView;
 
-    @FXML public TimelineToggleButton showTimeStampsButton;
+    @FXML
+    public PlannerDateView dateView;
+
+    @FXML
+    public Label shipmentNumber, shipmentNumberTransport, dispatcher, shipmentsEmptyMessageLabel, transportsEmptyLabel;
+
+    @FXML
+    public Button myShipments, myTransports, cancelButton, submitButton;
+
+    @FXML
+    public VBox shipmentsContentContainer, transportsContentContainer, shipmentDetailsContainer,
+            shipmentTimelineContainer, transportDetailsContainer, transportTimelineContainer;
+
+    @FXML
+    public HBox shipmentsView, transportsView, buttonsContainer;
+
+    @FXML
+    public StackPane shipmentsLoadingOverlay, transportsLoadingOverlay;
+
+    @FXML
+    public TimelineToggleButton showTimeStampsButton;
+
     @Getter
-    @FXML public TextField carrierField, licensePlateField, transportOrder;
+    @FXML
+    public TextField carrierField, licensePlateField, transportOrder;
+
     @Getter
-    @FXML public DatePicker dateAndTime;
+    @FXML
+    public DatePicker dateAndTime;
+
     @Getter
-    @FXML public Spinner<LocalTime> timeSpinner;
-    @FXML public TextArea commentsTextArea;
-    @FXML public ComboBox<ShipmentStatusDto> shipmentStatusComboBox;
-    @FXML private ListView<ShipmentListItemDto> shipmentsListView, transportsListView;
+    @FXML
+    public Spinner<LocalTime> timeSpinner;
+
+    @FXML
+    public TextArea commentsTextArea;
+
+    @FXML
+    public ComboBox<ShipmentStatusDto> shipmentStatusComboBox;
+
+    @FXML
+    private ListView<ShipmentListItemDto> shipmentsListView, transportsListView;
 
     /* ================= Dependencies ================= */
     private final PlannerStatusEditPolicy statusEditPolicy;
@@ -89,6 +118,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
     private final PlannerDetailsPresenter detailsPresenter;
 
     private final WindowService windowService;
+    private final FxWeaver fxWeaver;
 
     private final CompanyClient companyClient;
     private final ShipmentClient shipmentClient;
@@ -202,7 +232,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
 
     private void setupList(ListView<ShipmentListItemDto> list, ActiveTab activeTab) {
         list.setCellFactory(lv -> {
-            ShipmentCell cell = new ShipmentCell(windowService);
+            ShipmentCell cell = new ShipmentCell(fxWeaver);
             cell.setActiveTab(activeTab);
             return cell;
         });
@@ -335,10 +365,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                 "Are you sure you want to cancel shipment " + state.getSelectedShipment().id() + "?");
         if (!confirmed) return;
 
-        String fxmlPath = View.REFUSE_REASON.getPath();
-
         windowService.openModalWindow(
-                fxmlPath,
                 RefuseReasonController.class,
                 controller -> {
 

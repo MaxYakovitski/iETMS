@@ -7,6 +7,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import lombok.RequiredArgsConstructor;
+import net.rgielen.fxweaver.core.FxWeaver;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,9 +19,11 @@ import org.springframework.stereotype.Service;
 public class ConnectionOverlayService {
 
     private final WindowService windowService;
+    private final FxWeaver fxWeaver;
     private Parent connectionOverlay;
     private ConnectionOverlayController connectionOverlayController;
 
+    /** Displays the loading spinner overlay over the primary stage. */
     public void showLoading() {
         Platform.runLater(() -> {
             initOverlay();
@@ -29,10 +32,12 @@ public class ConnectionOverlayService {
         });
     }
 
+    /** Closes all detached windows, brings the primary stage to front, then shows the disconnected state. */
     public void showServerUnavailable() {
         Platform.runLater(() -> {
             windowService.closeAllDetachedWindows();
             windowService.bringPrimaryStageToFront();
+            // nested runLater ensures overlay init runs after closeAllDetachedWindows completes
             Platform.runLater(() -> {
                 initOverlay();
                 connectionOverlayController.showDisconnected();
@@ -41,6 +46,7 @@ public class ConnectionOverlayService {
         });
     }
 
+    /** Hides the overlay. Has no effect if the overlay has not been initialised yet. */
     public void hide() {
         Platform.runLater(() -> {
             if (connectionOverlay != null) {
@@ -52,11 +58,9 @@ public class ConnectionOverlayService {
     private void initOverlay() {
         if (connectionOverlay != null) return;
 
-        WindowService.Loaded<ConnectionOverlayController> loaded =
-                windowService.loadControllerWithNode("/fxml/connection_overlay.fxml");
-
-        connectionOverlay = loaded.node();
-        connectionOverlayController = loaded.controller();
+        var loaded = fxWeaver.load(ConnectionOverlayController.class);
+        connectionOverlay = (Parent) loaded.getView().orElseThrow();
+        connectionOverlayController = loaded.getController();
 
         Scene scene = windowService.getPrimaryStage().getScene();
         Parent root = scene.getRoot();
