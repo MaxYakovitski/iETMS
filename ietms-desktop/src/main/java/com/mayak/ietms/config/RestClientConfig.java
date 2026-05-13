@@ -20,7 +20,7 @@ public class RestClientConfig {
     @Bean
     @Primary
     public RestTemplate restTemplate(AuthState authState, BackendProperties backendProperties) {
-        return buildRestTemplate(authState, backendProperties, 2, 2);
+        return buildRestTemplate(authState, backendProperties, 5, 2);
     }
 
     @Bean("reportRestTemplate")
