@@ -1,3 +1,8 @@
 spring:
   application:
     name: ietms-backend
+
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
