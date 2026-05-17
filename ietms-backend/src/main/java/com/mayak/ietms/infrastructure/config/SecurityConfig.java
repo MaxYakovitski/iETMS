@@ -3,8 +3,10 @@ package com.mayak.ietms.infrastructure.config;
 import com.mayak.ietms.infrastructure.security.LoginRateLimitFilter;
 import com.mayak.ietms.infrastructure.security.jwt.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -23,6 +25,16 @@ public class SecurityConfig {
     private final LoginRateLimitFilter loginRateLimitFilter;
 
     @Bean
+    @Order(1)
+    public SecurityFilterChain managementSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(EndpointRequest.toAnyEndpoint())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
