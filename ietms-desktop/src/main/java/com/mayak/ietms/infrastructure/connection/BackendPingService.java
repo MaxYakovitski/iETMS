@@ -18,7 +18,7 @@ public class BackendPingService {
     @Scheduled(fixedRate = 2_000)
     public void ping() {
         try {
-            restTemplate.getForEntity("/actuator/health", String.class);
+            restTemplate.getForEntity("/api/ping", String.class);
             monitor.markConnected();
         } catch (HttpStatusCodeException e) {
             if (e.getStatusCode().value() == 401) {
