@@ -1,5 +1,7 @@
 package com.mayak.ietms.features.user.application;
 
+import com.mayak.ietms.common.validation.ValidationResult;
+import com.mayak.ietms.common.validation.ValidationUtils;
 import com.mayak.ietms.features.license.application.LicenseQueryService;
 import com.mayak.ietms.features.user.domain.model.Profile;
 import com.mayak.ietms.features.user.domain.model.User;
@@ -133,11 +135,17 @@ public class UserCommandService {
      * Does nothing if {@code newPassword} is blank or null.
      *
      * @throws UserNotFoundException if no user with the given id exists
+     * @throws ValidationException if the password does not meet the requirements
      */
     @Transactional
     public void changePassword(Long userId, String newPassword) {
         if (newPassword == null || newPassword.isBlank()) {
             return;
+        }
+        if (!ValidationUtils.isValidPassword(newPassword)) {
+            var result = new ValidationResult();
+            result.add("password", "Password must be at least 8 characters and contain letters and numbers!");
+            throw new ValidationException(result);
         }
 
         User user = getOrThrow(userId);

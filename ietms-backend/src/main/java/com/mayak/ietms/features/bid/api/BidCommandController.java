@@ -16,7 +16,7 @@ public class BidCommandController {
 
     @PostMapping
     public BidViewDto create(@RequestBody BidCreateDto dto, @CurrentUserId Long userId) {
-        return bidCommandService.create(dto.requestId(), userId, dto.amount(), dto.comment());
+        return bidCommandService.create(dto, userId);
     }
 
     @DeleteMapping("/{bidId}")

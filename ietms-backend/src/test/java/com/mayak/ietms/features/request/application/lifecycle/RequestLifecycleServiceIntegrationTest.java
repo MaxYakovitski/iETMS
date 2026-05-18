@@ -13,6 +13,7 @@ import com.mayak.ietms.features.user.domain.enums.UserType;
 import com.mayak.ietms.features.user.domain.model.Profile;
 import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.features.user.infra.persistence.UserRepository;
+import com.mayak.ietms.request.dto.bid.BidCreateDto;
 import com.mayak.ietms.shared.exception.business.RequestDeletionNotAllowedException;
 import com.mayak.ietms.shared.exception.business.RequestStateException;
 import com.mayak.ietms.shared.exception.business.UnauthorizedException;
@@ -99,7 +100,7 @@ class RequestLifecycleServiceIntegrationTest {
         void acceptWithBidSetsAccepted() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
             lifecycleService.join(request.getId(), transportUser.getId());
-            bidCommandService.create(request.getId(), transportUser.getId(), new BigDecimal("800.00"), null);
+            bidCommandService.create(new BidCreateDto(request.getId(),  new BigDecimal("800.00"), null),transportUser.getId());
             lifecycleService.offer(request.getId(), authorUser.getId());
             lifecycleService.accept(request.getId(), new BigDecimal("1000.00"), authorUser.getId());
 
@@ -112,7 +113,7 @@ class RequestLifecycleServiceIntegrationTest {
         void acceptCreatesShipment() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
             lifecycleService.join(request.getId(), transportUser.getId());
-            bidCommandService.create(request.getId(), transportUser.getId(), new BigDecimal("500.00"), null);
+            bidCommandService.create(new BidCreateDto(request.getId(), new BigDecimal("500.00"), null),transportUser.getId());
             lifecycleService.offer(request.getId(), authorUser.getId());
             lifecycleService.accept(request.getId(), new BigDecimal("700.00"), authorUser.getId());
 
@@ -127,8 +128,8 @@ class RequestLifecycleServiceIntegrationTest {
             lifecycleService.join(request.getId(), transportUser.getId());
             lifecycleService.join(request.getId(), secondTransportUser.getId());
 
-            bidCommandService.create(request.getId(), transportUser.getId(), new BigDecimal("900.00"), null);
-            bidCommandService.create(request.getId(), secondTransportUser.getId(), new BigDecimal("600.00"), null);
+            bidCommandService.create(new BidCreateDto(request.getId(), new BigDecimal("900.00"), null),transportUser.getId());
+            bidCommandService.create(new BidCreateDto(request.getId(), new BigDecimal("600.00"), null), secondTransportUser.getId());
             lifecycleService.offer(request.getId(), authorUser.getId());
             lifecycleService.accept(request.getId(), new BigDecimal("1000.00"), authorUser.getId());
 
@@ -153,7 +154,7 @@ class RequestLifecycleServiceIntegrationTest {
         void cannotDeleteRequestWithShipment() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
             lifecycleService.join(request.getId(), transportUser.getId());
-            bidCommandService.create(request.getId(), transportUser.getId(), new BigDecimal("500.00"), null);
+            bidCommandService.create(new BidCreateDto(request.getId(), new BigDecimal("500.00"), null), transportUser.getId());
             lifecycleService.offer(request.getId(), authorUser.getId());
             lifecycleService.accept(request.getId(), new BigDecimal("700.00"), authorUser.getId());
 
@@ -296,7 +297,7 @@ class RequestLifecycleServiceIntegrationTest {
             Request request = savedRequest(RequestStatus.IN_PROGRESS, authorUser);
             lifecycleService.join(request.getId(), transportUser.getId());
 
-            bidCommandService.create(request.getId(), transportUser.getId(), new BigDecimal("500.00"), "тэст");
+            bidCommandService.create(new BidCreateDto(request.getId(), new BigDecimal("500.00"), "тэст"), transportUser.getId());
 
             Request updated = requestRepository.findById(request.getId()).orElseThrow();
             assertThat(updated.getStatus()).isEqualTo(RequestStatus.BIDDING);
@@ -308,7 +309,7 @@ class RequestLifecycleServiceIntegrationTest {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
             lifecycleService.join(request.getId(), transportUser.getId());
             var bid = bidCommandService.create(
-                    request.getId(), transportUser.getId(), new BigDecimal("500.00"), null);
+                    new BidCreateDto(request.getId(), new BigDecimal("500.00"), null), transportUser.getId());
 
             bidCommandService.delete(bid.id(), transportUser.getId());
 
@@ -322,7 +323,7 @@ class RequestLifecycleServiceIntegrationTest {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
             lifecycleService.join(request.getId(), transportUser.getId());
             var bid = bidCommandService.create(
-                    request.getId(), transportUser.getId(), new BigDecimal("500.00"), null);
+                    new BidCreateDto(request.getId(), new BigDecimal("500.00"), null), transportUser.getId());
 
             assertThatThrownBy(() ->
                     bidCommandService.delete(bid.id(), secondTransportUser.getId())

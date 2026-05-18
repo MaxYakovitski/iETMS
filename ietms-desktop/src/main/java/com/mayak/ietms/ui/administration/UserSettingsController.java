@@ -252,9 +252,7 @@ public class UserSettingsController extends AbstractSettingsController<UserRespo
     @Override
     protected void update(UserUpdateDto dto) {
         hideAllComboBoxPopups();
-
         userClient.update(dto.getId(), dto);
-
         String newPassword = userPasswordField.getText();
         if (newPassword != null && !newPassword.isBlank()) {
             userClient.changePassword(dto.getId(), newPassword);
@@ -266,9 +264,7 @@ public class UserSettingsController extends AbstractSettingsController<UserRespo
         boolean ok =
                 AlertUtils.showConfirmation(null, "Are you sure that you want to delete this user? " +
                         "This action cannot be undone.");
-
         if (!ok) return;
-
         try {
             userClient.delete(user.id());
         } catch (ApiException ex) {

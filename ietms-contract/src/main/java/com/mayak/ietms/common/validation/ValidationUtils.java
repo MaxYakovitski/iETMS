@@ -9,6 +9,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public final class ValidationUtils {
 
+    public static boolean isValidEmail(String email) {
+        if (email == null || email.isBlank()) return false;
+        return email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+    }
+
+    public static boolean isValidPassword(String password) {
+        if (password == null || password.isBlank()) return false;
+        return password.matches("^(?=.*[a-zA-Z])(?=.*\\d).{8,}$");
+    }
+
     public static boolean isValidLocation(String raw) {
         if (raw == null || raw.isBlank()) return false;
         return LocationParser.validateLine(raw).isValid();

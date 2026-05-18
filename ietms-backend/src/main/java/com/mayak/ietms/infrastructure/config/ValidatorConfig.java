@@ -7,6 +7,7 @@ import com.mayak.ietms.department.validator.DepartmentUpdateContractValidator;
 import com.mayak.ietms.lane.validator.LaneContractValidator;
 import com.mayak.ietms.common.validation.DateRangeContractValidator;
 import com.mayak.ietms.location.validator.LocationContractValidator;
+import com.mayak.ietms.request.validator.BidContractValidator;
 import com.mayak.ietms.request.validator.RequestContractValidator;
 import com.mayak.ietms.user.validator.UserCreateContractValidator;
 import com.mayak.ietms.user.validator.UserUpdateContractValidator;
@@ -50,6 +51,11 @@ public class ValidatorConfig {
     @Bean
     public RequestContractValidator requestContractValidator() {
         return new RequestContractValidator();
+    }
+
+    @Bean
+    public BidContractValidator bidContractValidator() {
+        return new BidContractValidator();
     }
 
     @Bean

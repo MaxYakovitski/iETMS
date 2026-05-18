@@ -70,6 +70,7 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
         return exchangeList(API + "/colleagues/by-department/{id}", depId);
     }
 
+    @Override
     public void create(UserCreateDto dto) {
         exchangeSafely(() -> {
             RequestEntity<UserCreateDto> request = RequestEntity
@@ -111,7 +112,7 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
     public void changePassword(Long userId, String newPassword) {
         exchangeSafely(() -> {
             RequestEntity<ChangePasswordDto> request =
-                    RequestEntity.put(API + "/{id}/password", userId)
+                    RequestEntity.patch(API + "/{id}/password", userId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .body(new ChangePasswordDto(newPassword));
 
