@@ -40,17 +40,21 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class RequestQueryService {
 
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final RequestRepository requestRepository;
     private final ShipmentRepository shipmentRepository;
     private final ProfileRepository profileRepository;
+
     private final RequestDetailsAssembler detailsAssembler;
     private final RequestListItemAssembler listItemAssembler;
+
     private final LocationResolver locationResolver;
     private final RequestVisibilityScopeResolver scopeResolver;
 
     public PageDto<RequestListItemDto> findPage(Long userId, int page, int size, RequestTypeDto type) {
         RequestVisibilityScope scope = scopeResolver.resolve(userId);
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = toPageable(page, size);
 
         Page<Request> entityPage;
         if (scope.isRestricted()) {
@@ -67,39 +71,35 @@ public class RequestQueryService {
                 entityPage.getContent().stream()
                         .map(listItemAssembler::toDto)
                         .toList();
-
         return toPageDto(entityPage, content);
     }
 
     public PageDto<RequestListItemDto> search(Long userId, String query, int page, int size,  RequestTypeDto type) {
         RequestVisibilityScope scope = scopeResolver.resolve(userId);
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Request> result = requestRepository.searchByQuery(query, type, scope.departmentId(), pageable);
+        Pageable pageable = toPageable(page, size);
 
+        Page<Request> result = requestRepository.searchByQuery(query, type, scope.departmentId(), pageable);
         List<RequestListItemDto> content =
                 result.getContent().stream()
                         .map(listItemAssembler::toDto)
                         .toList();
-
         return toPageDto(result, content);
     }
 
     public PageDto<RequestListItemDto> filter(Long userId, RequestFilterDto filter, int page, int size) {
         RequestVisibilityScope scope = scopeResolver.resolve(userId);
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Request> result = requestRepository.filterByQuery(filter, scope.departmentId(), pageable);
+        Pageable pageable = toPageable(page, size);
 
+        Page<Request> result = requestRepository.filterByQuery(filter, scope.departmentId(), pageable);
         List<RequestListItemDto> content =
                 result.getContent().stream()
                         .map(listItemAssembler::toDto)
                         .toList();
-
         return toPageDto(result, content);
     }
 
 
     public RequestDetailsDto getDetails(long id, User actor) {
-
         Request request = requestRepository.findFullContractById(id)
                         .map(r -> (Request) r)
                         .orElseGet(() ->
@@ -121,7 +121,6 @@ public class RequestQueryService {
 
         List<LocationDto> from = locationResolver.resolve(request.getFromLocationIds());
         List<LocationDto> to = locationResolver.resolve(request.getToLocationIds());
-
         return ExchangeFormatter.format(from, to, request);
     }
 
@@ -147,9 +146,7 @@ public class RequestQueryService {
         if (departmentId == null) {
             return requestRepository.findFullByIssueDateBetweenAndStatusIn(fromInstant, toInstant, statuses);
         }
-
         return requestRepository.findFullByDepartmentAndIssueDateBetweenAndStatusIn(departmentId, fromInstant, toInstant, statuses);
-
     }
 
     private Class<? extends Request> resolveType(RequestTypeDto dto) {
@@ -168,6 +165,10 @@ public class RequestQueryService {
         dto.setTotalPages(page.getTotalPages());
         dto.setLast(page.isLast());
         return dto;
+    }
+
+    private Pageable toPageable(int page, int size) {
+        return PageRequest.of(page, Math.min(size, MAX_PAGE_SIZE));
     }
 
     public boolean hasShipment(long requestId) {
