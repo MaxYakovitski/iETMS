@@ -6,6 +6,7 @@ import com.mayak.ietms.features.license.application.LicenseQueryService;
 import com.mayak.ietms.features.user.domain.model.Profile;
 import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.features.user.domain.model.UserStatus;
+import com.mayak.ietms.shared.exception.business.DepartmentNotFoundException;
 import com.mayak.ietms.shared.exception.business.LicenseLimitExceededException;
 import com.mayak.ietms.user.dto.UserCreateDto;
 import com.mayak.ietms.user.dto.UserResponseDto;
@@ -228,7 +229,8 @@ public class UserCommandService {
         }
 
         if (departmentId != null) {
-            profile.setDepartment(departmentRepository.getReferenceById(departmentId));
+            profile.setDepartment(departmentRepository.findById(departmentId)
+                    .orElseThrow(() -> new DepartmentNotFoundException(departmentId)));
         }
 
         switch (userType) {

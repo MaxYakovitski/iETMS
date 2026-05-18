@@ -1,5 +1,6 @@
 package com.mayak.ietms.features.request.api;
 
+import com.mayak.ietms.features.user.application.UserQueryService;
 import com.mayak.ietms.request.dto.command.AcceptRequest;
 import com.mayak.ietms.request.dto.command.RefuseRequest;
 import com.mayak.ietms.request.dto.command.UpdateTidRequest;
@@ -9,7 +10,6 @@ import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.features.request.application.assembly.RequestDetailsAssembler;
 import com.mayak.ietms.infrastructure.security.current.CurrentUserId;
 import com.mayak.ietms.features.request.application.RequestCommandService;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,13 +25,13 @@ import java.util.Set;
 public class RequestCommandController {
 
     private final RequestCommandService requestCommandService;
+    private final UserQueryService userQueryService;
     private final RequestDetailsAssembler requestDetailsAssembler;
-    private final EntityManager entityManager;
 
     @PostMapping
     public RequestDetailsDto create(@RequestBody BaseRequestDto dto, @CurrentUserId Long userId) {
         var request = requestCommandService.create(dto, userId);
-        User actor = entityManager.getReference(User.class, userId);
+        User actor = userQueryService.getEntityById(userId);
         return requestDetailsAssembler.toDto(request, actor, Set.of());
     }
 
