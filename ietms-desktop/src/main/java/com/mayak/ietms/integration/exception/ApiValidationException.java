@@ -22,7 +22,6 @@ public class ApiValidationException extends RuntimeException {
             ObjectMapper mapper = new ObjectMapper();
             ErrorResponseDto response = mapper.readValue(ex.getResponseBodyAsString(), ErrorResponseDto.class);
             return new ApiValidationException(response.message(), response.errors());
-
         } catch (Exception e) {
             return new ApiValidationException(
                     "Validation failed",

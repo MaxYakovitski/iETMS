@@ -22,17 +22,19 @@
         <java.version>21</java.version>
         <javafx.version>21.0.7</javafx.version>
         <app.version>0.1.0</app.version>
+        <spring-boot.version>3.5.8</spring-boot.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <lombok.version>1.18.42</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>3.5.8</version>
+                <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -40,13 +42,11 @@
             <!--SECURITY NOTE:
             logback CVEs are configuration-based. Backend runs with immutable JAR and no external logback.xml.
             Risk accepted for release 0.1.0. -->
-
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
                 <version>1.5.13</version>
             </dependency>
-
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
@@ -54,7 +54,6 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-base</artifactId>
@@ -90,25 +89,21 @@
                 <artifactId>javafx-swing</artifactId>
                 <version>${javafx.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
-                <version>1.6.3</version>
+                <version>${mapstruct.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.42</version>
+                <version>${lombok.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>com.mayak.ietms</groupId>
                 <artifactId>ietms-contract</artifactId>
                 <version>0.1.0</version>
             </dependency>
-
             <dependency>
                 <groupId>net.javacrumbs.shedlock</groupId>
                 <artifactId>shedlock-bom</artifactId>
@@ -116,53 +111,45 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 
     <build>
         <pluginManagement>
             <plugins>
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.13.0</version>
                     <configuration>
                         <release>${java.version}</release>
-
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
-                                <version>1.18.42</version>
+                                <version>${lombok.version}</version>
                             </path>
                             <path>
                                 <groupId>org.mapstruct</groupId>
                                 <artifactId>mapstruct-processor</artifactId>
-                                <version>1.6.3</version>
+                                <version>${mapstruct.version}</version>
                             </path>
                         </annotationProcessorPaths>
-
                     </configuration>
                 </plugin>
-
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>3.5.8</version>
+                    <version>${spring-boot.version}</version>
                 </plugin>
-
             </plugins>
         </pluginManagement>
 
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
-
         </plugins>
     </build>
 

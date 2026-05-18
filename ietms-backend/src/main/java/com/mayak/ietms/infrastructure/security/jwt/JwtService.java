@@ -18,12 +18,13 @@ import java.util.List;
 public class JwtService {
 
     private final SecretKey key;
+    private final long expirationMs;
 
-    public JwtService(@Value("${app.jwt.secret}") String secret) {
+    public JwtService(@Value("${app.jwt.secret}") String secret,
+                      @Value("${app.jwt.expiration-ms}") long expirationMs) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.expirationMs = expirationMs;
     }
-
-    private static final long EXPIRATION_MS = 1000 * 60 * 60 * 10;
 
     public String generateToken(Long userId, String email,  Collection<Permission> permissions, Integer tokenVersion) {
         return Jwts.builder()
@@ -32,7 +33,7 @@ public class JwtService {
                 .claim("authorities", permissions.stream().map(Permission::name).toList())
                 .claim("tv", tokenVersion)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
                 .compact();
     }

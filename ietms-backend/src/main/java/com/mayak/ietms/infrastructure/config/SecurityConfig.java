@@ -2,6 +2,7 @@ package com.mayak.ietms.infrastructure.config;
 
 import com.mayak.ietms.infrastructure.security.LoginRateLimitFilter;
 import com.mayak.ietms.infrastructure.security.jwt.JwtAuthFilter;
+import com.mayak.ietms.infrastructure.web.filter.MdcLoggingFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +24,7 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final LoginRateLimitFilter loginRateLimitFilter;
+    private final MdcLoggingFilter mdcLoggingFilter;
 
     @Bean
     @Order(1)
@@ -50,15 +52,13 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(mdcLoggingFilter, JwtAuthFilter.class);
         return http.build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config
-    ) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 }

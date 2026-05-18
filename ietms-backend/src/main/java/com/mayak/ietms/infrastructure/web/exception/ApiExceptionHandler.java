@@ -39,8 +39,8 @@ public class ApiExceptionHandler {
             BidNotFoundException.class
     })
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ApiError handleNotFound(RuntimeException ex) {
-        return new ApiError("not_found", ex.getMessage());
+    public ErrorResponseDto handleNotFound(RuntimeException ex) {
+        return new ErrorResponseDto("not_found", ex.getMessage());
     }
 
     @ExceptionHandler({
@@ -62,32 +62,32 @@ public class ApiExceptionHandler {
             CompanyInUseException.class,
     })
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleConflict(RuntimeException ex) {
-        return new ApiError("conflict", ex.getMessage());
+    public ErrorResponseDto handleConflict(RuntimeException ex) {
+        return new ErrorResponseDto("conflict", ex.getMessage());
     }
 
     @ExceptionHandler(UnauthorizedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ApiError handleForbidden(UnauthorizedException ex) {
-        return new ApiError("forbidden", ex.getMessage());
+    public ErrorResponseDto handleForbidden(UnauthorizedException ex) {
+        return new ErrorResponseDto("forbidden", ex.getMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ApiError handleUnauthorized(AuthenticationException ex) {
-        return new ApiError("unauthorized", ex.getMessage());
+    public ErrorResponseDto handleUnauthorized(AuthenticationException ex) {
+        return new ErrorResponseDto("unauthorized", ex.getMessage());
     }
 
     @ExceptionHandler(LicenseException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ApiError handleLicense(LicenseException ex) {
-        return new ApiError("license_not_found", ex.getMessage());
+    public ErrorResponseDto handleLicense(LicenseException ex) {
+        return new ErrorResponseDto("license_not_found", ex.getMessage());
     }
 
     @ExceptionHandler(LicenseLimitExceededException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleLicenseLimitExceeded(LicenseLimitExceededException ex) {
-        return new ApiError("license_limit_exceeded", ex.getMessage());
+    public ErrorResponseDto handleLicenseLimitExceeded(LicenseLimitExceededException ex) {
+        return new ErrorResponseDto("license_limit_exceeded", ex.getMessage());
     }
 
     @ExceptionHandler(ValidationException.class)
@@ -98,8 +98,7 @@ public class ApiExceptionHandler {
                         ValidationError::code,
                         ValidationError::message,
                         (a, b) -> a));
-
-        return new ErrorResponseDto("Validation failed", errors);
+        return new ErrorResponseDto("validation_error","Validation failed", errors);
     }
 
     @ExceptionHandler(AsyncRequestNotUsableException.class)
@@ -109,10 +108,9 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleUnexpected(Exception ex, HttpServletRequest request) {
-
+    public ErrorResponseDto handleUnexpected(Exception ex, HttpServletRequest request) {
         log.error("Unexpected error", ex);
         slackAlertService.sendHttpError(ex, request);
-        return new ApiError("internal_error", "Internal server error");
+        return new ErrorResponseDto("internal_error", "Internal server error");
     }
 }
