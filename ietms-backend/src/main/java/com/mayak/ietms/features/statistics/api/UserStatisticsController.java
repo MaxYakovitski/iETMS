@@ -2,6 +2,7 @@ package com.mayak.ietms.features.statistics.api;
 
 import com.mayak.ietms.statistics.UserPersonalStats;
 import com.mayak.ietms.features.statistics.application.UserPersonalStatisticsService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/statistics/users")
+@Tag(name = "Statistics", description = "User performance statistics")
 @RequiredArgsConstructor
 public class UserStatisticsController {
 

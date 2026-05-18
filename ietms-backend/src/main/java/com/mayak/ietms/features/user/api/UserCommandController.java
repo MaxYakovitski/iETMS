@@ -2,12 +2,15 @@ package com.mayak.ietms.features.user.api;
 
 import com.mayak.ietms.user.dto.*;
 import com.mayak.ietms.features.user.application.UserCommandService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
+@Tag(name = "Users", description = "User management and profile queries")
 @RequiredArgsConstructor
 public class UserCommandController {
 
@@ -15,6 +18,9 @@ public class UserCommandController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    @Operation(summary = "Create user",
+               description = "Password must be at least 8 characters with letters and numbers. " +
+                       "Role and priority are required only for EMPLOYEE type.")
     public UserResponseDto create(@RequestBody UserCreateDto dto) {
         return userService.create(dto);
     }
@@ -33,6 +39,8 @@ public class UserCommandController {
 
     @PatchMapping("/{id}/password")
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    @Operation(summary = "Change user password",
+               description = "Password must be at least 8 characters with letters and numbers.")
     public void changePassword(@PathVariable("id") Long id, @RequestBody ChangePasswordDto dto) {
         userService.changePassword(id, dto.newPassword());
     }

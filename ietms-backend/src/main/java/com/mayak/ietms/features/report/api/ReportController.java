@@ -5,6 +5,8 @@ import com.mayak.ietms.features.request.application.RequestQueryService;
 import com.mayak.ietms.features.statistics.application.UserStatisticsService;
 import com.mayak.ietms.infrastructure.security.current.CurrentUserId;
 import com.mayak.ietms.statistics.ReportType;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +22,7 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/reports")
 @PreAuthorize("hasAuthority('VIEW_ANALYTICS')")
+@Tag(name = "Reports", description = "Excel report export")
 @RequiredArgsConstructor
 public class ReportController {
 
@@ -28,6 +31,9 @@ public class ReportController {
     private final ReportExportService reportExportService;
 
     @GetMapping(value = "/requests.xlsx", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    @Operation(summary = "Export requests report",
+               description = "Returns an Excel (.xlsx) file. Report type: BY_DEPARTMENT — requests grouped by department, " +
+                       "BY_EMPLOYEES — statistics per employee. Date params must be in ISO format (yyyy-MM-dd).")
     public void exportRequests(
             @RequestParam("type") ReportType type,
             @RequestParam("from") String from,

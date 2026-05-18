@@ -3,6 +3,7 @@ package com.mayak.ietms.features.department.api;
 import com.mayak.ietms.department.dto.DepartmentCreateDto;
 import com.mayak.ietms.department.dto.DepartmentDto;
 import com.mayak.ietms.features.department.application.DepartmentService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/departments")
+@Tag(name = "Departments", description = "Department management")
 @RequiredArgsConstructor
 public class DepartmentController {
 
@@ -25,7 +27,6 @@ public class DepartmentController {
     }
 
     // -------- CREATE --------
-
     @PostMapping
     @PreAuthorize("hasAuthority('MANAGE_DEPARTMENTS')")
     public void create(@RequestBody DepartmentCreateDto dto) {
@@ -33,7 +34,6 @@ public class DepartmentController {
     }
 
     // -------- UPDATE --------
-
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('MANAGE_DEPARTMENTS')")
     public void update(@PathVariable("id") Long id, @RequestBody DepartmentDto dto) {
@@ -41,7 +41,6 @@ public class DepartmentController {
     }
 
     // -------- DELETE --------
-
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('MANAGE_DEPARTMENTS')")
     public void delete(@PathVariable("id") Long id) {

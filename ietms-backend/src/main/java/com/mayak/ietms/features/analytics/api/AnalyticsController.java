@@ -4,6 +4,8 @@ import com.mayak.ietms.analytics.AnalyticsFilterDto;
 import com.mayak.ietms.analytics.AnalyticsReportDto;
 import com.mayak.ietms.company.dto.CompanyDto;
 import com.mayak.ietms.features.analytics.application.AnalyticsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +16,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/analytics")
 @PreAuthorize("hasAuthority('VIEW_ANALYTICS')")
+@Tag(name = "Analytics", description = "Analytics reports and department, user, company statistics")
 @RequiredArgsConstructor
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
 
+    @Operation(summary = "Build analytics report", description = "Accepts a filter with date range, department, " +
+            "and company criteria. Uses POST because the filter body is too complex for query params.")
     @PostMapping("/report")
     public AnalyticsReportDto getAnalytics(@RequestBody AnalyticsFilterDto filter) {
         return analyticsService.buildAnalyticsReport(filter);

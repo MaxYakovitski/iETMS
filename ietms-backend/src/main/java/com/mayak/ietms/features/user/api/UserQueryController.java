@@ -6,6 +6,8 @@ import com.mayak.ietms.features.user.domain.enums.Role;
 import com.mayak.ietms.infrastructure.security.current.CurrentUserId;
 import com.mayak.ietms.features.user.application.UserProfileQueryService;
 import com.mayak.ietms.features.user.application.UserQueryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,12 +18,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@Tag(name = "Users", description = "User management and profile queries")
 @RequiredArgsConstructor
 public class UserQueryController {
 
     private final UserQueryService queryService;
     private final UserProfileQueryService profileQueryService;
-
 
     @GetMapping("/me")
     public UserResponseDto getMe(@CurrentUserId Long userId) {
@@ -39,6 +41,8 @@ public class UserQueryController {
     }
 
     @GetMapping("/client-specialists")
+    @Operation(summary = "Find client specialists",
+               description = "Returns users with CLIENT_SPECIALIST role and manager.")
     public List<UserResponseDto> findClientSpecialists() {
         return profileQueryService.findAllByRoleWithManager(Role.CLIENT_SPECIALIST);
     }
@@ -54,6 +58,8 @@ public class UserQueryController {
     }
 
     @GetMapping("/colleagues")
+    @Operation(summary = "Find colleagues",
+               description = "Returns users from the same department as the current user.")
     public List<UserResponseDto> findColleagues(@CurrentUserId Long userId) {
         return profileQueryService.findColleagues(userId);
     }

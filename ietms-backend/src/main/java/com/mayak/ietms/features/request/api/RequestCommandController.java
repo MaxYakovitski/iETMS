@@ -10,6 +10,8 @@ import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.features.request.application.assembly.RequestDetailsAssembler;
 import com.mayak.ietms.infrastructure.security.current.CurrentUserId;
 import com.mayak.ietms.features.request.application.RequestCommandService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/requests")
+@Tag(name = "Requests", description = "Freight request lifecycle management")
 @RequiredArgsConstructor
 @Slf4j
 public class RequestCommandController {
@@ -61,9 +64,10 @@ public class RequestCommandController {
 
     @PostMapping("/{id}/accept")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Accept request", description = "For spot requests, clientPrice in the body is optional.")
     public void acceptSpot(@PathVariable("id") long id,
-            @RequestBody(required = false) AcceptRequest request,
-            @CurrentUserId Long userId) {
+                           @RequestBody(required = false) AcceptRequest request,
+                           @CurrentUserId Long userId) {
         BigDecimal price = request != null ? request.clientPrice() : null;
         requestCommandService.accept(id, price, userId);
     }
@@ -76,19 +80,14 @@ public class RequestCommandController {
 
     @PatchMapping("/{id}/tid")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateTid(
-            @PathVariable("id") long id,
-            @RequestBody UpdateTidRequest request,
-            @CurrentUserId Long userId) {
+    public void updateTid(@PathVariable("id") long id, @RequestBody UpdateTidRequest request, @CurrentUserId Long userId) {
         requestCommandService.updateTid(id, request.tid(), userId);
     }
 
-    /**
-     * Manually expires the request by refusing it with reason {@code BID_NOT_PROVIDED},
-     * replicating the behaviour of the scheduled daily expiry job.
-     * Only the request author or an admin may call this endpoint.
-     */
     @PostMapping("/{id}/expire")
+    @Operation(summary = "Manually expire request",
+               description = "Replicates the scheduled daily expiry job. Refuses the request with reason BID_NOT_PROVIDED. " +
+                       "Only the request author or an admin may call this.")
     public void expire(@PathVariable("id") long id, @CurrentUserId Long userId) {
         requestCommandService.expire(id, userId);
     }
