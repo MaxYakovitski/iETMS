@@ -15,6 +15,7 @@ import com.mayak.ietms.shipment.event.ShipmentEvent;
 import com.mayak.ietms.features.shipment.infra.persistence.ShipmentRepository;
 import com.mayak.ietms.features.company.application.CompanyService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ShipmentService {
 
     private final ShipmentRepository shipmentRepository;
@@ -87,14 +89,11 @@ public class ShipmentService {
     @Transactional(readOnly = true)
     public ShipmentListItemDto getDetails(Long shipmentId, Long userId) {
         if (userId == null) throw new UnauthorizedException("Not authenticated!");
-
         Shipment shipment = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new ShipmentNotFoundException(shipmentId));
-
         if (!shipment.isOwnedBy(userId) && !shipment.isDispatchedBy(userId)) {
             throw new UnauthorizedException("No access!");
         }
-
         return assembler.assembleCurrent(shipment);
     }
 
@@ -114,7 +113,6 @@ public class ShipmentService {
         Instant startOfDay = LocalDate.now()
                 .atStartOfDay(ZoneId.systemDefault())
                 .toInstant();
-
         return shipmentRepository
                 .findMyActiveTransports(userId, List.of(ShipmentStatus.DROPPED, ShipmentStatus.CANCELED), startOfDay)
                 .stream()
@@ -149,11 +147,9 @@ public class ShipmentService {
     public ShipmentListItemDto update(Long shipmentId, ShipmentUpdateDto dto, Long userId) {
         Shipment shipment = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new ShipmentNotFoundException(shipmentId));
-
         if (!shipment.isDispatchedBy(userId)) {
             throw new UnauthorizedException("Only dispatcher can update shipment");
         }
-
         LocalDate today = LocalDate.now();
         boolean statusChanged = applyStatusTransition(dto, shipment);
         promoteToDropIfNeeded(shipment, today);
@@ -162,13 +158,12 @@ public class ShipmentService {
         applyLicense(dto, shipment);
         applyComments(dto, shipment);
         validateTransportOrderConsistency(shipment);
-
         if (statusChanged || transportOrderChanged) {
             shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
         } else if (carrierChanged) {
             shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.UPDATED, shipment);
         }
-
+        log.info("Shipment updated: shipmentId={}, userId={}", shipmentId, userId);
         return assembler.assembleCurrent(shipment);
     }
 
@@ -189,17 +184,14 @@ public class ShipmentService {
     private boolean applyStatusTransition(ShipmentUpdateDto dto, Shipment shipment) {
         if (dto.status() == null) return false;
         ShipmentStatus target = ShipmentStatus.valueOf(dto.status().name());
-
         if (dto.statusAt() == null) {
             throw new DeliveryTimeLineException("Status time must be provided when changing shipment status");
         }
-
         switch (target) {
             case LOADED -> shipment.markLoaded(dto.statusAt());
             case DROPPED -> shipment.markDropped(dto.statusAt());
             default -> throw new InvalidShipmentStatusTransitionException (shipment.getStatus(), target);
         }
-
         return true;
     }
 
@@ -215,12 +207,10 @@ public class ShipmentService {
 
     private boolean applyTransportOrder(ShipmentUpdateDto dto, Shipment shipment, LocalDate today) {
         if (dto.transportOrder() == null) return false;
-
         if (dto.transportOrder().isBlank()) {
             shipment.setTransportOrder(null);
             shipment.setLicensePlate(null);
             if (shipment.getCarrier() != null) shipment.unassignCarrier();
-
             ShipmentStatus current = shipment.getStatus();
             if (current == ShipmentStatus.PLANNED || current == ShipmentStatus.TO_LOAD) {
                 shipment.revertToNew();
@@ -228,13 +218,11 @@ public class ShipmentService {
             }
             return false;
         }
-
         shipment.setTransportOrder(dto.transportOrder().trim());
         if (shipment.getStatus() == ShipmentStatus.NEW) {
             promoteToLoadIfNeeded(shipment, today);
             return true;
         }
-
         return false;
     }
 
@@ -250,20 +238,16 @@ public class ShipmentService {
 
     private boolean applyCarrier(ShipmentUpdateDto dto, Shipment shipment) {
         if (dto.carrierName() == null) return false;
-
         Company currentCarrier = shipment.getCarrier();
-
         if (dto.carrierName().isBlank()) {
             if (currentCarrier == null) return false;
             shipment.unassignCarrier();
             return true;
         }
-
         Company newCarrier = companyService.resolveCompany(dto.carrierName());
         if (currentCarrier != null && currentCarrier.getId().equals(newCarrier.getId())) {
             return false;
         }
-
         shipment.assignCarrier(newCarrier);
         return true;
     }
@@ -285,16 +269,13 @@ public class ShipmentService {
 
     private void validateTransportOrderConsistency(Shipment shipment) {
         if (shipment.getTransportOrder() == null) return;
-
         ValidationResult result = new ValidationResult();
-
         if (shipment.getCarrier() == null) {
             result.add("carrier", "Carrier is required when transport order is set");
         }
         if (shipment.getLicensePlate() == null || shipment.getLicensePlate().isBlank()) {
             result.add("licensePlate", "License plate is required when transport order is set");
         }
-
         if (!result.isValid()) {
             throw new ValidationException(result);
         }
@@ -318,13 +299,11 @@ public class ShipmentService {
     public void cancel(Long shipmentId, ShipmentCancelReason reason, Long userId) {
         Shipment shipment = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new ShipmentNotFoundException(shipmentId));
-
         if (!shipment.isOwnedBy(userId)) {
             throw new ShipmentCancellationNotAllowedException(shipmentId);
         }
-
         shipment.cancel(reason);
+        log.info("Shipment cancelled: shipmentId={}, reason={}, userId={}", shipmentId, reason, userId);
         shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
     }
-
 }
