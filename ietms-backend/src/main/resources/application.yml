@@ -11,3 +11,9 @@ app:
   jwt:
     secret: ${JWT_SECRET}
     expiration-ms: 36000000
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
