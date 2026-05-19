@@ -66,16 +66,13 @@ public class UserCommandService {
     @Transactional
     public UserResponseDto create(UserCreateDto dto) {
         validateCreate(dto);
-
         int activeUsers = userRepository.countByStatusAndUserTypeNot(UserStatus.ACTIVE, UserType.ADMIN);
         int maxUsers = licenseQueryService.getMaxUsers();
         if (activeUsers >= maxUsers) {
             throw new LicenseLimitExceededException("User limit reached for current license: " + maxUsers);
         }
-
         User user = userCreateMapper.toEntity(dto);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-
         applyProfile(
                 user,
                 dto.getUserType(),
@@ -83,7 +80,6 @@ public class UserCommandService {
                 dto.getRole(),
                 dto.getPriority()
         );
-
         User saved = userRepository.save(user);
         log.info("User placed: id={}, email={}", saved.getId(), saved.getEmail());
         return userResponseMapper.toDto(saved);
@@ -101,7 +97,6 @@ public class UserCommandService {
         user.setEmail(email);
         user.setUserType(userType);
         user.setPassword(passwordEncoder.encode(rawPassword));
-
         return userRepository.save(user);
     }
 
@@ -114,10 +109,8 @@ public class UserCommandService {
     @Transactional
     public UserResponseDto update(Long id, UserUpdateDto dto) {
         validateUpdate(id, dto);
-
         User user = getOrThrow(id);
         userUpdateMapper.update(user, dto);
-
         applyProfile(
                 user,
                 dto.getUserType(),
@@ -125,7 +118,6 @@ public class UserCommandService {
                 dto.getRole(),
                 dto.getPriority()
         );
-
         User saved = userRepository.save(user);
         log.info("User updated: id={}", saved.getId());
         return userResponseMapper.toDto(saved);
@@ -148,9 +140,9 @@ public class UserCommandService {
             result.add("password", "Password must be at least 8 characters and contain letters and numbers!");
             throw new ValidationException(result);
         }
-
         User user = getOrThrow(userId);
         user.setPassword(passwordEncoder.encode(newPassword));
+        user.incrementTokenVersion();
         log.info("Password changed for user id={}", userId);
     }
 
@@ -163,7 +155,6 @@ public class UserCommandService {
     @Transactional
     public void changeStatus(Long id, UserStatusDto statusDto) {
         User user = getOrThrow(id);
-
         if (statusDto == UserStatusDto.ACTIVE) {
             int activeUsers = userRepository.countByStatusAndUserTypeNot(UserStatus.ACTIVE, UserType.ADMIN);
             int maxUsers = licenseQueryService.getMaxUsers();
@@ -171,7 +162,6 @@ public class UserCommandService {
                 throw new LicenseLimitExceededException("User limit reached for current license: " + maxUsers);
             }
         }
-
         user.setStatus(UserStatus.valueOf(statusDto.name()));
         user.incrementTokenVersion();
         log.info("User status changed: id={}, status={}", id, statusDto);
@@ -190,7 +180,6 @@ public class UserCommandService {
         boolean usedAsAuthor = requestRepository.existsByAuthorId(id);
         boolean usedAsAssigned = requestRepository.existsByDispatcherId(id);
         boolean usedAsCompetitor = requestRepository.existsByCompetitor(id);
-
         String fullName = user.getName() + " " + user.getSurname();
         if (usedAsAuthor) {
             throw new UserInUseException(
@@ -235,12 +224,10 @@ public class UserCommandService {
             profile.setUser(user);
             user.setProfile(profile);
         }
-
         if (departmentId != null) {
             profile.setDepartment(departmentRepository.findById(departmentId)
                     .orElseThrow(() -> new DepartmentNotFoundException(departmentId)));
         }
-
         switch (userType) {
             case MANAGER -> {
                 profile.setPriority(toPriority(priorityDto));
