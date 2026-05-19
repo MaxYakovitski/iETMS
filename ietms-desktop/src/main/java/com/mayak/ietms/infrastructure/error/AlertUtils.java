@@ -6,6 +6,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,8 @@ import java.util.Optional;
  * Utility class for displaying JavaFX alert dialogs.
  *
  * <p>Automatically binds the alert to the primary stage via {@link WindowService} when available.
- * Falls back to {@link Modality#APPLICATION_MODAL} with a custom icon if no stage is registered.
+ * Falls back to {@link Modality#APPLICATION_MODAL} when no stage is registered.
+ * In both cases a type-specific window icon is applied automatically.
  *
  * <p>Usage:
  * <pre>{@code
@@ -29,10 +31,11 @@ import java.util.Optional;
  */
 
 @Slf4j
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AlertUtils {
 
-    @Setter private static WindowService windowService;
+    @Setter
+    private static WindowService windowService;
 
     /**
      * Shows an informational alert with the given message.
@@ -41,6 +44,9 @@ public class AlertUtils {
         showAlert(Alert.AlertType.INFORMATION, "Information", message);
     }
 
+    /**
+     * @param owner the stage to attach this dialog to; if {@code null}, falls back to the primary stage
+     */
     public static void showInfo(String message, Stage owner) {
         showAlert(Alert.AlertType.INFORMATION, "Information", message, owner);
     }
@@ -52,6 +58,9 @@ public class AlertUtils {
         showAlert(Alert.AlertType.WARNING, "Warning", message);
     }
 
+    /**
+     * @param owner the stage to attach this dialog to; if {@code null}, falls back to the primary stage
+     */
     public static void showWarning(String message, Stage owner) {
         showAlert(Alert.AlertType.WARNING, "Warning", message, owner);
     }
@@ -63,6 +72,9 @@ public class AlertUtils {
         showAlert(Alert.AlertType.ERROR, "Error", message);
     }
 
+    /**
+     * @param owner the stage to attach this dialog to; if {@code null}, falls back to the primary stage
+     */
     public static void showError(String message,  Stage owner) {
         showAlert(Alert.AlertType.ERROR, "Error", message,  owner);
     }
@@ -77,34 +89,33 @@ public class AlertUtils {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-
         ButtonType yes = new ButtonType("yes");
         ButtonType no = new ButtonType("no");
         alert.getButtonTypes().setAll(yes, no);
-
+        applyIcon(alert, Alert.AlertType.CONFIRMATION);
         initOwner(alert);
-
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == yes;
     }
 
+    /**
+     * @param owner the stage to attach this dialog to; if {@code null}, falls back to the primary stage
+     */
     public static boolean showConfirmation(String title, String message, Stage owner) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-
         ButtonType yes = new ButtonType("yes");
         ButtonType no = new ButtonType("no");
         alert.getButtonTypes().setAll(yes, no);
-
+        applyIcon(alert, Alert.AlertType.CONFIRMATION);
         if (owner != null) {
             alert.initOwner(owner);
             alert.initModality(Modality.WINDOW_MODAL);
         } else {
             initOwner(alert);
         }
-
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == yes;
     }
@@ -115,7 +126,6 @@ public class AlertUtils {
      */
     public static void show(UiError error) {
         if (error == null) return;
-
         switch (error.severity()) {
             case INFO    -> showInfo(error.message());
             case WARNING -> showWarning(error.message());
@@ -137,9 +147,8 @@ public class AlertUtils {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-
+        applyIcon(alert, type);
         initOwner(alert);
-
         alert.getDialogPane().setStyle("-fx-background-color: #ffffff;");
         alert.showAndWait();
     }
@@ -149,6 +158,7 @@ public class AlertUtils {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        applyIcon(alert, type);
         if (owner != null) {
             alert.initOwner(owner);
             alert.initModality(Modality.WINDOW_MODAL);
@@ -165,13 +175,25 @@ public class AlertUtils {
             alert.initModality(Modality.WINDOW_MODAL);
             return;
         }
-
         alert.initModality(Modality.APPLICATION_MODAL);
+    }
+
+    private static String resolveIconPath(Alert.AlertType type) {
+        return switch (type) {
+            case ERROR       -> "/icons/icon-red.png";
+            case WARNING     -> "/icons/icon-yellow.png";
+            case INFORMATION -> "/icons/icon-green.png";
+            default          -> "/icons/icon.png";
+        };
+    }
+
+    private static void applyIcon(Alert alert, Alert.AlertType type) {
+        String iconPath = resolveIconPath(type);
         alert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
             if (isShowing) {
                 Stage alertStage = (Stage) alert.getDialogPane().getScene().getWindow();
                 try {
-                    Image icon = new Image(Objects.requireNonNull(AlertUtils.class.getResourceAsStream("/icons/icon-red.png")));
+                    Image icon = new Image(Objects.requireNonNull(AlertUtils.class.getResourceAsStream(iconPath)));
                     alertStage.getIcons().setAll(icon);
                 } catch (Exception ignored) {}
             }
