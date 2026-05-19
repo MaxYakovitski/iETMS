@@ -12,8 +12,7 @@ import java.util.stream.Stream;
 @Setter
 @NoArgsConstructor
 @Table(name = "location",
-        uniqueConstraints = @UniqueConstraint(name = "uq_country_zip_place",
-        columnNames = {"country_code", "zip_code", "place_name"}))
+       uniqueConstraints = @UniqueConstraint(name = "uq_country_zip_place", columnNames = {"country_code", "zip_code", "place_name"}))
 public class Location implements Serializable{
 
     @Id

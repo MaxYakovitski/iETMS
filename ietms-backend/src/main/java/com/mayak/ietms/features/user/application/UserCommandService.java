@@ -187,15 +187,23 @@ public class UserCommandService {
     @Transactional
     public void delete(Long id) {
         User user = getOrThrow(id);
-
         boolean usedAsAuthor = requestRepository.existsByAuthorId(id);
         boolean usedAsAssigned = requestRepository.existsByDispatcherId(id);
         boolean usedAsCompetitor = requestRepository.existsByCompetitor(id);
 
-        if (usedAsAuthor || usedAsAssigned || usedAsCompetitor) {
-            throw new UserInUseException(id);
+        String fullName = user.getName() + " " + user.getSurname();
+        if (usedAsAuthor) {
+            throw new UserInUseException(
+                    "User \"" + fullName + "\" cannot be deleted because they are an author of existing requests.");
         }
-
+        if (usedAsAssigned) {
+            throw new UserInUseException(
+                    "User \"" + fullName + "\" cannot be deleted because they are assigned as a dispatcher.");
+        }
+        if (usedAsCompetitor) {
+            throw new UserInUseException(
+                    "User \"" + fullName + "\" cannot be deleted because they are a competitor in existing requests.");
+        }
         userRepository.delete(user);
         log.info("User deleted: id={}", id);
     }

@@ -36,10 +36,8 @@ public class DepartmentService {
     @Transactional
     public Department create(DepartmentCreateDto dto) {
         validateCreate(dto);
-
         Department department = departmentMapper.toEntity(dto);
         Department saved = departmentRepository.save(department);
-
         log.info("Department placed with ID: {}", saved.getId());
         return saved;
     }
@@ -54,10 +52,8 @@ public class DepartmentService {
     @Transactional
     public void update(Long id,DepartmentDto dto) {
         validateUpdate(id, dto);
-
         Department department = getDepartmentOrThrow(id);
         departmentUpdateMapper.updateEntityFromDto(dto, department);
-
         departmentRepository.save(department);
         log.info("Department updated with ID: {}", department.getId());
     }
@@ -66,16 +62,14 @@ public class DepartmentService {
     @Transactional
     public void delete(Long id) {
         Department department = getDepartmentOrThrow(id);
-
         if (profileRepository.existsByDepartmentId(id)) {
-            throw new DepartmentInUseException(id);
+            throw new DepartmentInUseException("Department \"" + department.getName() + "\" cannot be deleted because it is assigned to users.");
         }
-
         try {
             departmentRepository.delete(department);
             departmentRepository.flush();
         } catch (DataIntegrityViolationException ex) {
-            throw new DepartmentInUseException(id);
+            throw new DepartmentInUseException("Department \"" + department.getName() + "\" cannot be deleted because it is referenced by other records.");
         }
         log.info("Department {} deleted", id);
     }
