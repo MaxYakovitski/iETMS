@@ -1,7 +1,6 @@
 package com.mayak.ietms.features.statistics.application;
 
 import com.mayak.ietms.features.user.application.UserProfileQueryService;
-import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.features.user.infra.persistence.UserRepository;
 import com.mayak.ietms.statistics.UserStatsDto;
 import com.mayak.ietms.user.dto.UserNameDto;
@@ -31,28 +30,17 @@ public class UserStatisticsService {
                 .stream()
                 .map(UserResponseDto::id)
                 .toList();
-
-        if (userIds.isEmpty()) {
-            userIds = userRepository.findAll().stream().map(User::getId).toList();
-        }
-
+        if (userIds.isEmpty()) userIds = userRepository.findAllIds();
         return getUserStats(start, end, userIds);
     }
 
     public List<UserStatsDto> getUserStats(LocalDate start, LocalDate end, List<Long> userIds) {
         if (userIds == null || userIds.isEmpty()) return List.of();
-
         ZoneOffset zone = ZoneOffset.UTC;
-
         Instant from = start.atStartOfDay(zone).toInstant();
         Instant toExclusive = end.plusDays(1).atStartOfDay(zone).toInstant();
 
-        var rows = repo.userStats(
-                from,
-                toExclusive,
-                userIds.toArray(Long[]::new)
-        );
-
+        var rows = repo.userStats(from, toExclusive, userIds.toArray(Long[]::new));
         return rows.stream()
                 .map(r -> new UserStatsDto(
                         r.getUserId(),
