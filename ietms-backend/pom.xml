@@ -198,6 +198,7 @@
                 <configuration>
                     <excludes>
                         <exclude>**/*IntegrationTest</exclude>
+                        <exclude>**/*IntegrationTest$*</exclude>
                     </excludes>
                 </configuration>
             </plugin>
