@@ -1,6 +1,7 @@
 package com.mayak.ietms.infrastructure.config;
 
 import com.mayak.ietms.infrastructure.security.LoginRateLimitFilter;
+import com.mayak.ietms.infrastructure.security.RestAuthenticationEntryPoint;
 import com.mayak.ietms.infrastructure.security.jwt.JwtAuthFilter;
 import com.mayak.ietms.infrastructure.web.filter.MdcLoggingFilter;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,8 @@ public class SecurityConfig {
     private final LoginRateLimitFilter loginRateLimitFilter;
     private final MdcLoggingFilter mdcLoggingFilter;
 
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
+
     @Bean
     @Order(1)
     public SecurityFilterChain managementSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -42,6 +45,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
