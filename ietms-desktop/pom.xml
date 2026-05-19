@@ -24,7 +24,6 @@
             <groupId>com.mayak.ietms</groupId>
             <artifactId>ietms-contract</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
@@ -37,18 +36,15 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-messaging</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
             <version>26.0.2</version>
         </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -58,7 +54,6 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -67,24 +62,20 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.controlsfx</groupId>
             <artifactId>controlsfx</artifactId>
             <version>11.2.2</version>
         </dependency>
-
         <dependency>
             <groupId>net.synedra</groupId>
             <artifactId>validatorfx</artifactId>
             <version>0.5.0</version>
         </dependency>
-
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-container-jdk-client</artifactId>
@@ -96,28 +87,28 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.apache.httpcomponents.core5</groupId>
             <artifactId>httpcore5</artifactId>
         </dependency>
-
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
         </dependency>
-
         <dependency>
             <groupId>net.rgielen</groupId>
             <artifactId>javafx-weaver-spring-boot-starter</artifactId>
             <version>2.0.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>3.1.8</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -139,10 +130,8 @@
     </build>
 
     <profiles>
-
         <profile>
             <id>windows-installer</id>
-
             <build>
                 <plugins>
 
@@ -201,7 +190,6 @@
                         <artifactId>maven-dependency-plugin</artifactId>
                         <version>3.6.1</version>
                         <executions>
-
                             <execution>
                                 <id>copy-main-jar</id>
                                 <phase>package</phase>
@@ -221,7 +209,6 @@
                                     </artifactItems>
                                 </configuration>
                             </execution>
-
                             <execution>
                                 <id>copy-dependencies</id>
                                 <phase>package</phase>
@@ -234,7 +221,6 @@
                                     </outputDirectory>
                                 </configuration>
                             </execution>
-
                         </executions>
                     </plugin>
 

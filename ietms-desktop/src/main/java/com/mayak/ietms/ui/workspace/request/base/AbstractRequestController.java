@@ -1,5 +1,7 @@
 package com.mayak.ietms.ui.workspace.request.base;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.request.dto.enums.RequestStatusDto;
 import com.mayak.ietms.request.dto.enums.RequestTypeDto;
@@ -98,7 +100,10 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
 
     private final ObservableList<RequestListItemDto> requestItems = FXCollections.observableArrayList();
     private final ConcurrentMap<Long, RequestItemController> visible = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Long, CompletableFuture<RequestDetailsDto>> detailsCache = new ConcurrentHashMap<>();
+    private final Cache<Long, CompletableFuture<RequestDetailsDto>> detailsCache = Caffeine.newBuilder()
+            .maximumSize(250)
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build();
 
     private RequestFilterDto activeFilter;
     private String activeSearchQuery;
@@ -359,7 +364,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
      * the same {@link java.util.concurrent.CompletableFuture}.
      */
     public CompletableFuture<RequestDetailsDto> getDetailsAsync(Long id) {
-        return detailsCache.computeIfAbsent(id,
+        return detailsCache.get(id,
                 key -> CompletableFuture.supplyAsync(() -> requestClient.getDetails(key))
         );
     }
@@ -367,7 +372,7 @@ public abstract class AbstractRequestController implements ViewLifecycle, Secure
     @Override
     public void invalidateRequest(Long requestId) {
         if (!active || requestId == null) return;
-        detailsCache.remove(requestId);
+        detailsCache.invalidate(requestId);
         refreshOne(requestId);
     }
 
