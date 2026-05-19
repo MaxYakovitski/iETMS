@@ -44,3 +44,9 @@ app:
     last-name: administrator
     email: ${ADMIN_EMAIL:a@example.com}
     password: ${ADMIN_PASSWORD:dev-admin-password}
+
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
