@@ -197,7 +197,7 @@
                 <version>3.5.3</version>
                 <configuration>
                     <excludes>
-                        <exclude>**/*IntegrationTest.java</exclude>
+                        <exclude>**/*IntegrationTest</exclude>
                     </excludes>
                 </configuration>
             </plugin>
