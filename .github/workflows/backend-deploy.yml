@@ -27,8 +27,8 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Build backend
-        run: mvn -B -pl ietms-backend -am clean package -DskipTests
+      - name: Build and test backend
+        run: mvn -B -pl ietms-backend -am clean verify
 
       - name: Prepare backend jar
         run: |
