@@ -34,41 +34,36 @@ public class UpdateController {
      */
     public void start(UpdateCheckResult result) {
         showChecking();
-
         if (!result.updateRequired()) {
             log.info("[UPDATE] no update required, current == latest");
             return;
         }
-
         if (result.forced()) {
             startMandatoryUpdate(result);
+        } else {
+            log.warn("[UPDATE] updateRequired=true but forced=false — update screen shown with no action");
         }
     }
 
     private void startMandatoryUpdate(UpdateCheckResult result) {
         updateService.setListener(new UpdateListener() {
-
             @Override
             public void onStart(String current, String target) {
                 updateStatusMessage("preparing download…");
             }
-
             @Override
             public void onMessage(String message) {
                 updateStatusMessage(message);
             }
-
             @Override
             public void onProgress(double progress) {
                 updateProgress(progress);
             }
-
             @Override
             public void onError(Throwable error) {
                 showForcedUpdateError("This update is required to continue.\nPlease restart the application.");
             }
         });
-
         if (result.forced()) {
             updateService.startMandatoryUpdate(result);
         }
