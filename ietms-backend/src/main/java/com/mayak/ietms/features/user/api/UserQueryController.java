@@ -36,7 +36,7 @@ public class UserQueryController {
     }
 
     @GetMapping("/{id}")
-    public UserResponseDto findById(@PathVariable Long id) {
+    public UserResponseDto findById(@PathVariable("id") Long id) {
         return queryService.findById(id);
     }
 
