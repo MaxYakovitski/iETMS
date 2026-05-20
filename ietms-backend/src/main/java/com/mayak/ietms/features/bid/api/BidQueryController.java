@@ -20,7 +20,7 @@ public class BidQueryController {
     private final BidQueryService bidQueryService;
 
     @GetMapping("/by-request/{requestId}")
-    public List<BidViewDto> findByRequest(@PathVariable Long requestId) {
+    public List<BidViewDto> findByRequest(@PathVariable("requestId") Long requestId) {
         return bidQueryService.findByRequest(requestId);
     }
 }
