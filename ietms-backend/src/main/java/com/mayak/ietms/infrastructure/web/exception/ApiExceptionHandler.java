@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -77,13 +78,15 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ErrorResponseDto handleAccessDenied() {
+    public ErrorResponseDto handleAccessDenied(HttpServletRequest request) {
+        log.warn("Access denied: {} {}", request.getMethod(), request.getRequestURI());
         return new ErrorResponseDto("forbidden", "Access denied");
     }
 
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ErrorResponseDto handleUnauthorized(AuthenticationException ex) {
+    public ErrorResponseDto handleUnauthorized(AuthenticationException ex, HttpServletRequest request) {
+        log.warn("Authentication failed: {} {} — {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
         return new ErrorResponseDto("unauthorized", ex.getMessage());
     }
 
@@ -113,6 +116,13 @@ public class ApiExceptionHandler {
     @ExceptionHandler(AsyncRequestNotUsableException.class)
     public void handleAsyncRequestNotUsable(AsyncRequestNotUsableException ex) {
         log.debug("Client disconnected before response was sent: {}", ex.getMessage());
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponseDto handleNoResourceFound(NoResourceFoundException ex) {
+        log.debug("Static resource not found: {}", ex.getResourcePath());
+        return new ErrorResponseDto("not_found", "Resource not found");
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
