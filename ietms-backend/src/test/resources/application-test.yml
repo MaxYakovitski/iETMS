@@ -1,0 +1,25 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+  sql:
+    init:
+      mode: never
+
+app:
+  jwt:
+    secret: test-only-jwt-secret-must-be-at-least-256-bits-long-xx
+  admin:
+    first-name: system
+    last-name: administrator
+    email: admin@test.com
+    password: test-admin-password
+  ws:
+    allowed-origins: http://localhost:*
