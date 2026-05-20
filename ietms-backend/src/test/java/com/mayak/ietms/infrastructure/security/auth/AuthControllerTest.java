@@ -1,12 +1,17 @@
 package com.mayak.ietms.infrastructure.security.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mayak.ietms.features.user.infra.persistence.UserRepository;
+import com.mayak.ietms.infrastructure.config.SecurityConfig;
+import com.mayak.ietms.infrastructure.notify.SlackAlertService;
+import com.mayak.ietms.infrastructure.security.RestAuthenticationEntryPoint;
 import com.mayak.ietms.infrastructure.security.auth.dto.LoginRequest;
-import com.mayak.ietms.infrastructure.security.jwt.JwtAuthFilter;
-import org.junit.Test;
+import com.mayak.ietms.infrastructure.security.jwt.JwtService;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,14 +22,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AuthController.class)
+@Import({SecurityConfig.class, RestAuthenticationEntryPoint.class})
 @DisplayName("AuthController")
 public class AuthControllerTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
 
-    @MockitoBean JwtAuthFilter jwtAuthFilter;   // avoid JwtService/UserRepository deps
+    @MockitoBean UserRepository userRepository;
+
+    @MockitoBean JwtService jwtService;
     @MockitoBean AuthService authService;
+    @MockitoBean SlackAlertService slackAlertService;
 
     @Test
     @DisplayName("POST /api/auth/login — valid credentials return token")

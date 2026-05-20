@@ -4,12 +4,15 @@ import com.mayak.ietms.features.request.application.RequestCommandService;
 import com.mayak.ietms.features.request.application.assembly.RequestDetailsAssembler;
 import com.mayak.ietms.features.user.application.UserQueryService;
 import com.mayak.ietms.features.user.infra.persistence.UserRepository;
+import com.mayak.ietms.infrastructure.config.SecurityConfig;
 import com.mayak.ietms.infrastructure.notify.SlackAlertService;
+import com.mayak.ietms.infrastructure.security.RestAuthenticationEntryPoint;
 import com.mayak.ietms.infrastructure.security.jwt.JwtService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -19,11 +22,11 @@ import java.util.List;
 
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(RequestCommandController.class)
+@Import({SecurityConfig.class, RestAuthenticationEntryPoint.class})
 @DisplayName("RequestCommandController")
 public class RequestCommandControllerTest {
 
@@ -49,21 +52,21 @@ public class RequestCommandControllerTest {
     @Test
     @DisplayName("POST /api/requests/{id}/join — no auth → 401")
     public void join_noAuth_returns401() throws Exception {
-        mockMvc.perform(post("/api/requests/1/join").with(csrf()))
+        mockMvc.perform(post("/api/requests/1/join"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("DELETE /api/requests/{id} — no auth → 401")
     public void delete_noAuth_returns401() throws Exception {
-        mockMvc.perform(delete("/api/requests/1").with(csrf()))
+        mockMvc.perform(delete("/api/requests/1"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("POST /api/requests/{id}/accept — no auth → 401")
     public void accept_noAuth_returns401() throws Exception {
-        mockMvc.perform(post("/api/requests/1/accept").with(csrf()))
+        mockMvc.perform(post("/api/requests/1/accept"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -74,10 +77,7 @@ public class RequestCommandControllerTest {
     @Test
     @DisplayName("POST /api/requests/{id}/join — authenticated → 204")
     public void join_authenticated_returns204() throws Exception {
-        mockMvc.perform(post("/api/requests/1/join")
-                        .with(csrf())
-                        .with(asUser())
-                )
+        mockMvc.perform(post("/api/requests/1/join").with(asUser()))
                 .andExpect(status().isNoContent());
         verify(requestCommandService).join(1L, 1L);
     }
@@ -85,10 +85,7 @@ public class RequestCommandControllerTest {
     @Test
     @DisplayName("DELETE /api/requests/{id} — authenticated → 204")
     public void delete_authenticated_returns204() throws Exception {
-        mockMvc.perform(delete("/api/requests/1")
-                        .with(csrf())
-                        .with(asUser())
-                )
+        mockMvc.perform(delete("/api/requests/1").with(asUser()))
                 .andExpect(status().isNoContent());
         verify(requestCommandService).delete(1L, 1L);
     }
@@ -96,11 +93,7 @@ public class RequestCommandControllerTest {
     @Test
     @DisplayName("POST /api/requests/{id}/accept — authenticated, nobody → 204")
     public void accept_authenticated_noBody_returns204() throws Exception {
-        mockMvc.perform(post("/api/requests/1/accept")
-                        .with(csrf())
-                        .with(asUser())
-                        .contentType(MediaType.APPLICATION_JSON)
-                )
+        mockMvc.perform(post("/api/requests/1/accept").with(asUser()).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
         verify(requestCommandService).accept(1L, null, 1L);
     }
