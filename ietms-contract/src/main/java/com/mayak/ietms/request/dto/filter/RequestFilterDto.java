@@ -8,14 +8,15 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @ToString
 public class RequestFilterDto {
-    private List<RequestStatusDto> statuses;
-    private List<String> requestTypes;
+    private List<RequestStatusDto> statuses =  new ArrayList<>();
+    private List<String> requestTypes = new ArrayList<>();
 
     private String fromCountry;
     private String fromZipCode;
@@ -32,8 +33,8 @@ public class RequestFilterDto {
     private LocalDate startDate;
     private LocalDate endDate;
 
-    private List<ShipmentTypeDto> shipmentTypes;
-    private List<TransportTypeDto> transportTypes;
+    private List<ShipmentTypeDto> shipmentTypes = new ArrayList<>();
+    private List<TransportTypeDto> transportTypes  = new ArrayList<>();
 
     private DangerousFilterOption dangerous;
 
@@ -43,9 +44,9 @@ public class RequestFilterDto {
     private Double minLdm;
     private Double maxLdm;
 
-    private List<Long> authorIds;
-    private List<Long> competitorIds;
-    private List<Long> dispatchersIds;
+    private List<Long> authorIds = new ArrayList<>();
+    private List<Long> competitorIds = new ArrayList<>();
+    private List<Long> dispatchersIds = new ArrayList<>();
 
     private RequestSortField sortBy = RequestSortField.START_DATE;
     private boolean asc = true;

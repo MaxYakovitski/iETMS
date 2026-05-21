@@ -171,13 +171,13 @@ ORDER BY
         if (filter.getMaxLdm() != null) { sql.append(" AND r.loading_meter <= :maxLdm"); params.put("maxLdm", filter.getMaxLdm()); }
 
         // Authors
-        if (filter.getAuthorIds() != null && !filter.getAuthorIds().isEmpty()) {
+        if (!filter.getAuthorIds().isEmpty()) {
             sql.append(" AND r.author_id IN :authorIds");
             params.put("authorIds", filter.getAuthorIds());
         }
 
         // Competitors
-        if (filter.getCompetitorIds() != null && !filter.getCompetitorIds().isEmpty()) {
+        if (!filter.getCompetitorIds().isEmpty()) {
             sql.append("""
         AND r.id IN (
             SELECT rc.request_id
@@ -189,7 +189,7 @@ ORDER BY
         }
 
         // Dispatchers
-        if (filter.getDispatchersIds() != null && !filter.getDispatchersIds().isEmpty()) {
+        if (!filter.getDispatchersIds().isEmpty()) {
             sql.append("""
         AND r.dispatcher_id IN :dispatchersIds
     """);
