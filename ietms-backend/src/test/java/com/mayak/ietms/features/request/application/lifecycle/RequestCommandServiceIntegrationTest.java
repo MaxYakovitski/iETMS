@@ -16,6 +16,7 @@ import com.mayak.ietms.features.user.domain.model.Profile;
 import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.features.user.infra.persistence.UserRepository;
 import com.mayak.ietms.request.dto.bid.BidCreateDto;
+import com.mayak.ietms.shared.exception.business.AlreadyJoinedException;
 import com.mayak.ietms.shared.exception.business.RequestDeletionNotAllowedException;
 import com.mayak.ietms.shared.exception.business.RequestStateException;
 import com.mayak.ietms.shared.exception.business.UnauthorizedException;
@@ -220,13 +221,11 @@ class RequestCommandServiceIntegrationTest extends AbstractIntegrationTest {
     class JoinIdempotency {
 
         @Test
-        @DisplayName("Паўторны join() кідае UnauthorizedException")
+        @DisplayName("Паўторны join() кідае AlreadyJoinedException")
         void doubleJoinThrowsException() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
             requestCommandService.join(request.getId(), transportUser.getId());
-            assertThatThrownBy(() -> requestCommandService.join(request.getId(), transportUser.getId())).isInstanceOf(UnauthorizedException.class)
-                    .hasMessageContaining("already joined");
-            // Competitor count is still one
+            assertThatThrownBy(() -> requestCommandService.join(request.getId(), transportUser.getId())).isInstanceOf(AlreadyJoinedException.class);
             Request updated = requestRepository.findById(request.getId()).orElseThrow();
             assertThat(updated.getCompetitorsId()).hasSize(1);
         }

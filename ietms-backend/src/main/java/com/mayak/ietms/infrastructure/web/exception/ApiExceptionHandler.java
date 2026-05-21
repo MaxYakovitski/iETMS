@@ -64,6 +64,7 @@ public class ApiExceptionHandler {
             LocationInUseException.class,
             RequestStateException.class,
             CompanyInUseException.class,
+            AlreadyJoinedException.class
     })
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponseDto handleConflict(RuntimeException ex) {

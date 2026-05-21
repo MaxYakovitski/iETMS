@@ -8,6 +8,7 @@ import com.mayak.ietms.features.request.infra.persistence.RequestRepository;
 import com.mayak.ietms.features.user.application.UserQueryService;
 import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.request.event.RequestEvent;
+import com.mayak.ietms.shared.exception.business.AlreadyJoinedException;
 import com.mayak.ietms.shared.exception.business.RequestNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,8 +32,8 @@ public class JoinRequestUseCase {
         Request request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
 
+        if (accessService.isJoined(actor, request)) throw new AlreadyJoinedException(requestId);
         accessService.requireCanJoin(actor, request);
-        if (accessService.isJoined(actor, request)) return;
 
         request.addCompetitor(actor.getId());
         requestRepository.save(request);
