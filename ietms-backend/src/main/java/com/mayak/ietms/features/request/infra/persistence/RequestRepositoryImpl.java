@@ -12,9 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,272 +23,74 @@ public class RequestRepositoryImpl implements RequestRepositoryCustom {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private final String orderBy = """
-ORDER BY
-    CASE r.status
-        WHEN 'NEW' THEN 1
-        WHEN 'IN_PROGRESS' THEN 2
-        WHEN 'BIDDING' THEN 3
-        WHEN 'OFFERED' THEN 4
-        WHEN 'ACCEPTED' THEN 5
-        WHEN 'REFUSED' THEN 6
-        ELSE 7
-    END,
-    r.issue_date DESC
-""";
-
     @Override
-    @SuppressWarnings("unchecked")
     public Page<Request> filterByQuery(RequestFilterDto filter, Long departmentId, Pageable pageable) {
         if (pageable == null) pageable = Pageable.unpaged();
 
-        StringBuilder sql = new StringBuilder("""
-        FROM requests r
-        LEFT JOIN users a ON r.author_id = a.id
-        LEFT JOIN company c ON r.customer_company_id = c.id
-        WHERE r.archived = false
-    """);
+        RequestSqlBuilder builder = new RequestSqlBuilder()
+                .applyDepartmentFilter(departmentId)
+                .applyFromLocationFilter(filter.getFromCountry(), filter.getFromZipCode(), filter.getFromPlace())
+                .applyToLocationFilter(filter.getToCountry(), filter.getToZipCode(), filter.getToPlace())
+                .applyStatusFilter(filter.getStatuses())
+                .applyRequestTypeFilter(filter.getRequestTypes())
+                .applyShipmentTypeFilter(filter.getShipmentTypes())
+                .applyTransportTypeFilter(filter.getTransportTypes())
+                .applyCompanyFilter(filter.getCompanyId(), filter.getCompanyName())
+                .applyDateFilter(filter.getDatesFilterOption(), filter.getStartDate(), filter.getEndDate())
+                .applyDangerousFilter(filter.getDangerous())
+                .applyWeightFilter(filter.getMinWeight(), filter.getMaxWeight())
+                .applyLdmFilter(filter.getMinLdm(), filter.getMaxLdm())
+                .applyAuthorFilter(filter.getAuthorIds())
+                .applyCompetitorFilter(filter.getCompetitorIds())
+                .applyDispatcherFilter(filter.getDispatchersIds());
 
-        Map<String, Object> params = new HashMap<>();
+        String sql = builder.toSqlFragment();
+        Map<String, Object> params = builder.getParams();
 
-        if (departmentId != null) {
-            sql.append("""
-         AND r.author_id IN (
-             SELECT u.id FROM users u
-             JOIN profiles p ON p.id = u.id
-             WHERE p.department_id = :departmentId
-         )
-    """);
-            params.put("departmentId", departmentId);
-        }
-
-        // --- From locations ---
-        if (filter.getFromCountry() != null || filter.getFromZipCode() != null || filter.getFromPlace() != null) {
-            sql.append(" AND EXISTS (")
-                    .append("SELECT 1 FROM jsonb_array_elements_text(r.from_location_ids_order) AS f(id) ")
-                    .append("JOIN location l ON l.id = f.id::bigint WHERE 1=1");
-
-            if (filter.getFromCountry() != null) {
-                sql.append(" AND l.country_code = :fromIso");
-                params.put("fromIso", filter.getFromCountry().toUpperCase());
-            }
-            if (filter.getFromZipCode() != null) {
-                sql.append(" AND l.zip_code LIKE :fromZip");
-                params.put("fromZip", filter.getFromZipCode() + "%");
-            }
-            if (filter.getFromPlace() != null) {
-                sql.append(" AND COALESCE(l.place_name,'') ILIKE :fromPlace");
-                params.put("fromPlace", "%" + filter.getFromPlace() + "%");
-            }
-            sql.append(")");
-        }
-
-        // --- To locations ---
-        if (filter.getToCountry() != null || filter.getToZipCode() != null || filter.getToPlace() != null) {
-            sql.append(" AND EXISTS (")
-                    .append("SELECT 1 FROM jsonb_array_elements_text(r.to_location_ids_order) AS t(id) ")
-                    .append("JOIN location l ON l.id = t.id::bigint WHERE 1=1");
-
-            if (filter.getToCountry() != null) {
-                sql.append(" AND l.country_code = :toIso");
-                params.put("toIso", filter.getToCountry().toUpperCase());
-            }
-            if (filter.getToZipCode() != null) {
-                sql.append(" AND l.zip_code LIKE :toZip");
-                params.put("toZip", filter.getToZipCode() + "%");
-            }
-            if (filter.getToPlace() != null) {
-                sql.append(" AND COALESCE(l.place_name,'') ILIKE :toPlace");
-                params.put("toPlace", "%" + filter.getToPlace() + "%");
-            }
-            sql.append(")");
-        }
-
-        // Enum Lists
-        if (!filter.getStatuses().isEmpty()) {
-            sql.append(" AND r.status IN :statuses");
-            params.put("statuses", filter.getStatuses().stream().map(Enum::name).toList());
-        }
-        if (!filter.getRequestTypes().isEmpty()) {
-            sql.append(" AND r.request_type IN :types");
-            params.put("types", filter.getRequestTypes());
-        }
-        if (!filter.getShipmentTypes().isEmpty()) {
-            sql.append(" AND r.shipment_type IN :shipmentTypes");
-            params.put("shipmentTypes", filter.getShipmentTypes().stream().map(Enum::name).toList());
-        }
-        if (!filter.getTransportTypes().isEmpty()) {
-            sql.append(" AND r.transport_type IN :transportTypes");
-            params.put("transportTypes", filter.getTransportTypes().stream().map(Enum::name).toList());
-        }
-
-        // Company
-        if (filter.getCompanyId() != null) {
-            sql.append(" AND r.customer_company_id = :companyId");
-            params.put("companyId", filter.getCompanyId());
-        }
-        else if (filter.getCompanyName() != null && !filter.getCompanyName().isBlank()) {
-            sql.append(" AND LOWER(c.name) LIKE :companyName");
-            params.put("companyName", "%" + filter.getCompanyName().toLowerCase() + "%");
-        }
-
-        // Dates
-        LocalDate startLocalDate = filter.getStartDate();
-        LocalDate endLocalDate = filter.getEndDate();
-        if (startLocalDate != null && endLocalDate == null) {
-            endLocalDate = startLocalDate;
-        }
-        if (filter.getDatesFilterOption() != null && (startLocalDate != null || endLocalDate != null)) {
-            final String column = switch (filter.getDatesFilterOption()) {
-                case REQUEST_ISSUE_DATE -> "issue_date";
-                case LOADING_DATE -> "start_date";
-                case DELIVERY_DATE -> "end_date";
-            };
-            if (startLocalDate != null) {
-                sql.append(" AND r.").append(column).append("::date >= :startDate");
-                params.put("startDate", startLocalDate);
-            }
-            if (endLocalDate != null) {
-                sql.append(" AND r.").append(column).append("::date <= :endDate");
-                params.put("endDate", endLocalDate);
-            }
-        }
-
-        // Dangerous
-        if (filter.getDangerous() != null) {
-            switch (filter.getDangerous()) {
-                case ADR -> sql.append(" AND r.dangerous = true");
-                case NON_ADR -> sql.append(" AND r.dangerous = false");
-            }
-        }
-
-        // Weight & LDM
-        if (filter.getMinWeight() != null) { sql.append(" AND r.weight >= :minWeight"); params.put("minWeight", filter.getMinWeight()); }
-        if (filter.getMaxWeight() != null) { sql.append(" AND r.weight <= :maxWeight"); params.put("maxWeight", filter.getMaxWeight()); }
-        if (filter.getMinLdm() != null) { sql.append(" AND r.loading_meter >= :minLdm"); params.put("minLdm", filter.getMinLdm()); }
-        if (filter.getMaxLdm() != null) { sql.append(" AND r.loading_meter <= :maxLdm"); params.put("maxLdm", filter.getMaxLdm()); }
-
-        // Authors
-        if (!filter.getAuthorIds().isEmpty()) {
-            sql.append(" AND r.author_id IN :authorIds");
-            params.put("authorIds", filter.getAuthorIds());
-        }
-
-        // Competitors
-        if (!filter.getCompetitorIds().isEmpty()) {
-            sql.append("""
-        AND r.id IN (
-            SELECT rc.request_id
-            FROM request_competitors rc
-            WHERE rc.user_id IN :competitorIds
-        )
-    """);
-            params.put("competitorIds", filter.getCompetitorIds());
-        }
-
-        // Dispatchers
-        if (!filter.getDispatchersIds().isEmpty()) {
-            sql.append("""
-        AND r.dispatcher_id IN :dispatchersIds
-    """);
-            params.put("dispatchersIds", filter.getDispatchersIds());
-        }
-
-        // --- Count query ---
-        Query countQuery = entityManager.createNativeQuery("SELECT COUNT(*) " + sql);
-        params.forEach(countQuery::setParameter);
-        long total = ((Number) countQuery.getSingleResult()).longValue();
-
-        // --- Select query ---
-        Query selectQuery = entityManager.createNativeQuery("SELECT r.* " + sql + " " + orderBy, Request.class);
-        params.forEach(selectQuery::setParameter);
-
-        selectQuery.setFirstResult((int) pageable.getOffset());
-        selectQuery.setMaxResults(pageable.getPageSize());
-
-        List<Request> content = selectQuery.getResultList();
+        long total = executeCount(sql, params);
+        List<Request> content = executeSelect(sql, params, pageable);
         return new PageImpl<>(content, pageable, total);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Page<Request> searchByQuery(String query, RequestTypeDto type, Long departmentId, Pageable pageable) {
         if (pageable == null) pageable = Pageable.unpaged();
         if (query == null || query.isBlank()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
-        String likeQuery = "%" + query.toLowerCase() + "%";
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("query", likeQuery);
+        RequestSqlBuilder builder = new RequestSqlBuilder()
+                .applyTypeFilter(type)
+                .applyDepartmentFilter(departmentId)
+                .applyTextSearch(query);
 
-        StringBuilder sql = new StringBuilder("""
-        FROM requests r
-        LEFT JOIN users a ON r.author_id = a.id
-        LEFT JOIN company c ON r.customer_company_id = c.id
-        WHERE r.archived = false
-        """);
+        String sql = builder.toSqlFragment();
+        Map<String, Object> params = builder.getParams();
 
-        if (type != null) {
-            sql.append(" AND r.request_type = :requestType");
-            params.put("requestType", type.name());
-        }
-
-        if (departmentId != null) {
-            sql.append("""
-         AND r.author_id IN (
-             SELECT u.id FROM users u
-             JOIN profiles p ON p.id = u.id
-             WHERE p.department_id = :departmentId
-         )
-    """);
-            params.put("departmentId", departmentId);
-        }
-
-        sql.append("""
-        AND (
-            LOWER(COALESCE(r.customer_reference, '')) LIKE :query
-            OR LOWER(COALESCE(r.tid, '')) LIKE :query
-            OR LOWER(COALESCE(a.name, '') || ' ' || COALESCE(a.surname, '')) LIKE :query
-            OR LOWER(COALESCE(c.name, '')) LIKE :query
-            OR LOWER(COALESCE(r.comments, '')) LIKE :query
-            OR LOWER(COALESCE(r.temperature, '')) LIKE :query
-            OR EXISTS (
-                       SELECT 1 FROM jsonb_array_elements_text(r.from_location_ids_order) AS f(id)
-                       JOIN location l ON l.id = f.id::bigint
-                       WHERE LOWER(COALESCE(l.zip_code::text, '')) LIKE :query
-                       OR LOWER(COALESCE(l.place_name, '')) LIKE :query
-            )
-            OR EXISTS (
-                       SELECT 1 FROM jsonb_array_elements_text(r.to_location_ids_order) AS t(id)
-                       JOIN location l ON l.id = t.id::bigint
-                       WHERE LOWER(COALESCE(l.zip_code::text, '')) LIKE :query
-                       OR LOWER(COALESCE(l.place_name, '')) LIKE :query
-            )
-            OR CAST(r.id AS TEXT) LIKE :query
-        )
-    """);
-
-        // --- Count query ---
-        Query countQuery = entityManager.createNativeQuery("SELECT COUNT(*) " + sql);
-        setQueryParameters(countQuery, params);
-        long total = ((Number) countQuery.getSingleResult()).longValue();
-
-        // --- Select query ---
-        Query selectQuery = entityManager.createNativeQuery("SELECT r.* " + sql + " " + orderBy, Request.class);
-        setQueryParameters(selectQuery, params);
-
-        selectQuery.setFirstResult((int) pageable.getOffset());
-        selectQuery.setMaxResults(pageable.getPageSize());
-
-        List<Request> content = selectQuery.getResultList();
+        long total = executeCount(sql, params);
+        List<Request> content = executeSelect(sql, params, pageable);
 
         log.info("Search applied: '{}', found {} results (total {})", query, content.size(), total);
-
         return new PageImpl<>(content, pageable, total);
     }
 
-    private void setQueryParameters(Query query, Map<String, Object> params) {
+    // ─────────────────────────────────────────────────────────────
+    // Private helpers
+    // ─────────────────────────────────────────────────────────────
+
+    private long executeCount(String sql, Map<String, Object> params) {
+        Query query = entityManager.createNativeQuery("SELECT COUNT(*) " + sql);
         params.forEach(query::setParameter);
+        return ((Number) query.getSingleResult()).longValue();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Request> executeSelect(String sql, Map<String, Object> params, Pageable pageable) {
+        Query query = entityManager.createNativeQuery(
+                "SELECT r.* " + sql + RequestSqlBuilder.ORDER_BY, Request.class);
+        params.forEach(query::setParameter);
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+        return query.getResultList();
     }
 }
