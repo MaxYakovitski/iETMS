@@ -3,7 +3,7 @@ package com.mayak.ietms.features.extension.api;
 import com.mayak.ietms.common.validation.ValidationError;
 import com.mayak.ietms.extension.dto.*;
 import com.mayak.ietms.features.extension.application.ExtensionRequestAssembler;
-import com.mayak.ietms.features.request.application.lifecycle.RequestLifecycleService;
+import com.mayak.ietms.features.request.application.lifecycle.CreateRequestUseCase;
 import com.mayak.ietms.infrastructure.security.current.CurrentUserId;
 import com.mayak.ietms.request.dto.create.BaseRequestDto;
 import com.mayak.ietms.shared.exception.validation.ValidationException;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class ExtensionRequestDraftController {
 
     private final ExtensionRequestAssembler assembler;
-    private final RequestLifecycleService requestLifecycleService;
+    private final CreateRequestUseCase createRequestUseCase;
 
     @PostMapping("/request")
     @Operation(summary = "Submit request draft from browser extension",
@@ -36,7 +36,7 @@ public class ExtensionRequestDraftController {
     public ResponseEntity <ExtensionDraftResponse> create(@RequestBody ExtensionRequestDraftDto draft, @CurrentUserId Long userId) {
         try {
             BaseRequestDto requestDto = assembler.build(draft);
-            requestLifecycleService.create(requestDto, userId);
+            createRequestUseCase.execute(requestDto, userId);
             return ResponseEntity.ok(new DraftAcceptedResponse());
         } catch (ValidationException ex) {
             Map<String, List<String>> errors = toErrorMap(ex.getResult().getErrors());

@@ -2,6 +2,7 @@ package com.mayak.ietms.features.request.application.lifecycle;
 
 import com.mayak.ietms.AbstractIntegrationTest;
 import com.mayak.ietms.features.bid.application.BidCommandService;
+import com.mayak.ietms.features.request.application.RequestCommandService;
 import com.mayak.ietms.features.request.domain.enums.RequestStatus;
 import com.mayak.ietms.features.request.domain.enums.ShipmentType;
 import com.mayak.ietms.features.request.domain.enums.TransportType;
@@ -31,11 +32,11 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.*;
 
 @Transactional
-@DisplayName("RequestLifecycleService + BidCommandService — інтэграцыйныя тэсты")
-class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
+@DisplayName("RequestCommandService + BidCommandService — інтэграцыйныя тэсты")
+class RequestCommandServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private RequestLifecycleService lifecycleService;
+    private RequestCommandService requestCommandService;
 
     @Autowired
     private BidCommandService bidCommandService;
@@ -77,7 +78,7 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         void cannotAcceptWithoutBids() {
             Request request = savedRequest(RequestStatus.OFFERED, authorUser);
             assertThatThrownBy(
-                    () -> lifecycleService.accept(request.getId(), new BigDecimal("1000.00"), authorUser.getId()))
+                    () -> requestCommandService.accept(request.getId(), new BigDecimal("1000.00"), authorUser.getId()))
                     .isInstanceOf(RequestStateException.class);
         }
 
@@ -85,10 +86,10 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("accept() з існуючай стаўкай усталёўвае статус ACCEPTED")
         void acceptWithBidSetsAccepted() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), transportUser.getId());
             bidCommandService.create(new BidCreateDto(request.getId(),  new BigDecimal("800.00"), null),transportUser.getId());
-            lifecycleService.offer(request.getId(), authorUser.getId());
-            lifecycleService.accept(request.getId(), new BigDecimal("1000.00"), authorUser.getId());
+            requestCommandService.offer(request.getId(), authorUser.getId());
+            requestCommandService.accept(request.getId(), new BigDecimal("1000.00"), authorUser.getId());
             Request updated = requestRepository.findById(request.getId()).orElseThrow();
             assertThat(updated.getStatus()).isEqualTo(RequestStatus.ACCEPTED);
         }
@@ -97,10 +98,10 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("accept() стварае Shipment калі яго яшчэ няма")
         void acceptCreatesShipment() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), transportUser.getId());
             bidCommandService.create(new BidCreateDto(request.getId(), new BigDecimal("500.00"), null),transportUser.getId());
-            lifecycleService.offer(request.getId(), authorUser.getId());
-            lifecycleService.accept(request.getId(), new BigDecimal("700.00"), authorUser.getId());
+            requestCommandService.offer(request.getId(), authorUser.getId());
+            requestCommandService.accept(request.getId(), new BigDecimal("700.00"), authorUser.getId());
             assertThat(shipmentRepository.existsByRequestId(request.getId())).isTrue();
         }
 
@@ -108,12 +109,12 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("accept() выбірае мінімальную стаўку як найлепшую")
         void acceptSelectsLowestBid() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
-            lifecycleService.join(request.getId(), secondTransportUser.getId());
+            requestCommandService.join(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), secondTransportUser.getId());
             bidCommandService.create(new BidCreateDto(request.getId(), new BigDecimal("900.00"), null),transportUser.getId());
             bidCommandService.create(new BidCreateDto(request.getId(), new BigDecimal("600.00"), null), secondTransportUser.getId());
-            lifecycleService.offer(request.getId(), authorUser.getId());
-            lifecycleService.accept(request.getId(), new BigDecimal("1000.00"), authorUser.getId());
+            requestCommandService.offer(request.getId(), authorUser.getId());
+            requestCommandService.accept(request.getId(), new BigDecimal("1000.00"), authorUser.getId());
             Request updated = requestRepository.findById(request.getId()).orElseThrow();
             // Best bid is 600, dispatcher is second TransportUser
             assertThat(updated.getDispatcherId()).isEqualTo(secondTransportUser.getId());
@@ -134,13 +135,13 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Немагчыма выдаліць заяўку з існуючай адпраўкай")
         void cannotDeleteRequestWithShipment() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), transportUser.getId());
             bidCommandService.create(new BidCreateDto(request.getId(), new BigDecimal("500.00"), null), transportUser.getId());
-            lifecycleService.offer(request.getId(), authorUser.getId());
-            lifecycleService.accept(request.getId(), new BigDecimal("700.00"), authorUser.getId());
+            requestCommandService.offer(request.getId(), authorUser.getId());
+            requestCommandService.accept(request.getId(), new BigDecimal("700.00"), authorUser.getId());
             // Shipment now exists
             assertThat(shipmentRepository.existsByRequestId(request.getId())).isTrue();
-            assertThatThrownBy(() -> lifecycleService.delete(request.getId(), authorUser.getId()))
+            assertThatThrownBy(() -> requestCommandService.delete(request.getId(), authorUser.getId()))
                     .isInstanceOf(RequestDeletionNotAllowedException.class);
         }
 
@@ -148,7 +149,7 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("delete() без адпраўкі — паспяхова выдаляе")
         void deleteWithoutShipmentSucceeds() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.delete(request.getId(), authorUser.getId());
+            requestCommandService.delete(request.getId(), authorUser.getId());
             assertThat(requestRepository.findById(request.getId())).isEmpty();
         }
 
@@ -156,7 +157,7 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Не-аўтар не можа выдаліць заяўку — UnauthorizedException")
         void nonAuthorCannotDelete() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            assertThatThrownBy(() -> lifecycleService.delete(request.getId(), transportUser.getId()))
+            assertThatThrownBy(() -> requestCommandService.delete(request.getId(), transportUser.getId()))
                     .isInstanceOf(UnauthorizedException.class);
         }
     }
@@ -173,7 +174,7 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("join() мяняе статус NEW → IN_PROGRESS")
         void joinChangesStatusToInProgress() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), transportUser.getId());
             Request updated = requestRepository.findById(request.getId()).orElseThrow();
             assertThat(updated.getStatus()).isEqualTo(RequestStatus.IN_PROGRESS);
             assertThat(updated.getCompetitorsId()).contains(transportUser.getId());
@@ -183,8 +184,8 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("leave() апошняга ўдзельніка мяняе статус IN_PROGRESS → NEW")
         void leaveLastCompetitorChangesStatusToNew() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
-            lifecycleService.leave(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), transportUser.getId());
+            requestCommandService.leave(request.getId(), transportUser.getId());
             Request updated = requestRepository.findById(request.getId()).orElseThrow();
             assertThat(updated.getStatus()).isEqualTo(RequestStatus.NEW);
             assertThat(updated.getCompetitorsId()).doesNotContain(transportUser.getId());
@@ -194,9 +195,9 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("leave() з двума ўдзельнікамі — статус застаецца IN_PROGRESS")
         void leaveOneOfTwoKeepsInProgress() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
-            lifecycleService.join(request.getId(), secondTransportUser.getId());
-            lifecycleService.leave(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), secondTransportUser.getId());
+            requestCommandService.leave(request.getId(), transportUser.getId());
             Request updated = requestRepository.findById(request.getId()).orElseThrow();
             assertThat(updated.getStatus()).isEqualTo(RequestStatus.IN_PROGRESS);
         }
@@ -205,7 +206,7 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Аўтар не можа далучыцца да ўласнай заяўкі — UnauthorizedException")
         void authorCannotJoinOwnRequest() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            assertThatThrownBy(() -> lifecycleService.join(request.getId(), authorUser.getId()))
+            assertThatThrownBy(() -> requestCommandService.join(request.getId(), authorUser.getId()))
                     .isInstanceOf(UnauthorizedException.class);
         }
     }
@@ -222,8 +223,8 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Паўторны join() кідае UnauthorizedException")
         void doubleJoinThrowsException() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
-            assertThatThrownBy(() -> lifecycleService.join(request.getId(), transportUser.getId())).isInstanceOf(UnauthorizedException.class)
+            requestCommandService.join(request.getId(), transportUser.getId());
+            assertThatThrownBy(() -> requestCommandService.join(request.getId(), transportUser.getId())).isInstanceOf(UnauthorizedException.class)
                     .hasMessageContaining("already joined");
             // Competitor count is still one
             Request updated = requestRepository.findById(request.getId()).orElseThrow();
@@ -234,10 +235,10 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Паўторны leave() не кідае памылку")
         void doubleLeaveIsIdempotent() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
-            lifecycleService.leave(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), transportUser.getId());
+            requestCommandService.leave(request.getId(), transportUser.getId());
             // Repeated leave() must not throw Exception
-            assertThatCode(() -> lifecycleService.leave(request.getId(), transportUser.getId()))
+            assertThatCode(() -> requestCommandService.leave(request.getId(), transportUser.getId()))
                     .doesNotThrowAnyException();
         }
     }
@@ -254,7 +255,7 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Стварэнне стаўкі мяняе статус → BIDDING")
         void createBidChangesStatusToBidding() {
             Request request = savedRequest(RequestStatus.IN_PROGRESS, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), transportUser.getId());
             bidCommandService.create(new BidCreateDto(request.getId(), new BigDecimal("500.00"), "тэст"), transportUser.getId());
             Request updated = requestRepository.findById(request.getId()).orElseThrow();
             assertThat(updated.getStatus()).isEqualTo(RequestStatus.BIDDING);
@@ -264,7 +265,7 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Выдаленне адзінай стаўкі вяртае статус → IN_PROGRESS")
         void deleteBidReturnsToInProgress() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), transportUser.getId());
             var bid = bidCommandService.create(
                     new BidCreateDto(request.getId(), new BigDecimal("500.00"), null), transportUser.getId());
             bidCommandService.delete(bid.id(), transportUser.getId());
@@ -276,7 +277,7 @@ class RequestLifecycleServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Не ўласнік не можа выдаліць стаўку — UnauthorizedException")
         void nonOwnerCannotDeleteBid() {
             Request request = savedRequest(RequestStatus.NEW, authorUser);
-            lifecycleService.join(request.getId(), transportUser.getId());
+            requestCommandService.join(request.getId(), transportUser.getId());
             var bid = bidCommandService.create(
                     new BidCreateDto(request.getId(), new BigDecimal("500.00"), null), transportUser.getId());
             assertThatThrownBy(() -> bidCommandService.delete(bid.id(), secondTransportUser.getId()))

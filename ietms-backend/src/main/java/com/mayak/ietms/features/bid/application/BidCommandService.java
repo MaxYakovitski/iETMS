@@ -1,5 +1,6 @@
 package com.mayak.ietms.features.bid.application;
 
+import com.mayak.ietms.features.request.application.lifecycle.OnBidsChangedUseCase;
 import com.mayak.ietms.features.user.infra.persistence.UserRepository;
 import com.mayak.ietms.request.dto.bid.BidCreateDto;
 import com.mayak.ietms.request.dto.bid.BidViewDto;
@@ -12,7 +13,6 @@ import com.mayak.ietms.shared.exception.business.UnauthorizedException;
 import com.mayak.ietms.features.bid.infra.mapping.BidMapper;
 import com.mayak.ietms.features.bid.infra.persistence.BidRepository;
 import com.mayak.ietms.features.request.infra.persistence.RequestRepository;
-import com.mayak.ietms.features.request.application.lifecycle.RequestLifecycleService;
 import com.mayak.ietms.shared.exception.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,10 +28,9 @@ public class BidCommandService {
     private final RequestRepository requestRepository;
     private final UserRepository userRepository;
 
-    private final RequestLifecycleService lifecycleService;
+    private final OnBidsChangedUseCase onBidsChangedUseCase;
 
     private final BidContractValidator bidContractValidator;
-
     private final BidMapper bidMapper;
 
     @Transactional
@@ -46,7 +45,7 @@ public class BidCommandService {
         bid.setComment(dto.comment());
         Bid saved = bidRepository.save(bid);
         log.info("Bid created: bidId={}, requestId={}, userId={}", saved.getId(), dto.requestId(), userId);
-        lifecycleService.onBidsChanged(request.getId());
+        onBidsChangedUseCase.execute(request.getId());
         return bidMapper.toViewDto(saved);
     }
 
@@ -64,6 +63,6 @@ public class BidCommandService {
         bid.setDeleted(true);
         bidRepository.save(bid);
         log.info("Bid deleted: bidId={}, userId={}", bidId, userId);
-        lifecycleService.onBidsChanged(bid.getRequest().getId());
+        onBidsChangedUseCase.execute(bid.getRequest().getId());
     }
 }

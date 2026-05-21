@@ -1,7 +1,7 @@
 package com.mayak.ietms.features.extension.api;
 
 import com.mayak.ietms.features.extension.application.ExtensionRequestAssembler;
-import com.mayak.ietms.features.request.application.lifecycle.RequestLifecycleService;
+import com.mayak.ietms.features.request.application.lifecycle.CreateRequestUseCase;
 import com.mayak.ietms.features.user.infra.persistence.UserRepository;
 import com.mayak.ietms.infrastructure.config.SecurityConfig;
 import com.mayak.ietms.infrastructure.notify.SlackAlertService;
@@ -35,7 +35,7 @@ public class ExtensionRequestDraftControllerTest {
 
     @MockitoBean JwtService jwtService;
     @MockitoBean SlackAlertService slackAlertService;
-    @MockitoBean RequestLifecycleService requestLifecycleService;
+    @MockitoBean CreateRequestUseCase createRequestUseCase;
 
     @MockitoBean ExtensionRequestAssembler assembler;
 
