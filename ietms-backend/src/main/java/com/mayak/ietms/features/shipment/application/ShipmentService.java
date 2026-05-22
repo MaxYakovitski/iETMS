@@ -1,9 +1,11 @@
 package com.mayak.ietms.features.shipment.application;
 
 import com.mayak.ietms.common.validation.ValidationResult;
+import com.mayak.ietms.features.location.application.LocationResolver;
 import com.mayak.ietms.features.shipment.application.notify.ShipmentNotificationService;
 import com.mayak.ietms.features.shipment.application.assembly.ShipmentListItemAssembler;
 import com.mayak.ietms.features.user.application.UserLookupService;
+import com.mayak.ietms.location.dto.LocationDto;
 import com.mayak.ietms.shared.exception.business.*;
 import com.mayak.ietms.shared.exception.validation.ValidationException;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
@@ -53,10 +55,13 @@ import java.util.stream.Stream;
 public class ShipmentService {
 
     private final ShipmentRepository shipmentRepository;
-    private final CompanyService companyService;
-    private final ShipmentListItemAssembler assembler;
+
     private final ShipmentNotificationService shipmentNotificationService;
+    private final CompanyService companyService;
     private final UserLookupService userLookupService;
+
+    private final ShipmentListItemAssembler assembler;
+    private final LocationResolver locationResolver;
 
     /**
      * Returns shipments visible to the given user for the specified calendar date.
@@ -70,11 +75,13 @@ public class ShipmentService {
      * @param userId identifier of the requesting user
      * @return list of shipment projections as of the given date
      */
+    @Transactional(readOnly = true)
     public List<ShipmentListItemDto> findMyShipmentsForDate(LocalDate date, Long userId) {
         List<Shipment> shipments = shipmentRepository.findMyShipmentsForDate(userId, date);
         Map<Long, UserNameDto> userNames = loadUserNames(shipments);
+        Map<Long, LocationDto> locationCache = loadLocationCache(shipments);
         return shipments.stream()
-                .map(s -> assembler.assembleForPlanner(s, date, userNames))
+                .map(s -> assembler.assembleForPlanner(s, date, userNames, locationCache))
                 .toList();
     }
 
@@ -102,11 +109,9 @@ public class ShipmentService {
         if (!shipment.isOwnedBy(userId) && !shipment.isDispatchedBy(userId)) {
             throw new UnauthorizedException("No access!");
         }
-        Map<Long, UserNameDto> userNames = userLookupService.getNames(
-                Stream.of(shipment.getRequest().getAuthorId(), shipment.getDispatcherId())
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet()));
-        return assembler.assembleCurrent(shipment, userNames);
+        Map<Long, UserNameDto> userNames = loadUserNames(List.of(shipment));
+        Map<Long, LocationDto> locationCache = loadLocationCache(List.of(shipment));
+        return assembler.assembleCurrent(shipment, userNames, locationCache);
     }
 
     /**
@@ -121,13 +126,15 @@ public class ShipmentService {
      * @param userId identifier of the transport specialist
      * @return list of current shipment projections sorted by status
      */
+    @Transactional(readOnly = true)
     public List<ShipmentListItemDto> findMyActiveTransports(Long userId) {
         Instant startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant();
         List<Shipment> shipments = shipmentRepository
                 .findMyActiveTransports(userId, List.of(ShipmentStatus.DROPPED, ShipmentStatus.CANCELED), startOfDay);
         Map<Long, UserNameDto> userNames = loadUserNames(shipments);
+        Map<Long, LocationDto> locationCache = loadLocationCache(shipments);
         return shipments.stream()
-                .map(s -> assembler.assembleCurrent(s, userNames))
+                .map(s -> assembler.assembleCurrent(s, userNames, locationCache))
                 .toList();
     }
 
@@ -175,11 +182,9 @@ public class ShipmentService {
             shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.UPDATED, shipment);
         }
         log.info("Shipment updated: shipmentId={}, userId={}", shipmentId, userId);
-        Map<Long, UserNameDto> userNames = userLookupService.getNames(
-                Stream.of(shipment.getRequest().getAuthorId(), shipment.getDispatcherId())
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet()));
-        return assembler.assembleCurrent(shipment, userNames);
+        Map<Long, UserNameDto> userNames = loadUserNames(List.of(shipment));
+        Map<Long, LocationDto> locationCache = loadLocationCache(List.of(shipment));
+        return assembler.assembleCurrent(shipment, userNames, locationCache);
     }
 
     /**
@@ -320,6 +325,20 @@ public class ShipmentService {
         shipment.cancel(reason);
         log.info("Shipment cancelled: shipmentId={}, reason={}, userId={}", shipmentId, reason, userId);
         shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
+    }
+
+    private Map<Long, LocationDto> loadLocationCache(List<Shipment> shipments) {
+        Set<Long> allIds = shipments.stream()
+                .flatMap(s -> {
+                    List<Long> from = s.getRequest().getFromLocationIds();
+                    List<Long> to   = s.getRequest().getToLocationIds();
+                    return Stream.concat(
+                            from != null ? from.stream() : Stream.empty(),
+                            to  != null ? to.stream()   : Stream.empty()
+                    );
+                })
+                .collect(Collectors.toSet());
+        return locationResolver.resolveAsMap(allIds);
     }
 
     private Map<Long, UserNameDto> loadUserNames(List<Shipment> shipments) {

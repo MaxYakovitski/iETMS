@@ -7,7 +7,6 @@ import com.mayak.ietms.features.request.application.access.RequestVisibilityScop
 import com.mayak.ietms.features.request.application.access.RequestVisibilityScopeResolver;
 import com.mayak.ietms.features.user.application.UserLookupService;
 import com.mayak.ietms.features.user.infra.persistence.ProfileRepository;
-import com.mayak.ietms.location.dto.LocationDto;
 import com.mayak.ietms.request.dto.enums.RequestTypeDto;
 import com.mayak.ietms.request.dto.filter.RequestFilterDto;
 import com.mayak.ietms.request.dto.view.RequestDetailsDto;
@@ -109,9 +108,9 @@ public class RequestQueryService {
 
     public String getExchangeString(long id) {
         Request request = requestRepository.findById(id).orElseThrow(() -> new RequestNotFoundException(id));
-        List<LocationDto> from = locationResolver.resolve(request.getFromLocationIds());
-        List<LocationDto> to = locationResolver.resolve(request.getToLocationIds());
-        return ExchangeFormatter.format(from, to, request);
+        var locations = locationResolver.resolve(
+                request.getFromLocationIds(), request.getToLocationIds());
+        return ExchangeFormatter.format(locations.from(), locations.to(), request);
     }
 
     public List<Request> findRequestsForReport(LocalDate from, LocalDate to, Long userId) {

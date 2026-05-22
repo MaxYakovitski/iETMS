@@ -40,6 +40,7 @@ public class RequestDetailsAssembler {
     public RequestDetailsDto toDto(Request request, User user, Set<Bid> activeBids) {
 
         RequestTypeDto requestType = resolveRequestType(request);
+        var locations = locationResolver.resolve(request.getFromLocationIds(), request.getToLocationIds());
 
         return RequestDetailsDto.builder()
                 // -------- META --------
@@ -57,8 +58,8 @@ public class RequestDetailsAssembler {
                 .customerReference(request.getCustomerReference())
 
                 // -------- LOCATIONS --------
-                .fromLocations(locationResolver.resolve(request.getFromLocationIds()))
-                .toLocations(locationResolver.resolve(request.getToLocationIds()))
+                .fromLocations(locations.from())
+                .toLocations(locations.to())
 
                 // -------- COMPANY --------
                 .customer(request.getCustomer() != null ? companyMapper.toDto(request.getCustomer()) : null)
@@ -105,7 +106,6 @@ public class RequestDetailsAssembler {
     }
 
     // ==================== HELPERS ====================
-
     private RequestTypeDto resolveRequestType(Request request) {
         if (request instanceof SpotRequest) return RequestTypeDto.SPOT;
         if (request instanceof ContractRequest) return RequestTypeDto.CONTRACT;
