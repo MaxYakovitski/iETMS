@@ -1,5 +1,3 @@
 package com.mayak.ietms.integration.auth.dto;
 
-public record LoginResponseDto(
-        String token) {
-}
+public record LoginResponseDto(String accessToken, String refreshToken) {}

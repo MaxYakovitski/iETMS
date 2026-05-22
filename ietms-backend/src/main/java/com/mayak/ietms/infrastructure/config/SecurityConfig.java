@@ -51,8 +51,10 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/login",
                                 "/api/ping",
+                                "/api/auth/login",
+                                "/api/auth/refresh",
+                                "/api/auth/logout",
                                 "/ws/**").permitAll()
                         .requestMatchers("/api/extension/**").authenticated()
                         .anyRequest().authenticated()

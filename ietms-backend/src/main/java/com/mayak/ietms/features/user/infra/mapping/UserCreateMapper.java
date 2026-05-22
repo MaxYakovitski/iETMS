@@ -13,7 +13,6 @@ public interface UserCreateMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "profile", ignore = true)
     @Mapping(target = "password", ignore = true)
-    @Mapping(target = "tokenVersion", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     User toEntity(UserCreateDto dto);

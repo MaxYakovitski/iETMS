@@ -3,9 +3,11 @@ package com.mayak.ietms.integration.auth;
 import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.auth.dto.LoginRequestDto;
 import com.mayak.ietms.integration.auth.dto.LoginResponseDto;
+import com.mayak.ietms.integration.auth.dto.RefreshTokenRequestDto;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.integration.rest.AbstractRestClient;
 import com.mayak.ietms.ui.core.SessionManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -17,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
  * since the user has not yet established a session.
  */
 @Service
+@Slf4j
 public class AuthRestClient extends AbstractRestClient implements AuthClient {
 
     private static final String API = "/api/auth/login";
@@ -38,5 +41,29 @@ public class AuthRestClient extends AbstractRestClient implements AuthClient {
                 throw new ApiException(e.getStatusCode(), e.getResponseBodyAsString());
             }
         });
+    }
+
+    @Override
+    public LoginResponseDto refresh(String refreshToken) {
+        return exchangeSafely(() ->
+                restTemplate.postForObject(
+                        "/api/auth/refresh",
+                        new RefreshTokenRequestDto(refreshToken),
+                        LoginResponseDto.class
+                )
+        );
+    }
+
+    @Override
+    public void logout(String refreshToken) {
+        try {
+            restTemplate.postForObject(
+                    "/api/auth/logout",
+                    new RefreshTokenRequestDto(refreshToken),
+                    Void.class
+            );
+        } catch (Exception e) {
+            log.warn("[auth] Logout request failed: {}", e.getMessage());
+        }
     }
 }

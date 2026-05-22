@@ -36,8 +36,8 @@ import java.util.concurrent.CompletableFuture;
  * to avoid blocking the FX thread. Authentication is performed before
  * the context is fully wired into the UI ({@link #showMainStage}).
  *
- * <p>On logout, the Spring context is closed and re-created from scratch
- * to guarantee a clean application state.
+ * <p>On window close, the active refresh token is revoked before
+ * the Spring context is shut down to invalidate the server-side session.
  */
 @Slf4j
 public class JavaFxApplication extends Application {
@@ -76,6 +76,13 @@ public class JavaFxApplication extends Application {
         }
 
         if (springContext != null) {
+            try {
+                AuthState authState = springContext.getBean(AuthState.class);
+                AuthClient authClient = springContext.getBean(AuthClient.class);
+                if (authState.getRefreshToken() != null) {
+                    authClient.logout(authState.getRefreshToken());
+                }
+            } catch (Exception ignored) {}
             springContext.close();
             springContext = null;
         } else if (contextFuture != null) {
@@ -119,7 +126,7 @@ public class JavaFxApplication extends Application {
     }
 
     /**
-     * Performs login against the backend and stores the received token in {@link AuthState}.
+     * Performs login against the backend and stores the received accessToken and refreshToken in {@link AuthState}.
      * Runs on a background thread (via {@link CompletableFuture}).
      *
      * @return the same {@code ctx} for chaining
@@ -129,7 +136,8 @@ public class JavaFxApplication extends Application {
         var authClient = ctx.getBean(AuthClient.class);
         var authState  = ctx.getBean(AuthState.class);
         var response = authClient.login(req.email(), req.password());
-        authState.setToken(response.token());
+        authState.setToken(response.accessToken());
+        authState.setRefreshToken(response.refreshToken());
         return ctx;
     }
 
@@ -151,7 +159,6 @@ public class JavaFxApplication extends Application {
                 mainStage.close();
                 mainStage = null;
             }
-
             if (springContext != null) {
                 springContext.close();
                 springContext = null;
@@ -199,7 +206,6 @@ public class JavaFxApplication extends Application {
 
         Throwable t = ex;
         while (t.getCause() != null) t = t.getCause();
-
         if (t instanceof ApiException apiEx) {
             AlertUtils.show(ApiErrorUtils.resolve(apiEx, "Invalid email or password."));
         } else if (t instanceof SocketException) {

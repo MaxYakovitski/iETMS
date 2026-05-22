@@ -10,4 +10,5 @@ management:
 app:
   jwt:
     secret: ${JWT_SECRET}
-    expiration-ms: 36000000
+    expiration-ms: 300000
+    refresh-expiration-ms: 86400000

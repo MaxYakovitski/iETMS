@@ -1,7 +1,6 @@
 package com.mayak.ietms.features.user.api;
 
 import com.mayak.ietms.features.user.application.UserCommandService;
-import com.mayak.ietms.features.user.infra.persistence.UserRepository;
 import com.mayak.ietms.infrastructure.config.SecurityConfig;
 import com.mayak.ietms.infrastructure.notify.SlackAlertService;
 import com.mayak.ietms.infrastructure.security.RestAuthenticationEntryPoint;
@@ -33,8 +32,7 @@ public class UserCommandControllerTest {
 
     @MockitoBean
     JwtService jwtService;
-    @MockitoBean
-    UserRepository userRepository;
+
     @MockitoBean
     SlackAlertService slackAlertService;
 

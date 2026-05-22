@@ -66,7 +66,7 @@ public class CompanyStompClient extends AbstractStompClient{
             headers.setBearerAuth(authState.getToken());
             log.info("WS auth header set");
         } else {
-            log.warn("WS connection without auth token");
+            log.warn("WS connection without auth accessToken");
         }
 
         try {
