@@ -45,10 +45,6 @@ public class User {
     @JsonIgnore
     private String password;
 
-    @Builder.Default
-    @Column(name = "token_version", nullable = false)
-    private Integer tokenVersion = 0;
-
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
@@ -56,10 +52,6 @@ public class User {
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
-
-    public void incrementTokenVersion() {
-        this.tokenVersion = (this.tokenVersion == null) ? 1 : (this.tokenVersion + 1);
-    }
 
     @Enumerated(EnumType.STRING)
     @Column(name = "userType", nullable = false)

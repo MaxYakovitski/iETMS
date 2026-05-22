@@ -16,7 +16,7 @@ import java.nio.file.Path;
  * Writes the manifest JSON to {@code %LOCALAPPDATA%\iETMS\native-host\manifest.json}
  * and registers it in {@code HKCU\Software\Google\Chrome\NativeMessagingHosts}
  * so that Chrome can launch this application as a native messaging host.
- * Registration is per-user, ensuring token isolation in multi-user environments.
+ * Registration is per-user, ensuring accessToken isolation in multi-user environments.
  */
 @Component
 @Slf4j

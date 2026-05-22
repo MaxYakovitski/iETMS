@@ -1,7 +1,3 @@
 package com.mayak.ietms.integration.auth.dto;
 
-public record LoginRequestDto(
-        String email,
-        String password
-) {
-}
+public record LoginRequestDto(String email, String password) {}

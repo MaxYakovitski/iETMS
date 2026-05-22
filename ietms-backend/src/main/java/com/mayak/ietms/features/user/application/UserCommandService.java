@@ -6,6 +6,7 @@ import com.mayak.ietms.features.license.application.LicenseQueryService;
 import com.mayak.ietms.features.user.domain.model.Profile;
 import com.mayak.ietms.features.user.domain.model.User;
 import com.mayak.ietms.features.user.domain.model.UserStatus;
+import com.mayak.ietms.infrastructure.security.auth.persistence.RefreshTokenRepository;
 import com.mayak.ietms.shared.exception.business.DepartmentNotFoundException;
 import com.mayak.ietms.shared.exception.business.LicenseLimitExceededException;
 import com.mayak.ietms.user.dto.UserCreateDto;
@@ -44,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserCommandService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final RequestRepository requestRepository;
     private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
@@ -126,6 +128,7 @@ public class UserCommandService {
     /**
      * Changes the password for the given user.
      * Does nothing if {@code newPassword} is blank or null.
+     * All active refresh tokens are revoked to end existing sessions.
      *
      * @throws UserNotFoundException if no user with the given id exists
      * @throws ValidationException if the password does not meet the requirements
@@ -142,19 +145,19 @@ public class UserCommandService {
         }
         User user = getOrThrow(userId);
         user.setPassword(passwordEncoder.encode(newPassword));
-        user.incrementTokenVersion();
+        refreshTokenRepository.revokeAllByUserId(userId);
         log.info("Password changed for user id={}", userId);
     }
 
     /**
      * Changes the lifecycle status of a user.
-     * Increments token version to immediately invalidate active JWT tokens.
+     * All active refresh tokens are revoked to prevent further session renewal.
      *
      * @throws LicenseLimitExceededException if activating a user would exceed the license user limit
      */
     @Transactional
-    public void changeStatus(Long id, UserStatusDto statusDto) {
-        User user = getOrThrow(id);
+    public void changeStatus(Long userId, UserStatusDto statusDto) {
+        User user = getOrThrow(userId);
         if (statusDto == UserStatusDto.ACTIVE) {
             int activeUsers = userRepository.countByStatusAndUserTypeNot(UserStatus.ACTIVE, UserType.ADMIN);
             int maxUsers = licenseQueryService.getMaxUsers();
@@ -163,8 +166,8 @@ public class UserCommandService {
             }
         }
         user.setStatus(UserStatus.valueOf(statusDto.name()));
-        user.incrementTokenVersion();
-        log.info("User status changed: id={}, status={}", id, statusDto);
+        refreshTokenRepository.revokeAllByUserId(userId);
+        log.info("User status changed: userId={}, status={}", userId, statusDto);
     }
 
     /**
