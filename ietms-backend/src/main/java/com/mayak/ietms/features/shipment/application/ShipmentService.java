@@ -3,6 +3,7 @@ package com.mayak.ietms.features.shipment.application;
 import com.mayak.ietms.common.validation.ValidationResult;
 import com.mayak.ietms.features.shipment.application.notify.ShipmentNotificationService;
 import com.mayak.ietms.features.shipment.application.assembly.ShipmentListItemAssembler;
+import com.mayak.ietms.features.user.application.UserLookupService;
 import com.mayak.ietms.shared.exception.business.*;
 import com.mayak.ietms.shared.exception.validation.ValidationException;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
@@ -14,6 +15,7 @@ import com.mayak.ietms.features.shipment.domain.enums.ShipmentStatus;
 import com.mayak.ietms.shipment.event.ShipmentEvent;
 import com.mayak.ietms.features.shipment.infra.persistence.ShipmentRepository;
 import com.mayak.ietms.features.company.application.CompanyService;
+import com.mayak.ietms.user.dto.UserNameDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Application service responsible for shipment-related use cases.
@@ -49,6 +56,7 @@ public class ShipmentService {
     private final CompanyService companyService;
     private final ShipmentListItemAssembler assembler;
     private final ShipmentNotificationService shipmentNotificationService;
+    private final UserLookupService userLookupService;
 
     /**
      * Returns shipments visible to the given user for the specified calendar date.
@@ -63,10 +71,10 @@ public class ShipmentService {
      * @return list of shipment projections as of the given date
      */
     public List<ShipmentListItemDto> findMyShipmentsForDate(LocalDate date, Long userId) {
-        return shipmentRepository
-                .findMyShipmentsForDate(userId,  date)
-                .stream()
-                .map(s -> assembler.assembleForPlanner(s, date))
+        List<Shipment> shipments = shipmentRepository.findMyShipmentsForDate(userId, date);
+        Map<Long, UserNameDto> userNames = loadUserNames(shipments);
+        return shipments.stream()
+                .map(s -> assembler.assembleForPlanner(s, date, userNames))
                 .toList();
     }
 
@@ -94,7 +102,11 @@ public class ShipmentService {
         if (!shipment.isOwnedBy(userId) && !shipment.isDispatchedBy(userId)) {
             throw new UnauthorizedException("No access!");
         }
-        return assembler.assembleCurrent(shipment);
+        Map<Long, UserNameDto> userNames = userLookupService.getNames(
+                Stream.of(shipment.getRequest().getAuthorId(), shipment.getDispatcherId())
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()));
+        return assembler.assembleCurrent(shipment, userNames);
     }
 
     /**
@@ -110,13 +122,12 @@ public class ShipmentService {
      * @return list of current shipment projections sorted by status
      */
     public List<ShipmentListItemDto> findMyActiveTransports(Long userId) {
-        Instant startOfDay = LocalDate.now()
-                .atStartOfDay(ZoneId.systemDefault())
-                .toInstant();
-        return shipmentRepository
-                .findMyActiveTransports(userId, List.of(ShipmentStatus.DROPPED, ShipmentStatus.CANCELED), startOfDay)
-                .stream()
-                .map(assembler::assembleCurrent)
+        Instant startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant();
+        List<Shipment> shipments = shipmentRepository
+                .findMyActiveTransports(userId, List.of(ShipmentStatus.DROPPED, ShipmentStatus.CANCELED), startOfDay);
+        Map<Long, UserNameDto> userNames = loadUserNames(shipments);
+        return shipments.stream()
+                .map(s -> assembler.assembleCurrent(s, userNames))
                 .toList();
     }
 
@@ -164,7 +175,11 @@ public class ShipmentService {
             shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.UPDATED, shipment);
         }
         log.info("Shipment updated: shipmentId={}, userId={}", shipmentId, userId);
-        return assembler.assembleCurrent(shipment);
+        Map<Long, UserNameDto> userNames = userLookupService.getNames(
+                Stream.of(shipment.getRequest().getAuthorId(), shipment.getDispatcherId())
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()));
+        return assembler.assembleCurrent(shipment, userNames);
     }
 
     /**
@@ -305,5 +320,13 @@ public class ShipmentService {
         shipment.cancel(reason);
         log.info("Shipment cancelled: shipmentId={}, reason={}, userId={}", shipmentId, reason, userId);
         shipmentNotificationService.publishToParticipants(ShipmentEvent.EventType.STATUS_CHANGED, shipment);
+    }
+
+    private Map<Long, UserNameDto> loadUserNames(List<Shipment> shipments) {
+        Set<Long> ids = shipments.stream()
+                .flatMap(s -> Stream.of(s.getRequest().getAuthorId(), s.getDispatcherId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        return userLookupService.getNames(ids);
     }
 }

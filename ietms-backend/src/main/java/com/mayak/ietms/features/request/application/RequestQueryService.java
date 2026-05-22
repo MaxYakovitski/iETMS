@@ -1,8 +1,11 @@
 package com.mayak.ietms.features.request.application;
 
 import com.mayak.ietms.common.dto.page.PageDto;
+import com.mayak.ietms.features.company.domain.model.Company;
+import com.mayak.ietms.features.company.infra.persistence.CompanyRepository;
 import com.mayak.ietms.features.request.application.access.RequestVisibilityScope;
 import com.mayak.ietms.features.request.application.access.RequestVisibilityScopeResolver;
+import com.mayak.ietms.features.user.application.UserLookupService;
 import com.mayak.ietms.features.user.infra.persistence.ProfileRepository;
 import com.mayak.ietms.location.dto.LocationDto;
 import com.mayak.ietms.request.dto.enums.RequestTypeDto;
@@ -22,6 +25,7 @@ import com.mayak.ietms.features.request.infra.persistence.RequestRepository;
 import com.mayak.ietms.features.shipment.infra.persistence.ShipmentRepository;
 import com.mayak.ietms.features.location.application.LocationResolver;
 import com.mayak.ietms.features.request.application.format.ExchangeFormatter;
+import com.mayak.ietms.user.dto.UserNameDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,8 +36,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +51,8 @@ public class RequestQueryService {
 
     private final RequestRepository requestRepository;
     private final ShipmentRepository shipmentRepository;
+    private final CompanyRepository companyRepository;
+    private final UserLookupService userLookupService;
     private final ProfileRepository profileRepository;
 
     private final RequestDetailsAssembler detailsAssembler;
@@ -55,46 +64,33 @@ public class RequestQueryService {
     public PageDto<RequestListItemDto> findPage(Long userId, int page, int size, RequestTypeDto type) {
         RequestVisibilityScope scope = scopeResolver.resolve(userId);
         Pageable pageable = toPageable(page, size);
-
-        Page<Request> entityPage;
+        Page<Request> result;
         if (scope.isRestricted()) {
-            entityPage = type == null
+            result = type == null
                     ? requestRepository.findAllActiveSortedByDepartment(scope.departmentId(), pageable)
                     : requestRepository.findAllByTypeAndDepartment(resolveType(type), scope.departmentId(), pageable);
         } else {
-            entityPage = type == null
+            result = type == null
                     ? requestRepository.findAllActiveSorted(pageable)
                     : requestRepository.findAllByType(resolveType(type), pageable);
         }
-
-        List<RequestListItemDto> content =
-                entityPage.getContent().stream()
-                        .map(listItemAssembler::toDto)
-                        .toList();
-        return toPageDto(entityPage, content);
+        List<RequestListItemDto> content = assembleListItems(result.getContent());
+        return toPageDto(result, content);
     }
 
     public PageDto<RequestListItemDto> search(Long userId, String query, int page, int size,  RequestTypeDto type) {
         RequestVisibilityScope scope = scopeResolver.resolve(userId);
         Pageable pageable = toPageable(page, size);
-
         Page<Request> result = requestRepository.searchByQuery(query, type, scope.departmentId(), pageable);
-        List<RequestListItemDto> content =
-                result.getContent().stream()
-                        .map(listItemAssembler::toDto)
-                        .toList();
+        List<RequestListItemDto> content = assembleListItems(result.getContent());
         return toPageDto(result, content);
     }
 
     public PageDto<RequestListItemDto> filter(Long userId, RequestFilterDto filter, int page, int size) {
         RequestVisibilityScope scope = scopeResolver.resolve(userId);
         Pageable pageable = toPageable(page, size);
-
         Page<Request> result = requestRepository.filterByQuery(filter, scope.departmentId(), pageable);
-        List<RequestListItemDto> content =
-                result.getContent().stream()
-                        .map(listItemAssembler::toDto)
-                        .toList();
+        List<RequestListItemDto> content = assembleListItems(result.getContent());
         return toPageDto(result, content);
     }
 
@@ -107,42 +103,22 @@ public class RequestQueryService {
                                         .map(r -> (Request) r)
                                         .orElseThrow(() -> new RequestNotFoundException(id)));
 
-        Set<Bid> activeBids =
-                request.getBids().stream()
-                        .filter(b -> !b.isDeleted())
-                        .collect(Collectors.toSet());
-
+        Set<Bid> activeBids = request.getBids().stream().filter(b -> !b.isDeleted()).collect(Collectors.toSet());
         return detailsAssembler.toDto(request, actor,  activeBids);
     }
 
     public String getExchangeString(long id) {
-        Request request = requestRepository.findById(id)
-                .orElseThrow(() -> new RequestNotFoundException(id));
-
+        Request request = requestRepository.findById(id).orElseThrow(() -> new RequestNotFoundException(id));
         List<LocationDto> from = locationResolver.resolve(request.getFromLocationIds());
         List<LocationDto> to = locationResolver.resolve(request.getToLocationIds());
         return ExchangeFormatter.format(from, to, request);
     }
 
     public List<Request> findRequestsForReport(LocalDate from, LocalDate to, Long userId) {
-        var fromInstant = from
-                .atStartOfDay()
-                .toInstant(ZoneOffset.UTC);
-
-        var toInstant = to
-                .plusDays(1)
-                .atStartOfDay()
-                .toInstant(ZoneOffset.UTC);
-
-        List<RequestStatus> statuses = List.of(
-                RequestStatus.ACCEPTED,
-                RequestStatus.REFUSED
-        );
-
-        Long departmentId = profileRepository
-                .findDepartmentIdByUserId(userId)
-                .orElse(null);
-
+        var fromInstant = from.atStartOfDay().toInstant(ZoneOffset.UTC);
+        var toInstant = to.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
+        List<RequestStatus> statuses = List.of(RequestStatus.ACCEPTED, RequestStatus.REFUSED);
+        Long departmentId = profileRepository.findDepartmentIdByUserId(userId).orElse(null);
         if (departmentId == null) {
             return requestRepository.findFullByIssueDateBetweenAndStatusIn(fromInstant, toInstant, statuses);
         }
@@ -173,5 +149,25 @@ public class RequestQueryService {
 
     public boolean hasShipment(long requestId) {
         return shipmentRepository.existsByRequestId(requestId);
+    }
+
+    private List<RequestListItemDto> assembleListItems(List<Request> requests) {
+        Set<Long> companyIds = requests.stream()
+                .map(r -> r.getCustomer() != null ? r.getCustomer().getId() : null)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<Long> userIds = requests.stream()
+                .flatMap(r -> Stream.of(r.getAuthorId(), r.getDispatcherId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<Long, String> companyNames = companyRepository.findAllById(companyIds).stream()
+                .collect(Collectors.toMap(Company::getId, Company::getName));
+
+        Map<Long, UserNameDto> userNames = userLookupService.getNames(userIds);
+        return requests.stream()
+                .map(r -> listItemAssembler.toDto(r, companyNames, userNames))
+                .toList();
     }
 }
