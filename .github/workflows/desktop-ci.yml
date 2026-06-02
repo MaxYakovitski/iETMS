@@ -17,8 +17,9 @@ jobs:
     env:
       APP_NAME: iETMS
       APP_VERSION: ${{ github.ref_name }}
-      BACKEND_URL: http://165.22.92.183:8080
-      BACKEND_WS_URL: ws://165.22.92.183:8080/ws
+      BACKEND_URL: https://ietms.app
+      BACKEND_WS_URL: wss://ietms.app/ws
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
       # 1. Checkout sources
@@ -53,7 +54,8 @@ jobs:
             -Dapp.version=${{ steps.version.outputs.version }} \
             -Dspring.profiles.active=prod \
             -Dbackend.base-url=${{ env.BACKEND_URL }} \
-            -Dbackend.ws-url=${{ env.BACKEND_WS_URL }}
+            -Dbackend.ws-url=${{ env.BACKEND_WS_URL }} \ 
+            -Dslack.webhook-url=${{ secrets.SLACK_WEBHOOK_URL }}
 
       # 5. Locate MSI
       - name: Locate MSI
