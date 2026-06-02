@@ -54,7 +54,7 @@ jobs:
             -Dapp.version=${{ steps.version.outputs.version }} \
             -Dspring.profiles.active=prod \
             -Dbackend.base-url=${{ env.BACKEND_URL }} \
-            -Dbackend.ws-url=${{ env.BACKEND_WS_URL }} \ 
+            -Dbackend.ws-url=${{ env.BACKEND_WS_URL }} \
             -Dslack.webhook-url=${{ secrets.SLACK_WEBHOOK_URL }}
 
       # 5. Locate MSI
