@@ -11,6 +11,9 @@ out/
 Thumbs.db
 
 .env
+
+application-local.properties
+
 CLAUDE.md
 .claude/
 
