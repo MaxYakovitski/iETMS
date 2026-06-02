@@ -11,6 +11,7 @@ out/
 Thumbs.db
 
 .env
+CLAUDE.md
 .claude/
 
 # License generator — vendor-only tool, never committed
