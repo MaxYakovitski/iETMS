@@ -1,6 +1,7 @@
 package com.mayak.ietms.ui.core;
 
 import com.mayak.ietms.infrastructure.error.AlertUtils;
+import com.mayak.ietms.infrastructure.window.WindowService;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 public class SessionManager {
 
+    private final WindowService windowService;
     private volatile boolean logoutInProgress = false;
 
     @Setter
@@ -32,7 +34,7 @@ public class SessionManager {
         logoutInProgress = true;
 
         Platform.runLater(() -> {
-            AlertUtils.showWarning("Session expired!\nYou logged in from another device.");
+            AlertUtils.showWarning("Session expired!\nYou logged in from another device.", windowService.getPrimaryStage());
             forceLogout();
         });
     }

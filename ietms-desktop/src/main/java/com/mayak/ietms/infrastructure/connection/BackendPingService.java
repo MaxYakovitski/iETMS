@@ -1,5 +1,6 @@
 package com.mayak.ietms.infrastructure.connection;
 
+import com.mayak.ietms.integration.exception.SessionExpiredException;
 import com.mayak.ietms.ui.core.SessionManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,6 +21,8 @@ public class BackendPingService {
         try {
             restTemplate.getForEntity("/api/ping", String.class);
             monitor.markConnected();
+        } catch (SessionExpiredException e) {
+            sessionManager.handleSessionExpired();
         } catch (HttpStatusCodeException e) {
             if (e.getStatusCode().value() == 401) {
                 sessionManager.handleSessionExpired();
