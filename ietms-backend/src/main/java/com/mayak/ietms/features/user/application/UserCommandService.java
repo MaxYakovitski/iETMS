@@ -196,6 +196,7 @@ public class UserCommandService {
             throw new UserInUseException(
                     "User \"" + fullName + "\" cannot be deleted because they are a competitor in existing requests.");
         }
+        refreshTokenRepository.deleteAllByUserId(id);
         userRepository.delete(user);
         log.info("User deleted: id={}", id);
     }

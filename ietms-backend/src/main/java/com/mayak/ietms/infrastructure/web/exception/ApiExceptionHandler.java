@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Map;
@@ -89,6 +91,12 @@ public class ApiExceptionHandler {
     public ErrorResponseDto handleUnauthorized(AuthenticationException ex, HttpServletRequest request) {
         log.warn("Authentication failed: {} {} — {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
         return new ErrorResponseDto("unauthorized", ex.getMessage());
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponseDto> handleResponseStatus(ResponseStatusException ex,  HttpServletRequest request) {
+        log.warn("Request rejected: {} {} — {}", request.getMethod(), request.getRequestURI(), ex.getReason());
+        return ResponseEntity.status(ex.getStatusCode()).build();
     }
 
     @ExceptionHandler(LicenseException.class)
