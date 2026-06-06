@@ -43,10 +43,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             String token = authHeader.substring(7);
             Long userId = jwtService.extractUserId(token);
+
             var authorities = jwtService.extractAuthorities(token);
             var authentication = new UsernamePasswordAuthenticationToken(userId, null, authorities);
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            request.setAttribute("sessionId", jwtService.extractSessionId(token));
         } catch (Exception e) {
             SecurityContextHolder.clearContext();
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

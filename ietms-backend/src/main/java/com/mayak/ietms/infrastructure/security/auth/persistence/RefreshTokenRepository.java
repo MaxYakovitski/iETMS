@@ -7,14 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.Optional;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
 
     Optional<RefreshToken> findByTokenHash(String tokenHash);
 
-    boolean existsByUserIdAndRevokedFalseAndExpiresAtAfter(Long userId, Instant expiresAt);
+    boolean existsByIdAndRevokedFalse(Long id);
 
     @Modifying(clearAutomatically = true, flushAutomatically =  true)
     @Transactional

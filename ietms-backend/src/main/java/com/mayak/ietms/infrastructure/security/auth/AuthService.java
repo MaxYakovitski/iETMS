@@ -67,9 +67,9 @@ public class AuthService {
         }
         refreshTokenRepository.revokeAllByUserId(user.getId());
         var perms = userPermissionService.getPermissions(user);
-        String accessToken  = jwtService.generateToken(user.getId(), user.getEmail(), perms);
-        String refreshToken = createRefreshToken(user.getId());
-        return new LoginResponse(accessToken, refreshToken);
+        var rt = createRefreshToken(user.getId());
+        String accessToken  = jwtService.generateToken(user.getId(), user.getEmail(), perms, rt.sessionId());
+        return new LoginResponse(accessToken, rt.rawToken());
     }
 
     /**
@@ -93,9 +93,9 @@ public class AuthService {
                 .orElseThrow(() -> new AuthenticationException("User not found"));
 
         var perms = userPermissionService.getPermissions(user);
-        String newAccess  = jwtService.generateToken(user.getId(), user.getEmail(), perms);
-        String newRefresh = createRefreshToken(user.getId());
-        return new LoginResponse(newAccess, newRefresh);
+        var rt = createRefreshToken(user.getId());
+        String newAccess  = jwtService.generateToken(user.getId(), user.getEmail(), perms, rt.sessionId());
+        return new LoginResponse(newAccess, rt.rawToken());
     }
 
     /**
@@ -110,15 +110,16 @@ public class AuthService {
         refreshTokenRepository.findByTokenHash(hash).ifPresent(t -> t.setRevoked(true));
     }
 
-    private String createRefreshToken(Long userId) {
+    private record RefreshResult(String rawToken, Long sessionId) {}
+
+    private RefreshResult createRefreshToken(Long userId) {
         String raw  = UUID.randomUUID().toString();
-        String hash = sha256(raw);
         RefreshToken token = new RefreshToken();
         token.setUserId(userId);
-        token.setTokenHash(hash);
+        token.setTokenHash(sha256(raw));
         token.setExpiresAt(Instant.now().plusMillis(refreshExpirationMs));
         refreshTokenRepository.save(token);
-        return raw;
+        return new RefreshResult(raw, token.getId());
     }
 
     private String sha256(String value) {

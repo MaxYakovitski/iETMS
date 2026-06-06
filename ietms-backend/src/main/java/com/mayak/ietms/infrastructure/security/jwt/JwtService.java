@@ -26,11 +26,12 @@ public class JwtService {
         this.expirationMs = expirationMs;
     }
 
-    public String generateToken(Long userId, String email,  Collection<Permission> permissions) {
+    public String generateToken(Long userId, String email,  Collection<Permission> permissions, Long sessionId) {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("email", email)
                 .claim("authorities", permissions.stream().map(Permission::name).toList())
+                .claim("sid", sessionId)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
@@ -58,5 +59,10 @@ public class JwtService {
                         .getPayload()
                         .get("authorities");
         return perms.stream().map(SimpleGrantedAuthority::new).toList();
+    }
+
+    public Long extractSessionId(String token) {
+        return Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).getPayload().get("sid", Long.class);
     }
 }
