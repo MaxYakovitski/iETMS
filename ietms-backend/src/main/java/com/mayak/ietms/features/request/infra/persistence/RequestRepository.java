@@ -7,7 +7,6 @@ import com.mayak.ietms.features.request.domain.model.SpotRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,7 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface RequestRepository
-        extends JpaRepository<Request, Long>, JpaSpecificationExecutor<Request>, RequestRepositoryCustom {
+        extends JpaRepository<Request, Long>, RequestCustomRepository {
 
     /**
      * Returns all non-archived requests sorted by status priority
@@ -315,11 +314,11 @@ ORDER BY
      */
     @Query(
             value = """
-            select exists (
-                select 1
-                from requests r
-                where r.from_location_ids_order @> cast(:locationId as jsonb)
-                   or r.to_location_ids_order   @> cast(:locationId as jsonb)
+            SELECT exists (
+                SELECT 1
+                FROM requests r
+                WHERE r.from_location_ids_order @> cast(:locationId AS jsonb)
+                   OR r.to_location_ids_order   @> cast(:locationId AS jsonb)
             )
         """,
             nativeQuery = true

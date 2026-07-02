@@ -18,7 +18,7 @@ import java.util.Map;
 
 @Slf4j
 @Repository
-public class RequestRepositoryImpl implements RequestRepositoryCustom {
+public class RequestRepositoryImpl implements RequestCustomRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
