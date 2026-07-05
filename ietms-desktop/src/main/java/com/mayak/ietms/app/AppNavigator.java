@@ -5,6 +5,7 @@ import com.mayak.ietms.auth.event.LoginSucceededEvent;
 import com.mayak.ietms.auth.event.SessionExpiredEvent;
 import com.mayak.ietms.infrastructure.connection.ui.BackendConnectionUiBinder;
 import com.mayak.ietms.infrastructure.error.AlertUtils;
+import com.mayak.ietms.infrastructure.error.ApiErrorUtils;
 import com.mayak.ietms.infrastructure.window.WindowService;
 import com.mayak.ietms.ui.auth.LoginController;
 import javafx.application.Platform;
@@ -68,7 +69,7 @@ public class AppNavigator {
         controller.setOnLogin(req ->
                 CompletableFuture.runAsync(() -> sessionService.login(req.email(), req.password())
                         ).exceptionally(ex -> {
-                            Platform.runLater(() -> controller.handleLoginError(ex));
+                            Platform.runLater(() -> AlertUtils.show(ApiErrorUtils.resolve(ex)));
                             return null;
                 })
         );

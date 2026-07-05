@@ -86,7 +86,7 @@ public class RequestMoreController {
             if (onDeleted != null) onDeleted.run();
 
         } catch (ApiException ex) {
-            UiError error = ApiErrorUtils.resolve(ex, "Failed to delete request.");
+            UiError error = ApiErrorUtils.resolve(ex);
             AlertUtils.show(error, stage);
             log.warn("Delete request failed", ex);
         }

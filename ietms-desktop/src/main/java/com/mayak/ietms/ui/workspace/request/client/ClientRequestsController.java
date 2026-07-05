@@ -471,7 +471,7 @@ public class ClientRequestsController extends AbstractRequestController {
 
         } catch (ApiException e) {
             log.error("Request creation failed", e);
-            AlertUtils.show(ApiErrorUtils.resolve(e, "Failed to create request."));
+            AlertUtils.show(ApiErrorUtils.resolve(e));
 
         }
     }

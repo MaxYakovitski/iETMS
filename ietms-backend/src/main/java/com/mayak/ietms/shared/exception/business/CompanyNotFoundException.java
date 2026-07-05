@@ -1,11 +1,12 @@
 package com.mayak.ietms.shared.exception.business;
 
 public class CompanyNotFoundException extends RuntimeException {
+
     public CompanyNotFoundException(Long id) {
-        super("Company not found: " + id);
+        super("Company: " + id + " not found!");
     }
 
     public CompanyNotFoundException(String name) {
-        super("Company not found: " + name);
+        super("Company: "  + name + " not found!");
     }
 }

@@ -366,7 +366,7 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
             dto = null;
 
         } catch (ApiException ex) {
-            UiError error = ApiErrorUtils.resolve(ex, "Failed to delete request.");
+            UiError error = ApiErrorUtils.resolve(ex);
             AlertUtils.show(error);
             log.warn("Delete request failed on renew", ex);
         }
@@ -390,13 +390,12 @@ public class RequestItemController implements ViewLifecycle, SecuredView {
             dto = null;
 
         } catch (ApiException ex) {
-            UiError error = ApiErrorUtils.resolve(ex, "Failed to expire request.");
+            UiError error = ApiErrorUtils.resolve(ex);
             AlertUtils.show(error);
             log.warn("Expire request failed", ex);
         }
     }
 
-    @FXML
     private void showBidHistory() {
         if (requestId == null) return;
 

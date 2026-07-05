@@ -97,7 +97,7 @@ public class LicenseSettingsController implements ViewLifecycle {
             licenseKeyArea.clear();
             loadLicense();
         } catch (ApiException ex) {
-            AlertUtils.show(ApiErrorUtils.resolve(ex, "Invalid license key!"));
+            AlertUtils.show(ApiErrorUtils.resolve(ex));
         }
     }
 
@@ -110,7 +110,7 @@ public class LicenseSettingsController implements ViewLifecycle {
             licenseClient.deactivate();
             loadLicense();
         } catch (ApiException ex) {
-            AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to deactivate license."));
+            AlertUtils.show(ApiErrorUtils.resolve(ex));
         }
     }
 }

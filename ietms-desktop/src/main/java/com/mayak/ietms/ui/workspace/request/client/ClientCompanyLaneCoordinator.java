@@ -61,7 +61,7 @@ public class ClientCompanyLaneCoordinator {
 
             } catch (ApiException ex) {
                 log.warn("Company lookup failed", ex);
-                Platform.runLater(() -> AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to find company.")));
+                Platform.runLater(() -> AlertUtils.show(ApiErrorUtils.resolve(ex)));
             }
         });
     }
@@ -80,7 +80,7 @@ public class ClientCompanyLaneCoordinator {
             } catch (ApiException ex) {
                 log.warn("Lane lookup failed", ex);
                 Platform.runLater(() ->
-                        AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to load lanes."))
+                        AlertUtils.show(ApiErrorUtils.resolve(ex))
                 );
             }
         });

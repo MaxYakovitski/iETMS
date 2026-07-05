@@ -135,8 +135,7 @@ public class LocationSettingsController extends AbstractSettingsController<Locat
         try {
             locationClient.delete(location.id());
         } catch (ApiException ex) {
-            AlertUtils.show(ApiErrorUtils.resolve(ex,
-                    "This location cannot be deleted because it is used in existing requests."));
+            AlertUtils.show(ApiErrorUtils.resolve(ex));
         }
     }
 

@@ -268,7 +268,7 @@ public class UserSettingsController extends AbstractSettingsController<UserRespo
         try {
             userClient.delete(user.id());
         } catch (ApiException ex) {
-            AlertUtils.show(ApiErrorUtils.resolve(ex, "This user cannot be deleted because they are used in existing requests."));
+            AlertUtils.show(ApiErrorUtils.resolve(ex));
         }
     }
 
@@ -293,7 +293,7 @@ public class UserSettingsController extends AbstractSettingsController<UserRespo
                     .findFirst()
                     .ifPresent(u -> usersTable.getSelectionModel().select(u));
         } catch (ApiException ex) {
-            AlertUtils.show(ApiErrorUtils.resolve(ex, "Failed to change user status."));
+            AlertUtils.show(ApiErrorUtils.resolve(ex));
         }
     }
 

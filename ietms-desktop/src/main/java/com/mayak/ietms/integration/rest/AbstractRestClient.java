@@ -3,6 +3,7 @@ package com.mayak.ietms.integration.rest;
 import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.integration.exception.ApiValidationException;
+import com.mayak.ietms.integration.exception.NetworkUnavailableException;
 import com.mayak.ietms.integration.exception.SessionExpiredException;
 import lombok.AllArgsConstructor;
 import org.springframework.web.client.*;
@@ -16,17 +17,17 @@ public class AbstractRestClient {
     protected final BackendConnectionMonitor connectionMonitor;
 
     protected <T> T exchangeSafely(Supplier<T> supplier) {
-        return execute(() -> {
         try {
-            return supplier.get();
+            T result = supplier.get();
+            connectionMonitor.markConnected();
+            return result;
         } catch (HttpStatusCodeException ex) {
+            connectionMonitor.markConnected();
             throw mapHttpException(ex);
-        } catch (RestClientException ex) {
-            throw new ApiException("Remote service unavailable", ex);
-        } catch (Exception ex) {
-            throw new ApiException("Unexpected client error", ex);
+        } catch (ResourceAccessException ex) {
+            connectionMonitor.markDisconnected(ex);
+            throw new NetworkUnavailableException(ex);
         }
-        });
     }
 
     protected RuntimeException mapHttpException(HttpStatusCodeException ex) {
@@ -39,19 +40,5 @@ public class AbstractRestClient {
             return ApiValidationException.fromResponse(ex);
         }
         return new ApiException(ex.getStatusCode(), body);
-    }
-
-    protected <T> T execute(Supplier<T> call) {
-        try {
-            T result = call.get();
-            connectionMonitor.markConnected();
-            return result;
-        } catch (HttpStatusCodeException e) {
-            connectionMonitor.markConnected();
-            throw e;
-        } catch (ResourceAccessException e) {
-            connectionMonitor.markDisconnected(e);
-            throw e;
-        }
     }
 }

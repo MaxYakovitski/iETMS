@@ -119,8 +119,7 @@ public class DepartmentSettingsController extends AbstractSettingsController<Dep
         try {
             departmentClient.delete(department.id());
         } catch (ApiException ex) {
-            AlertUtils.show(ApiErrorUtils.resolve(ex,
-                    "This department cannot be deleted because it is used by other records."));
+            AlertUtils.show(ApiErrorUtils.resolve(ex));
         }
     }
 

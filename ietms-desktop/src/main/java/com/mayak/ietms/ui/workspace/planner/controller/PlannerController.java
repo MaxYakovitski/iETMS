@@ -301,7 +301,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
             listManager.applyShipmentUpdate(fresh);
         } catch (ApiException e) {
             log.warn("Shipment update rejected by backend", e);
-            AlertUtils.show(ApiErrorUtils.resolve(e, "Shipment update failed."));
+            AlertUtils.show(ApiErrorUtils.resolve(e));
         }
     }
 
@@ -382,7 +382,7 @@ public class PlannerController implements SecuredView, ViewLifecycle {
                                     reloadAfterMutation();
                                 } catch (ApiException e) {
                                     log.warn("Failed to cancel shipment {}", state.getSelectedShipment().id(), e);
-                                    AlertUtils.show(ApiErrorUtils.resolve(e, "Shipment cancellation failed."));
+                                    AlertUtils.show(ApiErrorUtils.resolve(e));
                                 }
                             }
                     );

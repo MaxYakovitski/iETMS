@@ -130,8 +130,7 @@ public class CompanyController extends AbstractSettingsController<CompanyDto, Co
         try {
             companyClient.delete(item.id());
         } catch (ApiException ex) {
-            AlertUtils.show(ApiErrorUtils.resolve(ex,
-                    "This company cannot be deleted because it is used in existing requests."));
+            AlertUtils.show(ApiErrorUtils.resolve(ex));
         }
 
     }

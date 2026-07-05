@@ -124,7 +124,7 @@ public abstract class AbstractSettingsController <V, U, C> implements SecuredVie
             } catch (ApiValidationException ex) {
             validationUI.showBackendErrors(ex);
         } catch (ApiException ex) {
-            AlertUtils.show(ApiErrorUtils.resolve(ex, "Operation failed."));
+            AlertUtils.show(ApiErrorUtils.resolve(ex));
         }
     }
 

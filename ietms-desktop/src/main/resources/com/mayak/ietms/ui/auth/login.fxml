@@ -7,7 +7,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.layout.StackPane?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/21.0.7"
@@ -31,12 +30,10 @@
             <HBox alignment="CENTER">
                 <Label text="password:"/>
                 <Region HBox.hgrow="ALWAYS"/>
-            <PasswordField fx:id="passwordField" prefWidth="200"
-                           styleClass="price-field"/>
+            <PasswordField fx:id="passwordField" prefWidth="200" styleClass="price-field"/>
             </HBox>
         </VBox>
 
-    <ProgressIndicator fx:id="progress" visible="false" prefWidth="48" prefHeight="48" styleClass="login-progress"/>
     </StackPane>
 
 </AnchorPane>
