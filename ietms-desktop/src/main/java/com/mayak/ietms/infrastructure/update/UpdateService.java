@@ -1,5 +1,6 @@
 package com.mayak.ietms.infrastructure.update;
 
+import com.mayak.ietms.app.BackendProperties;
 import com.mayak.ietms.infrastructure.update.installer.UpdateInstaller;
 import com.mayak.ietms.infrastructure.util.OsUtils;
 import com.mayak.ietms.infrastructure.version.AppVersionProvider;
@@ -24,11 +25,10 @@ import java.nio.file.StandardOpenOption;
 @Slf4j
 public class UpdateService {
 
-    private static final String MANIFEST_URL = "http://165.22.92.183/updates/windows/manifest.json";
-
     private final RestTemplate restTemplate;
     private final AppVersionProvider versionProvider;
     private final UpdateInstaller installer;
+    private final String manifestUrl;
 
     @Setter
     private UpdateListener listener;
@@ -38,11 +38,13 @@ public class UpdateService {
     public UpdateService(
             RestTemplate restTemplate,
             AppVersionProvider versionProvider,
-            UpdateInstaller installer) {
+            UpdateInstaller installer,
+            BackendProperties backendProperties) {
 
         this.restTemplate = restTemplate;
         this.versionProvider = versionProvider;
         this.installer = installer;
+        this.manifestUrl = backendProperties.getBaseUrl() + "/updates/windows/manifest.json";
     }
 
     public UpdateCheckResult checkVersion() {
@@ -54,9 +56,7 @@ public class UpdateService {
         setState(UpdateState.CHECKING);
 
         try {
-            ManifestDto manifest =
-                    restTemplate.getForObject(MANIFEST_URL, ManifestDto.class);
-
+            ManifestDto manifest = restTemplate.getForObject(manifestUrl, ManifestDto.class);
             if (manifest == null) {
                 return UpdateCheckResult.noUpdate(getCurrentVersion());
             }
@@ -98,16 +98,13 @@ public class UpdateService {
 
             try {
                 Files.createDirectories(targetFile.getParent());
-
                 HttpClient client = HttpClient.newBuilder()
                         .followRedirects(HttpClient.Redirect.ALWAYS)
                         .build();
-
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(result.downloadUrl()))
                         .GET()
                         .build();
-
                 HttpResponse<InputStream> response =
                         client.send(request, HttpResponse.BodyHandlers.ofInputStream());
 
