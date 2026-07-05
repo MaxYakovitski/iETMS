@@ -4,11 +4,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mayak.ietms.app.BackendProperties;
+import com.mayak.ietms.auth.SessionContext;
+import com.mayak.ietms.auth.event.SessionClearedEvent;
 import com.mayak.ietms.company.dto.CompanyDto;
 import com.mayak.ietms.company.event.CompanyEvent;
-import com.mayak.ietms.integration.auth.AuthState;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.event.EventListener;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.simp.stomp.*;
 import org.springframework.stereotype.Component;
@@ -33,17 +35,26 @@ public class CompanyStompClient extends AbstractStompClient{
     private final WebSocketStompClient stompClient;
     private final ObjectMapper mapper;
     private final String wsUrl;
-    private final AuthState authState;
+    private final SessionContext sessionContext;
 
     private final List<Consumer<CompanyEvent<CompanyDto>>> handlers = new CopyOnWriteArrayList<>();
 
-    public CompanyStompClient(AuthState authState, BackendProperties backendProperties) {
-        this.authState = authState;
+    public CompanyStompClient(SessionContext sessionContext, BackendProperties backendProperties) {
+        this.sessionContext = sessionContext;
         this.wsUrl = backendProperties.getWsUrl();
         this.stompClient = buildStompClient();
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
+    @EventListener(SessionClearedEvent.class)
+    public void onSessionCleared() {
+        requestDisconnect();
+    }
+
+    /**
+     * Public API.
+     * Declares intent that WS must stay connected.
+     */
     public Runnable connect(Consumer<CompanyEvent<CompanyDto>> onEvent) {
         handlers.add(onEvent);
         requestConnect();
@@ -57,13 +68,17 @@ public class CompanyStompClient extends AbstractStompClient{
         };
     }
 
+    /**
+     * Internal connect implementation.
+     * MUST be called only if desiredConnected == true
+     */
     private synchronized void doConnect() {
         if (connected || connecting || shuttingDown || !desiredConnected) return;
         connecting = true;
 
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
-        if (authState.isAuthenticated()) {
-            headers.setBearerAuth(authState.getToken());
+        if (sessionContext.isAuthenticated()) {
+            headers.setBearerAuth(sessionContext.getAccessToken());
             log.info("WS auth header set");
         } else {
             log.warn("WS connection without auth accessToken");
@@ -89,8 +104,11 @@ public class CompanyStompClient extends AbstractStompClient{
                 }
 
                 @Override
-                public void handleException(@NotNull StompSession session, StompCommand command,
-                                            @NotNull StompHeaders headers, @Nullable byte[] payload, @NotNull Throwable exception) {
+                public void handleException(@NotNull StompSession session,
+                                            StompCommand command,
+                                            @NotNull StompHeaders headers,
+                                            @Nullable byte[] payload,
+                                            @NotNull Throwable exception) {
                     connecting = false;
                     connected = false;
                     log.warn("WS STOMP exception", exception);

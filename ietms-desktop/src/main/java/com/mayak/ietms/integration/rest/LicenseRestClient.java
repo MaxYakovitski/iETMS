@@ -4,7 +4,6 @@ import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.api.LicenseClient;
 import com.mayak.ietms.license.dto.LicenseActivateDto;
 import com.mayak.ietms.license.dto.LicenseResponseDto;
-import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -24,8 +23,8 @@ public class LicenseRestClient extends AbstractRestClient implements LicenseClie
 
     private static final String API = "/api/license";
 
-    public LicenseRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
-        super(restTemplate, connectionMonitor, sessionManager);
+    public LicenseRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     @Override
@@ -52,7 +51,6 @@ public class LicenseRestClient extends AbstractRestClient implements LicenseClie
                     .post(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
-
             restTemplate.exchange(request, Void.class);
             return null;
         });
@@ -64,7 +62,6 @@ public class LicenseRestClient extends AbstractRestClient implements LicenseClie
             RequestEntity<Void> request = RequestEntity
                     .delete(API)
                     .build();
-
             restTemplate.exchange(request, Void.class);
             return null;
         });

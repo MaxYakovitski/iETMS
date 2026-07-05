@@ -3,7 +3,6 @@ package com.mayak.ietms.integration.rest;
 import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.api.ReportClient;
 import com.mayak.ietms.statistics.ReportType;
-import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -20,8 +19,8 @@ public class ReportRestClient extends AbstractRestClient implements ReportClient
 
     private static final String API = "/api/reports/requests.xlsx?type={type}&from={from}&to={to}";
 
-    public ReportRestClient(@Qualifier("reportRestTemplate") RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
-        super(restTemplate, connectionMonitor, sessionManager);
+    public ReportRestClient(@Qualifier("reportRestTemplate") RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     @Override

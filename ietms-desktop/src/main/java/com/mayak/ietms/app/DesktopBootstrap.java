@@ -2,7 +2,6 @@ package com.mayak.ietms.app;
 
 import com.mayak.ietms.infrastructure.update.UpdateCheckResult;
 import com.mayak.ietms.infrastructure.update.UpdateService;
-import com.mayak.ietms.infrastructure.window.FxmlLoader;
 import com.mayak.ietms.ui.home.HomeController;
 import com.mayak.ietms.ui.update.UpdateController;
 import javafx.event.Event;
@@ -57,10 +56,10 @@ public class DesktopBootstrap {
     }
 
     private StartupPlan buildUpdatePlan(UpdateCheckResult result) {
-        UpdateController controller = new UpdateController();
-        controller.setUpdateService(updateService);
+        var loaded = fxWeaver.load(UpdateController.class);
+        UpdateController controller = loaded.getController();
 
-        Parent root = FxmlLoader.load(UpdateController.FXML, controller);
+        Parent root = (Parent) loaded.getView().orElseThrow();
         Scene scene = new Scene(root);
 
         var started = new AtomicBoolean(false);

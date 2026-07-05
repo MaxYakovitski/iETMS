@@ -24,9 +24,14 @@ import net.rgielen.fxweaver.core.FxWeaver;
  *
  * @see NavigationType
  * @see ModalOptions
+ *
+ * <p>Not to be confused with {@link com.mayak.ietms.app.AppNavigator}, which
+ * owns top-level screens (login/main window); this class is per-session and
+ * handles navigation only within the content area of the main window.
  */
+
 @RequiredArgsConstructor
-public class NavigationService {
+public class ContentNavigationService {
 
     private final WindowService windowService;
     private final FxWeaver fxWeaver;
@@ -83,7 +88,6 @@ public class NavigationService {
         AnchorPane.setRightAnchor(node, 0.0);
 
         homeController.getContentArea().getChildren().setAll(node);
-
         if (controller instanceof ViewLifecycle lifecycle) {
             lifecycle.onShow();
             currentInlineView = lifecycle;

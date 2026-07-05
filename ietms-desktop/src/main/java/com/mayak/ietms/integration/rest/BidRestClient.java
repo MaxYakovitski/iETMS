@@ -4,7 +4,6 @@ import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.request.dto.bid.BidCreateDto;
 import com.mayak.ietms.request.dto.bid.BidViewDto;
 import com.mayak.ietms.integration.api.BidClient;
-import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -19,8 +18,8 @@ public class BidRestClient extends AbstractRestClient implements BidClient {
 
     private static final String API = "/api/bids";
 
-    public BidRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor,  SessionManager sessionManager) {
-        super(restTemplate,  connectionMonitor, sessionManager);
+    public BidRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate,  connectionMonitor);
     }
 
     @Override
@@ -29,15 +28,11 @@ public class BidRestClient extends AbstractRestClient implements BidClient {
             RequestEntity<Void> request = RequestEntity
                     .get(API + "/by-request/{id}", requestId)
                     .build();
-
             var response = restTemplate.exchange(
                     request,
                     new ParameterizedTypeReference<List<BidViewDto>>() {}
             );
-
-            return response.getBody() != null
-                    ? response.getBody()
-                    : Collections.emptyList();
+            return response.getBody() != null ? response.getBody() : Collections.emptyList();
         });
     }
 
@@ -48,10 +43,7 @@ public class BidRestClient extends AbstractRestClient implements BidClient {
                     .post(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
-
-            return restTemplate
-                    .exchange(request, BidViewDto.class)
-                    .getBody();
+            return restTemplate.exchange(request, BidViewDto.class).getBody();
         });
     }
 
@@ -61,7 +53,6 @@ public class BidRestClient extends AbstractRestClient implements BidClient {
             RequestEntity<Void> request = RequestEntity
                     .delete(API + "/{id}", bidId)
                     .build();
-
             restTemplate.exchange(request, Void.class);
             return null;
         });

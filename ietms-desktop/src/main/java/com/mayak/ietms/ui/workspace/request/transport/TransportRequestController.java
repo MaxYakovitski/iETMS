@@ -5,6 +5,7 @@ import com.mayak.ietms.request.dto.enums.RequestTypeDto;
 import com.mayak.ietms.integration.websocket.RequestStompClient;
 import com.mayak.ietms.ui.core.RequiresPermission;
 import com.mayak.ietms.ui.core.ViewPermission;
+import com.mayak.ietms.ui.navigation.ContentNavigationService;
 import com.mayak.ietms.ui.workspace.request.base.AbstractRequestController;
 import com.mayak.ietms.support.state.RequestFilterState;
 import com.mayak.ietms.infrastructure.window.WindowService;
@@ -30,7 +31,7 @@ import java.util.Objects;
  * <p>Opens in a detached (non-modal) window, one instance per
  * {@link com.mayak.ietms.request.dto.enums.RequestTypeDto}.
  * The {@code requestType} must be injected before the view is shown —
- * see {@link com.mayak.ietms.ui.navigation.NavigationService}.
+ * see {@link ContentNavigationService}.
  *
  * <p>Declared {@code prototype}-scoped because multiple instances
  * (one per type) can be open simultaneously.

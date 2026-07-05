@@ -8,7 +8,7 @@ import com.mayak.ietms.ui.dashboard.DashboardController;
 import com.mayak.ietms.user.dto.UserResponseDto;
 import com.mayak.ietms.ui.analytics.controller.AnalyticsPopupController;
 import com.mayak.ietms.ui.crm.CrmPopupController;
-import com.mayak.ietms.ui.navigation.NavigationService;
+import com.mayak.ietms.ui.navigation.ContentNavigationService;
 import com.mayak.ietms.ui.user.UserController;
 import com.mayak.ietms.ui.workspace.request.filter.RequestFilterController;
 import com.mayak.ietms.ui.workspace.request.base.RequestsParent;
@@ -82,7 +82,7 @@ public class HomeController {
     private final WindowService windowService;
     private final FxWeaver fxWeaver;
     @Getter
-    private NavigationService navigation;
+    private ContentNavigationService navigation;
 
     // ==================== State ====================
     @Setter
@@ -106,7 +106,7 @@ public class HomeController {
         try {
             this.loggedInUser = userClient.getMe();
             this.permissions = new UserPermissions(loggedInUser);
-            this.navigation = new NavigationService(windowService, fxWeaver,this, loggedInUser);
+            this.navigation = new ContentNavigationService(windowService, fxWeaver,this, loggedInUser);
             applyUserPermissions();
             navigateTo(DashboardController.class);
         } catch (Exception e) {

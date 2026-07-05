@@ -4,7 +4,6 @@ import com.mayak.ietms.company.dto.CompanyCreateDto;
 import com.mayak.ietms.company.dto.CompanyDto;
 import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.api.CompanyClient;
-import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -19,8 +18,8 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
 
     private static final String API = "/api/companies";
 
-    public CompanyRestClient(RestTemplate restTemplate,  BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
-        super(restTemplate,  connectionMonitor, sessionManager);
+    public CompanyRestClient(RestTemplate restTemplate,  BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate,  connectionMonitor);
     }
 
     @Override
@@ -29,12 +28,10 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
             RequestEntity<Void> request = RequestEntity
                     .get(API)
                     .build();
-
             var body = restTemplate.exchange(
                     request,
                     new ParameterizedTypeReference<List<CompanyDto>>() {}
             ).getBody();
-
             return body != null ? body : List.of();
         });
     }
@@ -45,12 +42,7 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
             RequestEntity<Void> request = RequestEntity
                     .get(API + "/by-name?name={name}", name)
                     .build();
-
-            return Optional.ofNullable(
-                    restTemplate
-                            .exchange(request, CompanyDto.class)
-                            .getBody()
-            );
+            return Optional.ofNullable(restTemplate.exchange(request, CompanyDto.class).getBody());
         });
     }
 
@@ -61,10 +53,7 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
                     .post(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
-
-            return restTemplate
-                    .exchange(request, CompanyDto.class)
-                    .getBody();
+            return restTemplate.exchange(request, CompanyDto.class).getBody();
         });
     }
 
@@ -75,7 +64,6 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
                     .put(API + "/" + id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
-
             restTemplate.exchange(request, Void.class);
             return null;
         });
@@ -87,14 +75,8 @@ public class CompanyRestClient extends AbstractRestClient implements CompanyClie
             RequestEntity<Void> request = RequestEntity
                     .delete(API + "/" + id)
                     .build();
-
             restTemplate.exchange(request, Void.class);
             return null;
         });
-    }
-
-    public CompanyDto findOrCreate(String name) {
-        return findByName(name)
-                .orElseGet(() -> create(new CompanyCreateDto(name)));
     }
 }

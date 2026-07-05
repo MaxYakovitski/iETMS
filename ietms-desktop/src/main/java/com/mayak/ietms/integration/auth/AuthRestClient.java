@@ -6,7 +6,6 @@ import com.mayak.ietms.integration.auth.dto.LoginResponseDto;
 import com.mayak.ietms.integration.auth.dto.RefreshTokenRequestDto;
 import com.mayak.ietms.integration.exception.ApiException;
 import com.mayak.ietms.integration.rest.AbstractRestClient;
-import com.mayak.ietms.ui.core.SessionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -24,8 +23,8 @@ public class AuthRestClient extends AbstractRestClient implements AuthClient {
 
     private static final String API = "/api/auth/login";
 
-    public AuthRestClient(RestTemplate restTemplate, BackendConnectionMonitor monitor,  SessionManager sessionManager) {
-        super(restTemplate, monitor,  sessionManager);
+    public AuthRestClient(RestTemplate restTemplate, BackendConnectionMonitor monitor) {
+        super(restTemplate, monitor);
     }
 
     @Override
@@ -41,17 +40,6 @@ public class AuthRestClient extends AbstractRestClient implements AuthClient {
                 throw new ApiException(e.getStatusCode(), e.getResponseBodyAsString());
             }
         });
-    }
-
-    @Override
-    public LoginResponseDto refresh(String refreshToken) {
-        return exchangeSafely(() ->
-                restTemplate.postForObject(
-                        "/api/auth/refresh",
-                        new RefreshTokenRequestDto(refreshToken),
-                        LoginResponseDto.class
-                )
-        );
     }
 
     @Override

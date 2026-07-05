@@ -4,7 +4,6 @@ import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.location.dto.LocationCreateDto;
 import com.mayak.ietms.location.dto.LocationDto;
 import com.mayak.ietms.integration.api.LocationClient;
-import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -18,8 +17,8 @@ public class LocationRestClient extends AbstractRestClient implements LocationCl
 
     private static final String API = "/api/locations";
 
-    public LocationRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
-        super(restTemplate, connectionMonitor, sessionManager);
+    public LocationRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     @Override
@@ -33,7 +32,6 @@ public class LocationRestClient extends AbstractRestClient implements LocationCl
                             request,
                             new ParameterizedTypeReference<List<LocationDto>>() {}
                     ).getBody();
-
             return body != null ? body : List.of();
         });
     }
@@ -45,7 +43,6 @@ public class LocationRestClient extends AbstractRestClient implements LocationCl
                     .post(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
-
             restTemplate.exchange(request, Void.class);
             return null;
         });
@@ -58,7 +55,6 @@ public class LocationRestClient extends AbstractRestClient implements LocationCl
                     .put(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
-
             restTemplate.exchange(request, Void.class);
             return null;
         });
@@ -70,7 +66,6 @@ public class LocationRestClient extends AbstractRestClient implements LocationCl
             RequestEntity<Void> request = RequestEntity
                     .delete(API + "/{id}", id)
                     .build();
-
             restTemplate.exchange(request, Void.class);
             return null;
         });

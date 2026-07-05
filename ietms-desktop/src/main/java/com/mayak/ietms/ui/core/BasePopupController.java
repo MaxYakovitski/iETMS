@@ -2,7 +2,7 @@ package com.mayak.ietms.ui.core;
 
 import com.mayak.ietms.user.dto.UserResponseDto;
 import com.mayak.ietms.ui.home.HomeController;
-import com.mayak.ietms.ui.navigation.NavigationService;
+import com.mayak.ietms.ui.navigation.ContentNavigationService;
 import javafx.css.PseudoClass;
 import javafx.stage.Popup;
 import lombok.Getter;
@@ -25,13 +25,13 @@ public abstract class BasePopupController implements SecuredView,ViewLifecycle {
     protected Popup popup;
     protected UserResponseDto loggedInUser;
     protected UserPermissions permissions;
-    protected NavigationService navigation;
+    protected ContentNavigationService navigation;
 
     /**
      * Wires all shared dependencies into this controller.
      * Must be called once after construction, before the popup is shown for the first time.
      */
-    public void init(UserResponseDto user, HomeController home, Popup popup, NavigationService navigation) {
+    public void init(UserResponseDto user, HomeController home, Popup popup, ContentNavigationService navigation) {
         this.loggedInUser = user;
         this.permissions = new UserPermissions(user);
         this.homeController = home;

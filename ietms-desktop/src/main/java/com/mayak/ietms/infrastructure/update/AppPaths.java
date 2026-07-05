@@ -49,7 +49,7 @@ public final class AppPaths {
                 .resolve("iETMS-NativeHost.exe");
     }
 
-    public static Path tokenFile() {
+    public static Path accessTokenFile() {
         if (OsUtils.isWindows()) {
             return Path.of(System.getenv("LOCALAPPDATA"), APP_NAME, "native-host", "accessToken");
         }

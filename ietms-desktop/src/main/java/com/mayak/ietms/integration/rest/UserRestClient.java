@@ -2,7 +2,6 @@ package com.mayak.ietms.integration.rest;
 
 import com.mayak.ietms.infrastructure.connection.BackendConnectionMonitor;
 import com.mayak.ietms.integration.api.UserClient;
-import com.mayak.ietms.ui.core.SessionManager;
 import com.mayak.ietms.user.dto.*;
 import com.mayak.ietms.user.dto.enums.UserStatusDto;
 import org.springframework.core.ParameterizedTypeReference;
@@ -24,14 +23,13 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
 
     private static final String API = "/api/users";
 
-    public UserRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
-        super(restTemplate, connectionMonitor, sessionManager);
+    public UserRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     @Override
     public UserResponseDto getMe() {
         return exchangeSafely(() -> {
-
             ResponseEntity<UserResponseDto> response =
                     restTemplate.exchange(
                             API + "/me",
@@ -39,7 +37,6 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
                             null,
                             UserResponseDto.class
                     );
-
             return response.getBody();
         });
     }
@@ -77,7 +74,6 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
                     .post(API)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
-
             restTemplate.exchange(request, Void.class);
             return null;
         });
@@ -90,7 +86,6 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
                     .put(API + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
-
             restTemplate.exchange(request, Void.class);
             return null;
         });
@@ -102,7 +97,6 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
             RequestEntity<Void> request = RequestEntity
                     .delete(API + "/{id}", id)
                     .build();
-
             restTemplate.exchange(request, Void.class);
             return null;
         });
@@ -136,7 +130,6 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
 
     private List<UserResponseDto> exchangeList(String url, Object... args) {
         return exchangeSafely(() -> {
-
             ResponseEntity<List<UserResponseDto>> response =
                     restTemplate.exchange(
                             url,
@@ -146,17 +139,13 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
                             },
                             args
                     );
-
-            return response.getBody() != null
-                    ? response.getBody()
-                    : List.of();
+            return response.getBody() != null ? response.getBody() : List.of();
         });
     }
 
     @Override
     public List<UserLookupDto> findColleaguesLookupByDepartment(Long depId) {
         return exchangeSafely(() -> {
-
             ResponseEntity<List<UserLookupDto>> response =
                     restTemplate.exchange(
                             API + "/colleagues/lookup/by-department/{id}",
@@ -165,10 +154,7 @@ public class UserRestClient extends AbstractRestClient implements UserClient {
                             new ParameterizedTypeReference<>() {},
                             depId
                     );
-
-            return response.getBody() != null
-                    ? response.getBody()
-                    : List.of();
+            return response.getBody() != null ? response.getBody() : List.of();
         });
     }
 }

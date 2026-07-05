@@ -6,7 +6,6 @@ import com.mayak.ietms.shipment.dto.command.CancelShipmentRequest;
 import com.mayak.ietms.shipment.dto.enums.ShipmentCancelReasonDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentListItemDto;
 import com.mayak.ietms.shipment.dto.view.ShipmentUpdateDto;
-import com.mayak.ietms.ui.core.SessionManager;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -21,8 +20,8 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
 
     private static final String API = "/api/shipments";
 
-    public ShipmentRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor, SessionManager sessionManager) {
-        super(restTemplate, connectionMonitor, sessionManager);
+    public ShipmentRestClient(RestTemplate restTemplate, BackendConnectionMonitor connectionMonitor) {
+        super(restTemplate, connectionMonitor);
     }
 
     @Override
@@ -31,12 +30,10 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
             RequestEntity<Void> request = RequestEntity
                     .get(API + "/my-shipments?date={date}", date)
                     .build();
-
             var body = restTemplate.exchange(
                     request,
                     new ParameterizedTypeReference<List<ShipmentListItemDto>>() {}
             ).getBody();
-
             return body != null ? body : List.of();
         });
     }
@@ -47,12 +44,10 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
             RequestEntity<Void> request = RequestEntity
                     .get(API + "/my-transports")
                     .build();
-
             var body = restTemplate.exchange(
                     request,
                     new ParameterizedTypeReference<List<ShipmentListItemDto>>() {}
             ).getBody();
-
             return body != null ? body : List.of();
         });
     }
@@ -60,31 +55,21 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
     @Override
     public ShipmentListItemDto update(ShipmentUpdateDto dto) {
         return exchangeSafely(() -> {
-
             RequestEntity<ShipmentUpdateDto> request = RequestEntity
                     .patch(API + "/{id}", dto.shipmentId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
-
-            return restTemplate.exchange(
-                    request,
-                    ShipmentListItemDto.class
-            ).getBody();
+            return restTemplate.exchange(request, ShipmentListItemDto.class).getBody();
         });
     }
 
     @Override
     public ShipmentListItemDto getDetails(Long shipmentId) {
         return exchangeSafely(() -> {
-
             RequestEntity<Void> request = RequestEntity
                     .get(API + "/{id}", shipmentId)
                     .build();
-
-            return restTemplate.exchange(
-                    request,
-                    ShipmentListItemDto.class
-            ).getBody();
+            return restTemplate.exchange(request, ShipmentListItemDto.class).getBody();
         });
     }
 
@@ -95,7 +80,6 @@ public class ShipmentRestClient extends AbstractRestClient implements ShipmentCl
                     RequestEntity
                             .post(API + "/{id}/cancel", shipmentId)
                             .body(new CancelShipmentRequest(reason));
-
             restTemplate.exchange(request, Void.class);
             return null;
         });

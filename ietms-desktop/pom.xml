@@ -279,6 +279,9 @@
                                         <argument>--java-options</argument>
                                         <argument>-Xmx512m</argument>
 
+                                        <argument>--java-options</argument>
+                                        <argument>-Djavafx.preloader=com.mayak.ietms.app.AppPreloader</argument>
+
                                     </arguments>
                                 </configuration>
                             </execution>

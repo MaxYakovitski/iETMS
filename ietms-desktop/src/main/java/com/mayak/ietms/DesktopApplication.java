@@ -1,19 +1,14 @@
 package com.mayak.ietms;
 
-import com.mayak.ietms.config.PropertyConfig;
 import net.rgielen.fxweaver.core.FxWeaver;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-@Configuration
-@ComponentScan("com.mayak.ietms")
-@Import(PropertyConfig.class)
+@SpringBootApplication
 @EnableScheduling
 public class DesktopApplication {
 

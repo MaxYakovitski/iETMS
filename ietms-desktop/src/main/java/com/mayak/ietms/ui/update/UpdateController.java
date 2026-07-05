@@ -8,13 +8,19 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 
+@Controller
+@FxmlView("update.fxml")
+@Scope("prototype")
+@RequiredArgsConstructor
 @Slf4j
 public class UpdateController {
-
-    public static final String FXML = "/com/mayak/ietms/ui/update/update.fxml";
 
     @FXML
     private Label messageLabel;
