@@ -9,7 +9,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
@@ -28,8 +27,7 @@ public class UpdateController {
     @FXML
     private ProgressBar progressBar;
 
-    @Setter
-    private UpdateService updateService;
+    private final UpdateService updateService;
 
     /**
      * Initiates the update flow based on the given check result.
